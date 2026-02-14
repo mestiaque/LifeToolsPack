@@ -1,0 +1,32 @@
+{
+    "name": "mestiaque/em_core",
+    "description": "EmCore module for Laravel (by M. Estiaque Ahmed Khan)",
+    "type": "library",
+    "keywords": [
+        "Laravel",
+        "EmCore",
+        "Estiaque"
+    ],
+    "authors": [
+        {
+            "name": "M. Estiaque Ahmed Khan",
+            "email": "info@mestiaque.com",
+            "homepage": "https://mestiaque.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "EmCore\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "EmCore\\EmCoreServiceProvider"
+            ]
+        }
+    },
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
