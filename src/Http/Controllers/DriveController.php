@@ -1,9 +1,9 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
-use EmCore\Models\Folder;
-use EmCore\Models\Document;
+use ME\EmCore\Models\Folder;
+use ME\EmCore\Models\Document;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;

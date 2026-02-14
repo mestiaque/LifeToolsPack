@@ -1,8 +1,8 @@
 <?php
 
-namespace EmCore\Jobs;
+namespace ME\EmCore\Jobs;
 
-use EmCore\Services\TelegramBotService;
+use ME\EmCore\Services\TelegramBotService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

@@ -1,12 +1,12 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
 use Illuminate\Http\Request;
-use EmCore\Models\DailyExpense;
+use ME\EmCore\Models\DailyExpense;
 use Illuminate\Support\Facades\Log;
 use ME\Http\Controllers\Controller;
-use EmCore\Services\TelegramBotService;
+use ME\EmCore\Services\TelegramBotService;
 
 class TelegramWebhookController extends Controller
 {

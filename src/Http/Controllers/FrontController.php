@@ -1,8 +1,8 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
-use EmCore\Models\Brand;
+use ME\EmCore\Models\Brand;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
 use App\Http\Middleware\AuthorizationMiddleware;

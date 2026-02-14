@@ -1,8 +1,8 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
-use EmCore\Models\Event;
+use ME\EmCore\Models\Event;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
 

@@ -80,7 +80,7 @@
                                                     <small class="text-muted">{{ $role->description }}</small>
 
                                                     @php
-                                                        $rolePermissions = EmCore\Models\RolePermission::where('role_id', $role->id)->first();
+                                                        $rolePermissions = ME\EmCore\Models\RolePermission::where('role_id', $role->id)->first();
                                                         $permissions = $rolePermissions ? $rolePermissions->permissions : [];
                                                     @endphp
 

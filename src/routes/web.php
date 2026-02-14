@@ -2,20 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 use ME\Http\Middleware\LocaleMiddleware;
-use EmCore\Http\Controllers\DiskController;
-use EmCore\Http\Controllers\LoanController;
-use EmCore\Http\Controllers\RoleController;
-use EmCore\Http\Controllers\UserController;
-use EmCore\Http\Controllers\DriveController;
-use EmCore\Http\Controllers\EventController;
-use EmCore\Http\Controllers\FrontController;
-use EmCore\Http\Controllers\GalleryController;
-use EmCore\Http\Controllers\MessageController;
-use EmCore\Http\Controllers\SettingController;
-use EmCore\Http\Controllers\BirthdayController;
-use EmCore\Http\Controllers\LoanUserController;
-use EmCore\Http\Controllers\DashboardController;
-use EmCore\Http\Controllers\DailyExpenseController;
+use ME\EmCore\Http\Controllers\DiskController;
+use ME\EmCore\Http\Controllers\LoanController;
+use ME\EmCore\Http\Controllers\RoleController;
+use ME\EmCore\Http\Controllers\UserController;
+use ME\EmCore\Http\Controllers\DriveController;
+use ME\EmCore\Http\Controllers\EventController;
+use ME\EmCore\Http\Controllers\FrontController;
+use ME\EmCore\Http\Controllers\GalleryController;
+use ME\EmCore\Http\Controllers\MessageController;
+use ME\EmCore\Http\Controllers\SettingController;
+use ME\EmCore\Http\Controllers\BirthdayController;
+use ME\EmCore\Http\Controllers\LoanUserController;
+use ME\EmCore\Http\Controllers\DashboardController;
+use ME\EmCore\Http\Controllers\DailyExpenseController;
 
 
 Route::middleware(['web'])->group(function () {

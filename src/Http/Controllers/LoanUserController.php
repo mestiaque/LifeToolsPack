@@ -1,8 +1,8 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
-use EmCore\Models\LoanUser;
+use ME\EmCore\Models\LoanUser;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
 use App\Http\Middleware\AuthorizationMiddleware;

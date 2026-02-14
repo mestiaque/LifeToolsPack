@@ -1,6 +1,6 @@
 <?php
 
-namespace EmCore\Services;
+namespace ME\EmCore\Services;
 
 use Illuminate\Support\Facades\Http;
 

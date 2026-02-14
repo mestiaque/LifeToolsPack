@@ -23,7 +23,7 @@
                                 <i class="fas fa-images fa-2x me-3 icon-glow"></i>
                                 <div>
                                     <h5 class="card-title mb-0">Gallery Images</h5>
-                                    <p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Gallery::count() }}">{{ \EmCore\Models\Gallery::count() }}</p>
+                                    <p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Gallery::count() }}">{{ \ME\EmCore\Models\Gallery::count() }}</p>
                                 </div>
                             </div>
                         </div>
@@ -34,7 +34,7 @@
                                 <i class="fas fa-calendar fa-2x me-3 icon-pulse-fast"></i>
                                 <div>
                                     <h5 class="card-title mb-0">Events</h5>
-                                    <p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Event::count() }}">{{ \EmCore\Models\Event::count() }}</p>
+                                    <p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Event::count() }}">{{ \ME\EmCore\Models\Event::count() }}</p>
                                 </div>
                             </div>
                         </div>
@@ -59,7 +59,7 @@
                                 <i class="fas fa-envelope fa-2x me-3 icon-bounce"></i>
                                 <div>
                                     <h5 class="card-title mb-0">Messages</h5>
-                                    <p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Message::count() }}">{{ \EmCore\Models\Message::count() }}</p>
+                                    <p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Message::count() }}">{{ \ME\EmCore\Models\Message::count() }}</p>
                                 </div>
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                                 <i class="fas fa-file-alt fa-2x me-3 icon-pulse"></i>
                                 <div>
                                     <h5 class="card-title mb-0">Documents</h5>
-                                    <p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Document::count() }}">{{ \EmCore\Models\Document::count() }}</p>
+                                    <p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Document::count() }}">{{ \ME\EmCore\Models\Document::count() }}</p>
                                 </div>
                             </div>
                         </div>
@@ -113,16 +113,16 @@
                                             <!-- Title + Count -->
                                             <div class="text-start">
                                                 <h5 class="card-title mb-0">Today's Events</h5>
-                                                <p class="card-text fs-4 counter mb-0" data-target="{{ \EmCore\Models\Event::whereDate('start', today())->count() }}">
-                                                    {{ \EmCore\Models\Event::whereDate('start', today())->count() }}
+                                                <p class="card-text fs-4 counter mb-0" data-target="{{ \ME\EmCore\Models\Event::whereDate('start', today())->count() }}">
+                                                    {{ \ME\EmCore\Models\Event::whereDate('start', today())->count() }}
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="col-md-9 ps-4" style="margin-top: auto; margin-bottom: auto;">
-                                        @if(\EmCore\Models\Event::whereDate('start', today())->exists())
-                                            <h5 class="card-title mb-2">{{ \EmCore\Models\Event::whereDate('start', today())->pluck('title')->join(', ') ?: 'N/A' }}</h5>
+                                        @if(\ME\EmCore\Models\Event::whereDate('start', today())->exists())
+                                            <h5 class="card-title mb-2">{{ \ME\EmCore\Models\Event::whereDate('start', today())->pluck('title')->join(', ') ?: 'N/A' }}</h5>
                                         @else
                                             <h5 class="card-title mb-0 w-100 text-muted" align="center">No Events Today</h5>
                                         @endif

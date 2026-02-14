@@ -1,5 +1,5 @@
 <?php
-namespace EmCore;
+namespace ME\EmCore;
 
 use Illuminate\Support\ServiceProvider;
 

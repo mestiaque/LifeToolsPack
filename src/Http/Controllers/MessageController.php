@@ -1,12 +1,12 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
 use ME\Models\Setting;
-use EmCore\Models\Message;
+use ME\EmCore\Models\Message;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
-use EmCore\Services\TelegramBotService;
+use ME\EmCore\Services\TelegramBotService;
 use App\Http\Middleware\AuthorizationMiddleware;
 
 class MessageController extends Controller

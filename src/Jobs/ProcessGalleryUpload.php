@@ -1,8 +1,8 @@
 <?php
-namespace EmCore\Jobs;
+namespace ME\EmCore\Jobs;
 
 use Log;
-use EmCore\Models\Gallery;
+use ME\EmCore\Models\Gallery;
 use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;

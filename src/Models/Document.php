@@ -1,8 +1,8 @@
 <?php
 
-namespace EmCore\Models;
+namespace ME\EmCore\Models;
 
-use EmCore\Models\Folder;
+use ME\EmCore\Models\Folder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

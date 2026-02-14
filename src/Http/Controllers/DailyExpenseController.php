@@ -1,10 +1,10 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
 use Carbon\Carbon;
 use ME\Models\Setting;
-use EmCore\Models\DailyExpense;
+use ME\EmCore\Models\DailyExpense;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
 use App\Http\Middleware\AuthorizationMiddleware;

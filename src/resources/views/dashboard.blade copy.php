@@ -17,7 +17,7 @@
 						<i class="fas fa-users fa-2x me-3 icon-spin"></i>
 						<div>
 							<h5 class="card-title mb-0">Users</h5>
-							<p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\User::count() }}">{{ \EmCore\Models\User::count() }}</p>
+							<p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\User::count() }}">{{ \ME\EmCore\Models\User::count() }}</p>
 						</div>
 					</div>
 				</div>
@@ -31,7 +31,7 @@
 						<i class="fas fa-envelope fa-2x me-3 icon-bounce"></i>
 						<div>
 							<h5 class="card-title mb-0">Messages</h5>
-							<p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Message::count() }}">{{ \EmCore\Models\Message::count() }}</p>
+							<p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Message::count() }}">{{ \ME\EmCore\Models\Message::count() }}</p>
 						</div>
 					</div>
 				</div>
@@ -45,7 +45,7 @@
 						<i class="fas fa-file-alt fa-2x me-3 icon-pulse"></i>
 						<div>
 							<h5 class="card-title mb-0">Documents</h5>
-							<p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Document::count() }}">{{ \EmCore\Models\Document::count() }}</p>
+							<p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Document::count() }}">{{ \ME\EmCore\Models\Document::count() }}</p>
 						</div>
 					</div>
 				</div>
@@ -59,7 +59,7 @@
 						<i class="fas fa-images fa-2x me-3 icon-glow"></i>
 						<div>
 							<h5 class="card-title mb-0">Gallery Images</h5>
-							<p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Gallery::count() }}">{{ \EmCore\Models\Gallery::count() }}</p>
+							<p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Gallery::count() }}">{{ \ME\EmCore\Models\Gallery::count() }}</p>
 						</div>
 					</div>
 				</div>
@@ -76,7 +76,7 @@
 						<i class="fas fa-user-shield fa-2x me-3 icon-spin-slow"></i>
 						<div>
 							<h5 class="card-title mb-0">Roles</h5>
-							<p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Role::count() }}">{{ \EmCore\Models\Role::count() }}</p>
+							<p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Role::count() }}">{{ \ME\EmCore\Models\Role::count() }}</p>
 						</div>
 					</div>
 				</div>
@@ -90,7 +90,7 @@
 						<i class="fas fa-folder fa-2x me-3 icon-bounce-slow"></i>
 						<div>
 							<h5 class="card-title mb-0">Folders</h5>
-							<p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Folder::count() }}">{{ \EmCore\Models\Folder::count() }}</p>
+							<p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Folder::count() }}">{{ \ME\EmCore\Models\Folder::count() }}</p>
 						</div>
 					</div>
 				</div>
@@ -104,7 +104,7 @@
 						<i class="fas fa-cogs fa-2x me-3 icon-gear"></i>
 						<div>
 							<h5 class="card-title mb-0">Settings</h5>
-							<p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\Setting::count() }}">{{ \EmCore\Models\Setting::count() }}</p>
+							<p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\Setting::count() }}">{{ \ME\EmCore\Models\Setting::count() }}</p>
 						</div>
 					</div>
 				</div>
@@ -118,7 +118,7 @@
 						<i class="fas fa-user-clock fa-2x me-3 icon-pulse-fast"></i>
 						<div>
 							<h5 class="card-title mb-0">Loan Users</h5>
-							<p class="card-text fs-4 counter" data-target="{{ \EmCore\Models\LoanUser::count() }}">{{ \EmCore\Models\LoanUser::count() }}</p>
+							<p class="card-text fs-4 counter" data-target="{{ \ME\EmCore\Models\LoanUser::count() }}">{{ \ME\EmCore\Models\LoanUser::count() }}</p>
 						</div>
 					</div>
 				</div>

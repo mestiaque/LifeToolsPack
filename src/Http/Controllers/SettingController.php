@@ -1,6 +1,6 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
 use ME\Models\Setting;
 use Illuminate\Support\Str;

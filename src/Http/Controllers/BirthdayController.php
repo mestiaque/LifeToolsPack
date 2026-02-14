@@ -1,6 +1,6 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;

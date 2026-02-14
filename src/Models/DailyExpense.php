@@ -1,6 +1,6 @@
 <?php
 
-namespace EmCore\Models;
+namespace ME\EmCore\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

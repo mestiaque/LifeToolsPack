@@ -16,13 +16,13 @@
     ],
     "autoload": {
         "psr-4": {
-            "EmCore\\": "src/"
+            "ME\\EmCore\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "EmCore\\EmCoreServiceProvider"
+                "ME\\EmCore\\EmCoreServiceProvider"
             ]
         }
     },

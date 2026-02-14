@@ -1,15 +1,15 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
 use Exception;
-use EmCore\Models\Gallery;
+use ME\EmCore\Models\Gallery;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
 use ME\Services\TelegramBotService;
 use Illuminate\Support\Facades\Auth;
-use EmCore\Jobs\ProcessGalleryUpload;
+use ME\EmCore\Jobs\ProcessGalleryUpload;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Middleware\AuthorizationMiddleware;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace EmCore\Http\Controllers;
+namespace ME\EmCore\Http\Controllers;
 
-use EmCore\Models\Disk;
+use ME\EmCore\Models\Disk;
 use ME\Models\Setting;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;

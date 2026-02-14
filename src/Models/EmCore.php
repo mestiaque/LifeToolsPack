@@ -1,5 +1,5 @@
 <?php
-            namespace EmCore\Models;
+            namespace ME\EmCore\Models;
 
             use Illuminate\Database\Eloquent\Model;
 
