@@ -20,7 +20,7 @@ use ME\EmCore\Http\Controllers\DailyExpenseController;
 
 Route::middleware(['web'])->group(function () {
 
-    Route::get('/', [FrontController::class, 'index'])->name('home');
+    Route::get('protfolio/', [FrontController::class, 'index'])->name('home');
     Route::get('/cv', [FrontController::class, 'cv']);
     Route::get('/curriculum-vitae', [FrontController::class, 'cv'])->name('cv');
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
