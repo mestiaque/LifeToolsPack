@@ -8,6 +8,7 @@ use ME\EmCore\Http\Controllers\RoleController;
 use ME\EmCore\Http\Controllers\UserController;
 use ME\EmCore\Http\Controllers\DriveController;
 use ME\EmCore\Http\Controllers\EventController;
+use ME\EmCore\Http\Controllers\EventExpenseController;
 use ME\EmCore\Http\Controllers\FrontController;
 use ME\EmCore\Http\Controllers\GalleryController;
 use ME\EmCore\Http\Controllers\MessageController;
@@ -106,6 +107,12 @@ Route::middleware(['web'])->group(function () {
             Route::post('events', [EventController::class, 'store'])->name('events.store');
             Route::put('events/{id}', [EventController::class, 'update'])->name('events.update');
             Route::delete('events/{id}', [EventController::class, 'destroy'])->name('events.delete');
+
+            // Event Expenses routes
+            Route::get('events/{event}/expenses', [EventExpenseController::class, 'index'])->name('events.expenses.index');
+            Route::post('events/{event}/expenses', [EventExpenseController::class, 'store'])->name('events.expenses.store');
+            Route::put('events/{event}/expenses/{id}', [EventExpenseController::class, 'update'])->name('events.expenses.update');
+            Route::delete('events/{event}/expenses/{id}', [EventExpenseController::class, 'destroy'])->name('events.expenses.delete');
         });
 
         Route::get('/calendar/events', [DashboardController::class, 'calendarEvents']);

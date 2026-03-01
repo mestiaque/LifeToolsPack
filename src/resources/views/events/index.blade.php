@@ -60,6 +60,9 @@
                       @endif
                     </td>
                     <td class="d-flex justify-content-center">
+                      <a href="{{ route('admin.events.expenses.index', $event->id) }}" class="btn btn-sm btn-encodex-view me-1" title="@lang('Expenses')">
+                        <i class="fas fa-money-bill-wave"></i>
+                      </a>
                       <button type="button" class="btn btn-sm btn-encodex-edit   me-1" data-bs-toggle="modal" data-bs-target="#eventModal{{ $event->id }}" title="@lang('Edit')">
                         <i class="fas fa-edit  "></i>
                       </button>

@@ -72,6 +72,7 @@ return [
         'icon_color' => 'text-info',
         'route'  => 'admin.events.index',
     ],
+    
     [
         'title'    => 'User Management',
         'icon'     => 'fas fa-users-cog',
