@@ -12,9 +12,9 @@ class EmCoreServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/resources/views', 'em_core');
         $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'em_core');
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-        $this->publishes([
-            __DIR__.'/Config' => config_path('em_core'),
-        ], 'em_core-config');
+        // $this->publishes([
+        //     __DIR__.'/Config' => config_path('em_core'),
+        // ], 'em_core-config');
     }
 
     public function register()
