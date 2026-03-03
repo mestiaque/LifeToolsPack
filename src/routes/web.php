@@ -17,6 +17,7 @@ use ME\EmCore\Http\Controllers\BirthdayController;
 use ME\EmCore\Http\Controllers\LoanUserController;
 use ME\EmCore\Http\Controllers\DashboardController;
 use ME\EmCore\Http\Controllers\DailyExpenseController;
+use ME\EmCore\Http\Controllers\HerCycleController;
 
 
 Route::middleware(['web'])->group(function () {
@@ -113,6 +114,18 @@ Route::middleware(['web'])->group(function () {
             Route::post('events/{event}/expenses', [EventExpenseController::class, 'store'])->name('events.expenses.store');
             Route::put('events/{event}/expenses/{id}', [EventExpenseController::class, 'update'])->name('events.expenses.update');
             Route::delete('events/{event}/expenses/{id}', [EventExpenseController::class, 'destroy'])->name('events.expenses.delete');
+
+            // HerCycle routes
+            Route::get('/hercycle', [HerCycleController::class, 'index'])->name('hercycle.index');
+            Route::get('/hercycle/setup', [HerCycleController::class, 'setup'])->name('hercycle.setup');
+            Route::post('/hercycle/profile', [HerCycleController::class, 'storeProfile'])->name('hercycle.profile.store');
+            Route::put('/hercycle/profile/{id}', [HerCycleController::class, 'updateProfile'])->name('hercycle.profile.update');
+            Route::post('/hercycle/period', [HerCycleController::class, 'storePeriod'])->name('hercycle.period.store');
+            Route::put('/hercycle/period/{id}', [HerCycleController::class, 'updatePeriod'])->name('hercycle.period.update');
+            Route::delete('/hercycle/period/{id}', [HerCycleController::class, 'deletePeriod'])->name('hercycle.period.delete');
+            Route::post('/hercycle/symptom', [HerCycleController::class, 'storeSymptom'])->name('hercycle.symptom.store');
+            Route::put('/hercycle/notifications/{id}', [HerCycleController::class, 'updateNotifications'])->name('hercycle.notifications.update');
+            Route::get('/hercycle/month-data', [HerCycleController::class, 'getMonthData'])->name('hercycle.month-data');
         });
 
         Route::get('/calendar/events', [DashboardController::class, 'calendarEvents']);

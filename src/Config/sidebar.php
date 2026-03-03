@@ -72,6 +72,12 @@ return [
         'icon_color' => 'text-info',
         'route'  => 'admin.events.index',
     ],
+    [
+        'title'    => 'HerCycle',
+        'icon'     => 'fas fa-heart',
+        'icon_color' => 'text-pink',
+        'route'  => 'admin.hercycle.index',
+    ],
     
     [
         'title'    => 'User Management',

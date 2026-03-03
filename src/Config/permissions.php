@@ -45,4 +45,8 @@ return [
         "title" => "Admin Functions(Clear Data)",
         "actions" => "view",
     ],
+    "hercycle" => [
+        "title" => "HerCycle",
+        "actions" => "view,track,symptoms,predictions",
+    ],
 ];
