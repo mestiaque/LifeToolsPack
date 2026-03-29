@@ -179,6 +179,7 @@ class UserController extends Controller
             ->with('success', "User {$status} successfully");
     }
 
+
     public function destroy(User $user)
     {
         // Prevent deleting yourself

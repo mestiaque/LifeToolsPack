@@ -62,9 +62,18 @@
                                     </button>
                                 @endif
                             </span>
-                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $folder->id }}" title="Share Folder">
-                                <i class="bi bi-share"></i>
-                            </button>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $folder->id }}" title="Share Folder">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                                <form method="POST" action="{{ route('admin.drive.folder.delete', $folder->id) }}" onsubmit="return confirm('Are you sure you want to delete this folder and all its contents?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Folder">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                         <!-- Folder Share Modal -->
                         <div class="modal fade" id="shareFolderModal-{{ $folder->id }}" tabindex="-1" aria-labelledby="shareFolderModalLabel-{{ $folder->id }}" aria-hidden="true">
@@ -116,9 +125,18 @@
                                                     </button>
                                                 @endif
                                             </span>
-                                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $child->id }}" title="Share Folder">
-                                                <i class="bi bi-share"></i>
-                                            </button>
+                                            <div class="d-flex gap-1">
+                                                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $child->id }}" title="Share Folder">
+                                                    <i class="bi bi-share"></i>
+                                                </button>
+                                                <form method="POST" action="{{ route('admin.drive.folder.delete', $child->id) }}" onsubmit="return confirm('Are you sure you want to delete this subfolder and all its contents?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Subfolder">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                         <!-- Subfolder Share Modal -->
                                         <div class="modal fade" id="shareFolderModal-{{ $child->id }}" tabindex="-1" aria-labelledby="shareFolderModalLabel-{{ $child->id }}" aria-hidden="true">
@@ -159,9 +177,18 @@
                                                                 </a>
                                                                 <span class="badge bg-secondary ms-2">{{ $subchild->documents->count() }}</span>
                                                             </span>
-                                                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $subchild->id }}" title="Share Folder">
-                                                                <i class="bi bi-share"></i>
-                                                            </button>
+                                                            <div class="d-flex gap-1">
+                                                                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $subchild->id }}" title="Share Folder">
+                                                                    <i class="bi bi-share"></i>
+                                                                </button>
+                                                                <form method="POST" action="{{ route('admin.drive.folder.delete', $subchild->id) }}" onsubmit="return confirm('Are you sure you want to delete this sub-subfolder and all its contents?');">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Sub-subfolder">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </div>
                                                         </div>
                                                         <!-- Sub-subfolder Share Modal -->
                                                         <div class="modal fade" id="shareFolderModal-{{ $subchild->id }}" tabindex="-1" aria-labelledby="shareFolderModalLabel-{{ $subchild->id }}" aria-hidden="true">
@@ -243,16 +270,6 @@
         </div>
         <!-- Main: Documents Panel -->
         <div class="col-md-9 drive-main py-4">
-            @if(session('success'))
-                <div class="alert alert-success rounded-2 shadow-sm">{{ session('success') }}</div>
-            @endif
-            @if($errors->any())
-                <div class="alert alert-danger rounded-2 shadow-sm">
-                    @foreach($errors->all() as $err)
-                        <div>{{ $err }}</div>
-                    @endforeach
-                </div>
-            @endif
 
             {{-- Show file share link and OTP if available --}}
             @foreach($documents as $doc)

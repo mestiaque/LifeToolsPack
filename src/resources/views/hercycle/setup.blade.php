@@ -4,176 +4,89 @@
 
 @push('css')
 <style>
-    :root {
-        --her-pink-light: #FFE4E6;
-        --her-pink: #F472B6;
-        --her-pink-dark: #DB2777;
-        --her-purple-light: #F3E8FF;
-        --her-purple: #A855F7;
-        --her-purple-dark: #7C3AED;
+    .text-her-pink { color: #DB2777; }
+    .bg-gradient-her {
+        background: linear-gradient(135deg, #F472B6 0%, #DB2777 100%);
     }
-
-    .setup-container {
-        max-width: 600px;
-        margin: 50px auto;
-        padding: 20px;
-    }
-
-    .setup-card {
-        background: white;
-        border-radius: 24px;
-        padding: 40px;
-        box-shadow: 0 10px 40px rgba(212, 123, 179, 0.15);
-    }
-
-    .setup-header {
-        text-align: center;
-        margin-bottom: 40px;
-    }
-
-    .setup-icon {
-        font-size: 4rem;
-        margin-bottom: 20px;
-    }
-
-    .setup-title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--her-pink-dark);
-        margin-bottom: 10px;
-    }
-
-    .setup-subtitle {
-        color: #6B7280;
-        font-size: 1.1rem;
-        line-height: 1.6;
-    }
-
-    .form-group {
-        margin-bottom: 25px;
-    }
-
-    .form-label {
-        display: block;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-    }
-
-    .form-input {
-        width: 100%;
-        padding: 14px 18px;
-        border: 2px solid #E5E7EB;
-        border-radius: 12px;
-        font-size: 1rem;
-        transition: all 0.2s;
-    }
-
-    .form-input:focus {
-        outline: none;
-        border-color: var(--her-pink);
-        box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.1);
-    }
-
-    .form-hint {
-        font-size: 0.8rem;
-        color: #9CA3AF;
-        margin-top: 5px;
-    }
-
-    .btn-her {
-        width: 100%;
-        padding: 16px 32px;
-        border-radius: 14px;
-        border: none;
-        font-weight: 700;
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .btn-her-primary {
-        background: linear-gradient(135deg, var(--her-pink) 0%, var(--her-pink-dark) 100%);
-        color: white;
-    }
-
-    .btn-her-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(212, 123, 179, 0.4);
-    }
-
-    .step-indicator {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-bottom: 30px;
-    }
-
-    .step {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #E5E7EB;
-    }
-
-    .step.active {
-        background: var(--her-pink);
-    }
-
     .welcome-animation {
         animation: float 3s ease-in-out infinite;
+        font-size: 4rem;
     }
 
     @keyframes float {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-10px); }
     }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #F472B6;
+        box-shadow: 0 0 0 0.25rem rgba(244, 114, 182, 0.25);
+    }
+    .transition-hover {
+        transition: all 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(219, 39, 119, 0.3) !important;
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="setup-container">
-    <div class="setup-card">
-        <div class="setup-header">
-            <div class="welcome-animation">💝</div>
-            <h1 class="setup-title">Welcome to HerCycle!</h1>
-            <p class="setup-subtitle">
-                Let's get to know you better to provide accurate predictions and personalized insights. 
-                This information helps us make your tracking experience perfect for you.
-            </p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5">
+                <div class="text-center">
+                    <h1 class="fw-bold text-her-pink ">Welcome to HerCycle!</h1>
+
+                </div>
+
+                <form action="{{ route('admin.hercycle.profile.store') }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Your Name</label>
+                        <input type="text" name="name" class="form-control form-control- rounded-3" placeholder="Enter your name" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Date of Birth</label>
+                        <input type="date" name="dob" class="form-control form-control- rounded-3" required onchange="updateAge()">
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <label class="form-label fw-semibold text-dark">Weight (kg)</label>
+                            <input type="number" name="weight" class="form-control form-control- rounded-3" placeholder="Enter your weight" min="20" max="200" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark">Height (cm)</label>
+                            <input type="number" name="height" class="form-control form-control- rounded-3" placeholder="Enter your height" min="100" max="250" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Blood Group</label>
+                        <select name="blood_group" class="form-control form-control- rounded-3" required>
+                            <option value="">Select</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-encodex-save w-100">
+                        Get Started ✨
+                    </button>
+
+                </form>
+            </div>
         </div>
-
-        <form action="{{ route('admin.hercycle.profile.store') }}" method="POST">
-            @csrf
-            
-            <div class="form-group">
-                <label class="form-label">Your Name</label>
-                <input type="text" name="name" class="form-input" placeholder="Enter your name" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Your Age</label>
-                <input type="number" name="age" class="form-input" placeholder="Enter your age" min="10" max="100">
-                <p class="form-hint">Optional - helps us provide better recommendations</p>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Average Cycle Length</label>
-                <input type="number" name="cycle_length" class="form-input" value="28" min="20" max="45" required>
-                <p class="form-hint">Number of days between periods (typically 21-35 days)</p>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Average Period Length</label>
-                <input type="number" name="period_length" class="form-input" value="5" min="2" max="10" required>
-                <p class="form-hint">How many days does your period usually last?</p>
-            </div>
-
-            <button type="submit" class="btn-her btn-her-primary">
-                Get Started ✨
-            </button>
-        </form>
     </div>
 </div>
 @endsection

@@ -15,6 +15,9 @@ class EmCoreServiceProvider extends ServiceProvider
         // $this->publishes([
         //     __DIR__.'/Config' => config_path('em_core'),
         // ], 'em_core-config');
+        $this->publishes([
+            __DIR__ . '/public' => public_path('/'),
+        ], 'emcore-assets');
     }
 
     public function register()

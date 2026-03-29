@@ -24,7 +24,7 @@ class DriveController extends Controller
         $this->middleware('authorization:drive.view')->only(['index']);
         $this->middleware('authorization:drive.folder.create')->only(['createFolder']);
         $this->middleware('authorization:drive.upload')->only(['upload']);
-        $this->middleware('authorization:drive.delete')->only(['delete']);
+        $this->middleware('authorization:drive.delete')->only(['delete', 'deleteFolder']);
         $this->middleware('authorization:drive.share')->only(['share', 'shareFolder']);
     }
 
@@ -129,6 +129,39 @@ class DriveController extends Controller
         Storage::delete($doc->file_path); // fix: use file_path
         $doc->delete();
         return back()->with('success', 'File deleted successfully.');
+    }
+
+    public function deleteFolder($id)
+    {
+        $folder = Folder::findOrFail($id);
+        
+        // Check if folder belongs to the authenticated user
+        if ($folder->user_id !== Auth::id()) {
+            return back()->withErrors(['You do not have permission to delete this folder.']);
+        }
+        
+        // Recursively delete all documents in this folder and its subfolders
+        $this->deleteFolderContents($folder);
+        
+        // Delete the folder itself
+        $folder->delete();
+        
+        return back()->with('success', 'Folder deleted successfully.');
+    }
+    
+    private function deleteFolderContents($folder)
+    {
+        // Delete all documents in this folder
+        foreach ($folder->documents as $doc) {
+            Storage::delete($doc->file_path);
+            $doc->delete();
+        }
+        
+        // Recursively delete contents of subfolders
+        foreach ($folder->children as $child) {
+            $this->deleteFolderContents($child);
+            $child->delete();
+        }
     }
 
     public function share($id, Request $request)

@@ -16,46 +16,127 @@ class HerCycleController extends Controller
 {
     public function index()
     {
+        // return view('em_core::hercycle.setup');
         $user = Auth::user();
         $profile = HerCycleProfile::where('user_id', $user->id)->first();
-
         if (!$profile) {
             return redirect()->route('admin.hercycle.setup');
         }
-
         $periods = HerCyclePeriod::where('profile_id', $profile->id)
             ->orderBy('start_date', 'desc')
-            ->limit(12)
             ->get();
 
-        $symptoms = HerCycleSymptom::where('profile_id', $profile->id)
-            ->orderBy('date', 'desc')
-            ->limit(30)
-            ->get();
+        // Calculate average cycle and period length from logs
+        $cycleLengths = [];
+        $periodLengths = [];
+        $cycleTrendData = [];
+        $periodsArr = $periods->sortBy('start_date')->values();
+        $oneYearAgo = Carbon::now()->subYear()->startOfDay();
+        $cycleTrendDataRaw = [];
 
-        // Get predictions
-        $nextPeriod = $profile->predictNextPeriod();
-        $fertileWindow = $profile->predictFertileWindow();
-        $pmsPeriod = $profile->predictPMS();
+        if ($periodsArr->count() === 1) {
+            // Only one log exists
+            $first = $periodsArr[0];
+            $avgPeriod = $first->end_date ? $first->start_date->diffInDays($first->end_date) + 1 : 1;
+            $avgCycle = 30;
+            // Next period: 30 days after end if exists, else after start
+            $nextStart = $first->end_date
+                ? $first->end_date->copy()->addDays(30)
+                : $first->start_date->copy()->addDays(30);
+            $nextEnd = null;
+        } else if ($periodsArr->count() > 1) {
+            for ($i = 0; $i < $periodsArr->count() - 1; $i++) {
+                $currentCycleLength = abs($periodsArr[$i+1]->start_date->diffInDays($periodsArr[$i]->start_date));
+                $cycleLengths[] = $currentCycleLength;
 
-        // Calendar data
-        $currentMonth = Carbon::now();
-        $calendarData = $this->getCalendarData($profile, $currentMonth);
+                // Keep last 1 year cycle points for detailed charting.
+                if ($periodsArr[$i+1]->start_date->greaterThanOrEqualTo($oneYearAgo)) {
+                    $cycleTrendDataRaw[] = [
+                        'label' => $periodsArr[$i+1]->start_date->format('M d'),
+                        'length' => $currentCycleLength,
+                        'from' => $periodsArr[$i]->start_date->format('Y-m-d'),
+                        'to' => $periodsArr[$i+1]->start_date->format('Y-m-d'),
+                    ];
+                }
+            }
+            foreach ($periods as $period) {
+                if ($period->end_date) {
+                    $periodLengths[] = $period->start_date->diffInDays($period->end_date) + 1;
+                }
+            }
+            $avgCycle = count($cycleLengths) ? round(array_sum($cycleLengths)/count($cycleLengths)) : null;
+            $avgPeriod = count($periodLengths) ? round(array_sum($periodLengths)/count($periodLengths)) : null;
 
-        // Statistics
-        $stats = $this->getStatistics($profile, $periods);
+            // Add current ongoing cycle as an extra point (from latest start date to today).
+            $latestPeriod = $periods->first();
+            $today = Carbon::now()->startOfDay();
+            if (
+                $latestPeriod &&
+                !$latestPeriod->end_date &&
+                $latestPeriod->start_date->greaterThanOrEqualTo($oneYearAgo) &&
+                $latestPeriod->start_date->lessThanOrEqualTo($today)
+            ) {
+                $ongoingLength = $latestPeriod->start_date->diffInDays($today);
+                if ($ongoingLength > 0) {
+                    $cycleTrendDataRaw[] = [
+                        'label' => $today->format('M d') . ' (Now)',
+                        'length' => $ongoingLength,
+                        'from' => $latestPeriod->start_date->format('Y-m-d'),
+                        'to' => $today->format('Y-m-d'),
+                        'is_ongoing' => true,
+                    ];
+                }
+            }
 
-        return view('em_core::hercycle.index', compact(
-            'profile',
-            'periods',
-            'symptoms',
-            'nextPeriod',
-            'fertileWindow',
-            'pmsPeriod',
-            'calendarData',
-            'stats',
-            'currentMonth'
-        ));
+            foreach ($cycleTrendDataRaw as $item) {
+                $deviation = $avgCycle ? abs($item['length'] - $avgCycle) : 0;
+                if ($deviation <= 2) {
+                    $item['flow'] = 'Good';
+                } elseif ($deviation <= 5) {
+                    $item['flow'] = 'Neutral';
+                } else {
+                    $item['flow'] = 'Bad';
+                }
+                $cycleTrendData[] = $item;
+            }
+
+            // Predict next period
+            $lastPeriod = $periods->first();
+            $nextStart = $lastPeriod && $avgCycle ? $lastPeriod->start_date->copy()->addDays($avgCycle) : null;
+            $nextEnd = $nextStart && $avgPeriod ? $nextStart->copy()->addDays($avgPeriod-1) : null;
+        } else {
+            $avgCycle = null;
+            $avgPeriod = null;
+            $nextStart = null;
+            $nextEnd = null;
+        }
+
+        // Predict flow quality
+        $flowPrediction = null;
+        if (count($cycleLengths) > 1) {
+            $variance = max($cycleLengths) - min($cycleLengths);
+            if ($variance <= 3) $flowPrediction = 'Good';
+            elseif ($variance <= 7) $flowPrediction = 'Neutral';
+            else $flowPrediction = 'Bad';
+        } else {
+            $flowPrediction = 'Neutral';
+        }
+
+        // Calculate age from dob
+        $age = $profile->dob ? Carbon::parse($profile->dob)->age : null;
+
+        return view('em_core::hercycle.index', [
+            'profile' => $profile,
+            'periods' => $periods,
+            'avgCycle' => $avgCycle,
+            'avgPeriod' => $avgPeriod,
+            'nextStart' => $nextStart,
+            'nextEnd' => $nextEnd,
+            'flowPrediction' => $flowPrediction,
+            'age' => $age,
+            'cycleLengths' => $cycleLengths,
+            'cycleTrendData' => $cycleTrendData,
+        ]);
     }
 
     public function setup()
@@ -74,43 +155,44 @@ class HerCycleController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'age' => 'nullable|integer|min:10|max:100',
-            'cycle_length' => 'required|integer|min:20|max:45',
-            'period_length' => 'required|integer|min:2|max:10',
+            'dob' => 'required|date',
+            'weight' => 'required|numeric|min:20|max:200',
+            'height' => 'required|numeric|min:100|max:250',
+            'blood_group' => 'required|string|max:5',
         ]);
-
         $user = Auth::user();
-
         $profile = HerCycleProfile::create([
             'user_id' => $user->id,
             'name' => $request->name,
-            'age' => $request->age,
-            'cycle_length' => $request->cycle_length,
-            'period_length' => $request->period_length,
+            'dob' => $request->dob,
+            'weight' => $request->weight,
+            'height' => $request->height,
+            'blood_group' => $request->blood_group,
         ]);
-
         // Create default notification settings
         HerCycleNotification::create([
             'profile_id' => $profile->id,
         ]);
-
         return redirect()->route('admin.hercycle.index')->with('success', 'Profile created successfully!');
     }
 
     public function updateProfile(Request $request, $id)
     {
         $profile = HerCycleProfile::findOrFail($id);
-
         $request->validate([
             'name' => 'required|string|max:255',
-            'age' => 'nullable|integer|min:10|max:100',
-            'cycle_length' => 'required|integer|min:20|max:45',
-            'period_length' => 'required|integer|min:2|max:10',
-            'last_period_start' => 'nullable|date',
+            'dob' => 'required|date',
+            'weight' => 'required|numeric|min:20|max:200',
+            'height' => 'required|numeric|min:100|max:250',
+            'blood_group' => 'required|string|max:5',
         ]);
-
-        $profile->update($request->all());
-
+        $profile->update([
+            'name' => $request->name,
+            'dob' => $request->dob,
+            'weight' => $request->weight,
+            'height' => $request->height,
+            'blood_group' => $request->blood_group,
+        ]);
         return redirect()->route('admin.hercycle.index')->with('success', 'Profile updated successfully!');
     }
 
@@ -118,45 +200,118 @@ class HerCycleController extends Controller
     {
         $request->validate([
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'flow_intensity' => 'nullable|in:light,medium,heavy',
-            'notes' => 'nullable|string',
+            'end_date' => [
+                'nullable',
+                'date',
+                'after:start_date',
+            ],
         ]);
-
         $user = Auth::user();
         $profile = HerCycleProfile::where('user_id', $user->id)->first();
 
-        $period = HerCyclePeriod::create([
+        // If the same start date already exists, treat this as an update attempt from the log form.
+        $existingPeriod = HerCyclePeriod::where('profile_id', $profile->id)
+            ->whereDate('start_date', $request->start_date)
+            ->first();
+
+        if ($existingPeriod) {
+            if (!$request->end_date) {
+                return redirect()->route('admin.hercycle.index')->with('error', 'You already logged a period for this start date.');
+            }
+
+            $endDateConflict = HerCyclePeriod::where('profile_id', $profile->id)
+                ->where('id', '!=', $existingPeriod->id)
+                ->where(function ($q) use ($request) {
+                    $q->whereDate('start_date', $request->end_date)
+                        ->orWhereDate('end_date', $request->end_date);
+                })
+                ->exists();
+
+            if ($endDateConflict) {
+                return redirect()->route('admin.hercycle.index')->with('error', 'You already logged a period for this date.');
+            }
+
+            $existingPeriod->update([
+                'end_date' => $request->end_date,
+            ]);
+
+            return redirect()->route('admin.hercycle.index')->with('success', 'Period updated successfully!');
+        }
+
+        // Prevent duplicate start or end date for this profile
+        $exists = HerCyclePeriod::where('profile_id', $profile->id)
+            ->where(function($q) use ($request) {
+                $q->whereDate('start_date', $request->start_date)
+                  ->orWhereDate('end_date', $request->start_date);
+                if ($request->end_date) {
+                    $q->orWhereDate('start_date', $request->end_date)
+                      ->orWhereDate('end_date', $request->end_date);
+                }
+            })
+            ->exists();
+        if ($exists) {
+            return redirect()->route('admin.hercycle.index')->with('error', 'You already logged a period for this date.');
+        }
+        HerCyclePeriod::create([
             'profile_id' => $profile->id,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'flow_intensity' => $request->flow_intensity,
-            'notes' => $request->notes,
         ]);
-
-        // Update profile last period start
-        $profile->update(['last_period_start' => $request->start_date]);
-
-        // Recalculate predictions
-        $this->updatePredictions($profile);
-
-        return redirect()->route('hercycle.index')->with('success', 'Period recorded successfully!');
+        return redirect()->route('admin.hercycle.index')->with('success', 'Period recorded successfully!');
     }
 
     public function updatePeriod(Request $request, $id)
     {
         $period = HerCyclePeriod::findOrFail($id);
-
         $request->validate([
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'flow_intensity' => 'nullable|in:light,medium,heavy',
-            'notes' => 'nullable|string',
+            'end_date' => [
+                'nullable',
+                'date',
+                'after:start_date',
+            ],
         ]);
+        // Only check uniqueness for dates that are actually being changed.
+        $currentStartDate = $period->start_date ? $period->start_date->format('Y-m-d') : null;
+        $currentEndDate = $period->end_date ? $period->end_date->format('Y-m-d') : null;
 
-        $period->update($request->all());
+        $conflictDates = [];
+        if ($request->start_date !== $currentStartDate) {
+            $conflictDates[] = $request->start_date;
+        }
+        if ($request->end_date && $request->end_date !== $currentEndDate) {
+            $conflictDates[] = $request->end_date;
+        }
 
-        return redirect()->route('hercycle.index')->with('success', 'Period updated successfully!');
+        $conflictDates = array_values(array_unique($conflictDates));
+        $exists = false;
+        if (count($conflictDates) > 0) {
+            $profileId = $period->profile_id;
+            $exists = HerCyclePeriod::where('profile_id', $profileId)
+                ->where('id', '!=', $period->id)
+                ->where(function($q) use ($conflictDates) {
+                    foreach ($conflictDates as $index => $date) {
+                        if ($index === 0) {
+                            $q->whereDate('start_date', $date)
+                                ->orWhereDate('end_date', $date);
+                            continue;
+                        }
+
+                        $q->orWhereDate('start_date', $date)
+                            ->orWhereDate('end_date', $date);
+                    }
+                })
+                ->exists();
+        }
+
+        if ($exists) {
+            return redirect()->route('admin.hercycle.index')->with('error', 'You already logged a period for this date.');
+        }
+        $period->update([
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+        ]);
+        return redirect()->route('admin.hercycle.index')->with('success', 'Period updated successfully!');
     }
 
     public function deletePeriod($id)
@@ -164,41 +319,10 @@ class HerCycleController extends Controller
         $period = HerCyclePeriod::findOrFail($id);
         $period->delete();
 
-        return redirect()->route('hercycle.index')->with('success', 'Period deleted successfully!');
+        return redirect()->route('admin.hercycle.index')->with('success', 'Period deleted successfully!');
     }
 
-    public function storeSymptom(Request $request)
-    {
-        $request->validate([
-            'date' => 'required|date',
-            'physical_symptoms' => 'nullable|array',
-            'emotional_symptoms' => 'nullable|array',
-            'sleep_quality' => 'nullable|integer|min:1|max:10',
-            'energy_level' => 'nullable|integer|min:1|max:10',
-            'custom_symptoms' => 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-        $profile = HerCycleProfile::where('user_id', $user->id)->first();
-
-        HerCycleSymptom::updateOrCreate(
-            [
-                'profile_id' => $profile->id,
-                'date' => $request->date,
-            ],
-            [
-                'physical_symptoms' => $request->physical_symptoms,
-                'emotional_symptoms' => $request->emotional_symptoms,
-                'sleep_quality' => $request->sleep_quality,
-                'energy_level' => $request->energy_level,
-                'custom_symptoms' => $request->custom_symptoms,
-                'notes' => $request->notes,
-            ]
-        );
-
-        return redirect()->route('hercycle.index')->with('success', 'Symptoms logged successfully!');
-    }
+    // Symptom logging removed for simplicity
 
     public function updateNotifications(Request $request, $id)
     {
@@ -217,7 +341,7 @@ class HerCycleController extends Controller
 
         $notification->update($request->all());
 
-        return redirect()->route('hercycle.index')->with('success', 'Notification settings updated!');
+        return redirect()->route('admin.hercycle.index')->with('success', 'Notification settings updated!');
     }
 
     public function getMonthData(Request $request)
@@ -369,7 +493,7 @@ class HerCycleController extends Controller
         $periodLengths = [];
 
         for ($i = 0; $i < $periods->count() - 1; $i++) {
-            $cycleLength = $periods[$i]->start_date->diffInDays($periods[$i + 1]->start_date);
+            $cycleLength = abs($periods[$i]->start_date->diffInDays($periods[$i + 1]->start_date));
             $cycleLengths[] = $cycleLength;
 
             if ($periods[$i]->end_date) {

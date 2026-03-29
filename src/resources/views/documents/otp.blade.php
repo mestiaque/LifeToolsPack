@@ -1,4 +1,4 @@
-@extends('components.lte.guest')
+@extends('me::guest')
 
 @section('title', 'Enter OTP')
 

@@ -13,10 +13,10 @@ class HerCycleProfile extends Model
     protected $fillable = [
         'user_id',
         'name',
-        'age',
-        'cycle_length',
-        'period_length',
-        'last_period_start',
+        'dob',
+        'weight',
+        'height',
+        'blood_group',
     ];
 
     protected $casts = [

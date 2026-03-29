@@ -63,6 +63,7 @@ Route::middleware(['web'])->group(function () {
 
             Route::resource('users', UserController::class);
             Route::resource('roles', RoleController::class);
+            Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
 
             Route::resource('daily-expenses', DailyExpenseController::class);
             Route::resource('disks', DiskController::class);
@@ -78,6 +79,7 @@ Route::middleware(['web'])->group(function () {
             // Drive routes
             Route::get('/drive', [DriveController::class, 'index'])->name('drive');
             Route::post('/drive/folder', [DriveController::class, 'createFolder'])->name('drive.folder.create');
+            Route::delete('/drive/folder/delete/{id}', [DriveController::class, 'deleteFolder'])->name('drive.folder.delete');
             Route::post('/drive/upload', [DriveController::class, 'upload'])->name('drive.upload');
             Route::delete('/drive/delete/{id}', [DriveController::class, 'delete'])->name('drive.delete');
             // Share & OTP routes for documents
