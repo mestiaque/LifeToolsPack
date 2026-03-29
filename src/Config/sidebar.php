@@ -131,6 +131,7 @@ return [
         'route'      => 'admin.settings.edit',
         'icon_color' => 'icc-12',
         'for_active' => 'admin.settings',
+        'sl'         => 11,
     ],
 
 
