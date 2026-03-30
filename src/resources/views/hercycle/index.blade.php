@@ -61,7 +61,7 @@
 @endpush
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="x">
         <!-- Header -->
     <div class="profile-header-premium rounded-4 p-4 p-md-5 mb-5 mt-2">
         <!-- Decorative Background Element -->
