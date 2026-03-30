@@ -28,6 +28,7 @@
                             <tr>
                                 <th>{{ trans('#') }}</th>
                                 <th>@lang('Name')</th>
+                                <th>@lang('Active')</th>
                                 <th>@lang('Action')</th>
                             </tr>
                         </thead>
@@ -36,6 +37,13 @@
                                 <tr>
                                     <td class="text-center">{{ $loop->iteration }}</td>
                                     <td>{{ $lu->name }}</td>
+                                    <td class="text-center">
+                                        @if($lu->is_active)
+                                            <span class="badge bg-success">@lang('Active')</span>
+                                        @else
+                                            <span class="badge bg-secondary">@lang('Inactive')</span>
+                                        @endif
+                                    </td>
                                     <td class="d-flex justify-content-center">
                                         <!-- Show Button -->
                                         <button type="button"
@@ -50,7 +58,8 @@
                                             title="@lang('Edit')"
                                             class="btn btn-sm btn-encodex-edit  me-1 edit-loan-user-btn"
                                             data-id="{{ $lu->id }}"
-                                            data-name="{{ $lu->name }}">
+                                            data-name="{{ $lu->name }}"
+                                            data-is_active="{{ $lu->is_active ? '1' : '0' }}">
                                             <i class="fas fa-edit "></i>
                                         </button>
                                         <!-- Delete Button -->
@@ -119,6 +128,7 @@ $(document).ready(function () {
 
         let id = $(this).data('id');
         let name = $(this).data('name');
+        let isActive = $(this).data('is_active');
 
         // Set form for update
         let form = $('#loan-user-form');
@@ -132,7 +142,9 @@ $(document).ready(function () {
         }
 
         // Set form fields
+        console.log('Setting form fields:', { name, isActive });
         form.find('input[name="name"]').val(name);
+        form.find('input[name="is_active"]').prop('checked', isActive == 1);
         $('.save-btn').addClass('d-none');
         $('.update-btn').removeClass('d-none');
 

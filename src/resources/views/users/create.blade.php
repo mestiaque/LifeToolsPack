@@ -92,11 +92,11 @@
                             </label>
                             <div class="border p-3 rounded">
                                 @foreach($roles as $role)
-                                    <div class="custom-control custom-radio mb-2">
-                                        <input type="radio" class="custom-control-input" id="role_{{ $role->id }}" name="role" value="{{ $role->id }}"
+                                    <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" id="role_{{ $role->id }}" name="role" value="{{ $role->id }}"
                                                {{ old('role') == $role->id ? 'checked' : '' }} required>
-                                        <label class="custom-control-label" for="role_{{ $role->id }}">
-                                            {{ $role->name }} <small class="text-muted">- {{ $role->description }}</small>
+                                        <label class="form-check-label" for="role_{{ $role->id }}">
+                                            <b>{{ $role->name }}</b> <small class="text-muted">- {{ $role->description }}</small>
                                         </label>
                                     </div>
                                 @endforeach
@@ -107,16 +107,17 @@
                         </div>
 
                         <div class="form-group mb-3 mt-4">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" value="1"
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1"
                                        {{ old('is_active', true) ? 'checked' : '' }}>
-                                <label class="custom-control-label font-weight-bold" for="is_active">
-                                    <i class="fas fa-toggle-on me-1"></i> @lang('Active User')
+                                <label class="form-check-label font-weight-bold" for="is_active">
+                                     @lang('Active User')
                                 </label>
                                 <small class="form-text text-muted">@lang('Inactive users cannot log in to the system.')</small>
                             </div>
                         </div>
                     </div>
+
                 </div>
 
                 <div class="mt-4 text-end">

@@ -3,8 +3,8 @@
 @section('title', __('Event Expenses') . ' - ' . $event->title)
 
 @push('buttons')
-  <a href="{{ route('admin.events.index') }}" class="btn btn-sm btn-encodex-back">
-    <i class="fas fa-arrow-left"></i> @lang('Back to Events')
+  <a href="{{ route('admin.events.index') }}" class="btn btn-sm btn-encodex-list">
+    <i class="fas fa-arrow-left"></i> @lang('Events')
   </a>
   <button type="button" class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#expenseModal">@lang('Add Expense')</button>
 @endpush
@@ -20,13 +20,22 @@
           </h6>
         </div>
         <div class="card-body">
-          <div class="row mb-3">
-            <div class="col-md-12">
-              <div class="alert alert-info mb-0">
-                <strong>@lang('Total Expenses'):</strong> {{ number_format($totalAmount) }}
+
+          <form method="GET" action="{{ route('admin.events.expenses.index', $event->id) }}" class="mb-3">
+            <div class="row">
+              <div class="col-md">
+                <input type="text" name="title" class="form-control form-control-sm" placeholder="@lang('Enter Title')" value="{{ request('title') }}">
+              </div>
+              <div class="col-md">
+                <button type="submit" class="btn btn-sm btn-encodex-search rounded">
+                  <i class="fas fa-search"></i> @lang('Search')
+                </button>
+                <a href="{{ route('admin.events.expenses.index', $event->id) }}" class="btn btn-sm btn-encodex-clear rounded">
+                  <i class="fas fa-eraser"></i> @lang('Reset')
+                </a>
               </div>
             </div>
-          </div>
+          </form>
 
           <div class="table-responsive">
             <table class="table table-sm table-bordered table-hover table-striped table-encodex">
@@ -66,9 +75,17 @@
                     <td colspan="6" class="text-center">@lang('No expenses found')</td>
                   </tr>
                 @endforelse
+                <tr>
+                  <td colspan="2" class="text-end"><strong>@lang('Total')</strong></td>
+                  <td class="text-end"><strong>{{ number_format($filterAmount, 2) }}</strong></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
               </tbody>
             </table>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -77,8 +94,8 @@
   <!-- ================= Modals ================= -->
   <!-- Create Modal -->
   <div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
+    <div class="modal-dialog glass-card shadow">
+      <div class="modal-content ">
         <form method="POST" action="{{ route('admin.events.expenses.store', $event->id) }}">
           @csrf
           <div class="modal-header">
@@ -111,7 +128,7 @@
   <!-- Edit Modals -->
   @foreach ($expenses as $expense)
     <div class="modal fade" id="expenseModal{{ $expense->id }}" tabindex="-1" aria-labelledby="expenseModalLabel{{ $expense->id }}" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog glass-card shadow">
         <div class="modal-content">
           <form method="POST" action="{{ route('admin.events.expenses.update', [$event->id, $expense->id]) }}">
             @csrf

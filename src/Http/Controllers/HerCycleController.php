@@ -16,58 +16,43 @@ class HerCycleController extends Controller
 {
     public function index()
     {
-        // return view('em_core::hercycle.setup');
         $user = Auth::user();
         $profile = HerCycleProfile::where('user_id', $user->id)->first();
         if (!$profile) {
             return redirect()->route('admin.hercycle.setup');
         }
+
         $periods = HerCyclePeriod::where('profile_id', $profile->id)
             ->orderBy('start_date', 'desc')
             ->get();
 
-        // Calculate average cycle and period length from logs
-        $cycleLengths = [];
-        $periodLengths = [];
-        $cycleTrendData = [];
-        $periodsArr = $periods->sortBy('start_date')->values();
-        $oneYearAgo = Carbon::now()->subYear()->startOfDay();
+        // Delegate all calculations to the model
+        $avgCycle      = $profile->getAvgCycle();
+        $avgPeriod     = $profile->getAvgPeriod();
+        $nextStart     = $profile->getNextPeriodStart();
+        $nextEnd       = $profile->getNextPeriodEnd();
+        $flowPrediction = $profile->getFlowPrediction();
+        $cycleLengths  = $profile->getCycleLengths();
+
+        // Build chart trend data (view-specific, kept in controller)
+        $cycleTrendData    = [];
         $cycleTrendDataRaw = [];
+        $periodsArr        = $periods->sortBy('start_date')->values();
+        $oneYearAgo        = Carbon::now()->subYear()->startOfDay();
 
-        if ($periodsArr->count() === 1) {
-            // Only one log exists
-            $first = $periodsArr[0];
-            $avgPeriod = $first->end_date ? $first->start_date->diffInDays($first->end_date) + 1 : 1;
-            $avgCycle = 30;
-            // Next period: 30 days after end if exists, else after start
-            $nextStart = $first->end_date
-                ? $first->end_date->copy()->addDays(30)
-                : $first->start_date->copy()->addDays(30);
-            $nextEnd = null;
-        } else if ($periodsArr->count() > 1) {
+        if ($periodsArr->count() > 1) {
             for ($i = 0; $i < $periodsArr->count() - 1; $i++) {
-                $currentCycleLength = abs($periodsArr[$i+1]->start_date->diffInDays($periodsArr[$i]->start_date));
-                $cycleLengths[] = $currentCycleLength;
-
-                // Keep last 1 year cycle points for detailed charting.
-                if ($periodsArr[$i+1]->start_date->greaterThanOrEqualTo($oneYearAgo)) {
+                $len = abs($periodsArr[$i + 1]->start_date->diffInDays($periodsArr[$i]->start_date));
+                if ($periodsArr[$i + 1]->start_date->greaterThanOrEqualTo($oneYearAgo)) {
                     $cycleTrendDataRaw[] = [
-                        'label' => $periodsArr[$i+1]->start_date->format('M d'),
-                        'length' => $currentCycleLength,
-                        'from' => $periodsArr[$i]->start_date->format('Y-m-d'),
-                        'to' => $periodsArr[$i+1]->start_date->format('Y-m-d'),
+                        'label'  => $periodsArr[$i + 1]->start_date->format('M d'),
+                        'length' => $len,
+                        'from'   => $periodsArr[$i]->start_date->format('Y-m-d'),
+                        'to'     => $periodsArr[$i + 1]->start_date->format('Y-m-d'),
                     ];
                 }
             }
-            foreach ($periods as $period) {
-                if ($period->end_date) {
-                    $periodLengths[] = $period->start_date->diffInDays($period->end_date) + 1;
-                }
-            }
-            $avgCycle = count($cycleLengths) ? round(array_sum($cycleLengths)/count($cycleLengths)) : null;
-            $avgPeriod = count($periodLengths) ? round(array_sum($periodLengths)/count($periodLengths)) : null;
 
-            // Add current ongoing cycle as an extra point (from latest start date to today).
             $latestPeriod = $periods->first();
             $today = Carbon::now()->startOfDay();
             if (
@@ -79,62 +64,34 @@ class HerCycleController extends Controller
                 $ongoingLength = $latestPeriod->start_date->diffInDays($today);
                 if ($ongoingLength > 0) {
                     $cycleTrendDataRaw[] = [
-                        'label' => $today->format('M d') . ' (Now)',
-                        'length' => $ongoingLength,
-                        'from' => $latestPeriod->start_date->format('Y-m-d'),
-                        'to' => $today->format('Y-m-d'),
+                        'label'      => $today->format('M d') . ' (Now)',
+                        'length'     => $ongoingLength,
+                        'from'       => $latestPeriod->start_date->format('Y-m-d'),
+                        'to'         => $today->format('Y-m-d'),
                         'is_ongoing' => true,
                     ];
                 }
             }
 
             foreach ($cycleTrendDataRaw as $item) {
-                $deviation = $avgCycle ? abs($item['length'] - $avgCycle) : 0;
-                if ($deviation <= 2) {
-                    $item['flow'] = 'Good';
-                } elseif ($deviation <= 5) {
-                    $item['flow'] = 'Neutral';
-                } else {
-                    $item['flow'] = 'Bad';
-                }
+                $deviation    = $avgCycle ? abs($item['length'] - $avgCycle) : 0;
+                $item['flow'] = $deviation <= 2 ? 'Good' : ($deviation <= 5 ? 'Neutral' : 'Bad');
                 $cycleTrendData[] = $item;
             }
-
-            // Predict next period
-            $lastPeriod = $periods->first();
-            $nextStart = $lastPeriod && $avgCycle ? $lastPeriod->start_date->copy()->addDays($avgCycle) : null;
-            $nextEnd = $nextStart && $avgPeriod ? $nextStart->copy()->addDays($avgPeriod-1) : null;
-        } else {
-            $avgCycle = null;
-            $avgPeriod = null;
-            $nextStart = null;
-            $nextEnd = null;
         }
 
-        // Predict flow quality
-        $flowPrediction = null;
-        if (count($cycleLengths) > 1) {
-            $variance = max($cycleLengths) - min($cycleLengths);
-            if ($variance <= 3) $flowPrediction = 'Good';
-            elseif ($variance <= 7) $flowPrediction = 'Neutral';
-            else $flowPrediction = 'Bad';
-        } else {
-            $flowPrediction = 'Neutral';
-        }
-
-        // Calculate age from dob
         $age = $profile->dob ? Carbon::parse($profile->dob)->age : null;
 
         return view('em_core::hercycle.index', [
-            'profile' => $profile,
-            'periods' => $periods,
-            'avgCycle' => $avgCycle,
-            'avgPeriod' => $avgPeriod,
-            'nextStart' => $nextStart,
-            'nextEnd' => $nextEnd,
+            'profile'        => $profile,
+            'periods'        => $periods,
+            'avgCycle'       => $avgCycle,
+            'avgPeriod'      => $avgPeriod,
+            'nextStart'      => $nextStart,
+            'nextEnd'        => $nextEnd,
             'flowPrediction' => $flowPrediction,
-            'age' => $age,
-            'cycleLengths' => $cycleLengths,
+            'age'            => $age,
+            'cycleLengths'   => $cycleLengths,
             'cycleTrendData' => $cycleTrendData,
         ]);
     }

@@ -31,6 +31,9 @@ class LoanController extends Controller
     public function index(Request $request)
     {
         $query = Loan::with('loanUser', 'repayments');
+        $query->whereHas('loanUser', function($q) {
+            $q->where('is_active', true);
+        });
         if ($request->filled('name')) {
             $query->whereHas('loanUser', function($q) use ($request) {
                 $q->where('name', 'like', '%'.$request->name.'%');
@@ -200,9 +203,10 @@ class LoanController extends Controller
      */
     public function getTelegramLoanSummary()
     {
-        // $loans = Loan::with('loanUser', 'repayments')->get();
-
         $loans = Loan::with('loanUser', 'repayments')->get()
+                ->filter(function ($loan) {
+                    return $loan->loanUser && $loan->loanUser->is_active;
+                })
                 ->filter(function ($loan) {
                     return $loan->dueAmount() > 0;
                 });

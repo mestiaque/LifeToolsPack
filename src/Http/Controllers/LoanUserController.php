@@ -32,9 +32,10 @@ class LoanUserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255',
+            'is_active' => 'required|boolean'
         ]);
-        LoanUser::create($request->only('name'));
+        LoanUser::create($request->only('name', 'is_active'));
         return redirect()->route('admin.loan-users.index')->with('success', __('Loan user created successfully.'));
     }
 
@@ -42,9 +43,10 @@ class LoanUserController extends Controller
     {
         $loanUser = LoanUser::findOrFail($id);
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255',
+            'is_active' => 'required|boolean'
         ]);
-        $loanUser->update($request->only('name'));
+        $loanUser->update($request->only('name', 'is_active'));
         return redirect()->route('admin.loan-users.index')->with('success', __('Loan user updated successfully.'));
     }
 

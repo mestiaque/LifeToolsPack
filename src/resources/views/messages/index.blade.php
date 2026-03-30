@@ -60,44 +60,46 @@
                     <span class="badge bg-warning">@lang('Unread')</span>
                   @endif
                 </td>
-                <td class="d-flex justify-content-center">
-                  <!-- Show Button -->
-                  <button type="button"
-                          class="btn btn-sm btn-encodex-show   me-1"
-                          data-bs-toggle="modal"
-                          data-bs-target="#showMessageModal{{ $message->id }}"
-                          title="@lang('Show')">
-                      <i class="fas fa-eye  "></i>
-                  </button>
-                  <!-- Edit Button -->
-                  {{-- <a title="@lang('Edit')" class="btn btn-sm btn-encodex-edit   me-1"
-                      href="{{ route('admin.messages.edit', $message->id) }}">
-                      <i class="fas fa-edit  "></i>
-                  </a> --}}
-                  <!-- Delete Button -->
-                  <form action="{{ route('admin.messages.destroy', $message->id) }}" method="POST" style="display:inline;">
-                    @csrf
-                    @method('DELETE')
-                        <button title="@lang('Delete')" onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')"
-                            type="submit" class="btn btn-sm btn-encodex-delete   me-1">
-                            <i class="fas fa-trash  "></i>
-                        </button>
-                  </form>
-                  <!-- Mark as Read Button -->
-                  @if(!$message->is_read)
-                  <form action="{{ route('admin.messages.read', $message->id) }}" method="POST" style="display:inline;">
-                    @csrf
-                    <button title="@lang('Mark as Read')" type="submit" class="btn btn-sm btn-encodex-active ">
-                        <i class="fas fa-check  "></i>
+                <td class="text-center">
+                  <div class="d-flex justify-content-center">
+                    <!-- Show Button -->
+                    <button type="button"
+                            class="btn btn-sm btn-encodex-show   me-1"
+                            data-bs-toggle="modal"
+                            data-bs-target="#showMessageModal{{ $message->id }}"
+                            title="@lang('Show')">
+                        <i class="fas fa-eye  "></i>
                     </button>
-                  </form>
-                  @endif
+                    <!-- Edit Button -->
+                    {{-- <a title="@lang('Edit')" class="btn btn-sm btn-encodex-edit   me-1"
+                        href="{{ route('admin.messages.edit', $message->id) }}">
+                        <i class="fas fa-edit  "></i>
+                    </a> --}}
+                    <!-- Delete Button -->
+                    <form action="{{ route('admin.messages.destroy', $message->id) }}" method="POST" style="display:inline;">
+                      @csrf
+                      @method('DELETE')
+                          <button title="@lang('Delete')" onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')"
+                              type="submit" class="btn btn-sm btn-encodex-delete   me-1">
+                              <i class="fas fa-trash  "></i>
+                          </button>
+                    </form>
+                    <!-- Mark as Read Button -->
+                    @if(!$message->is_read)
+                    <form action="{{ route('admin.messages.read', $message->id) }}" method="POST" style="display:inline;">
+                      @csrf
+                      <button title="@lang('Mark as Read')" type="submit" class="btn btn-sm btn-encodex-active ">
+                          <i class="fas fa-check  "></i>
+                      </button>
+                    </form>
+                    @endif
+                  </div>
                 </td>
               </tr>
             @endforeach
           </tbody>
         </table>
-        <div class="mt-3">
+        <div class="">
             {{ $messages->links('pagination::bootstrap-5') }}
         </div>
       </div>
@@ -108,7 +110,7 @@
   @foreach ($messages as $message)
     <div class="modal fade" id="showMessageModal{{ $message->id }}" tabindex="-1" aria-labelledby="showMessageModalLabel{{ $message->id }}" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content shadow-lg border-0 rounded-4">
+            <div class="modal-content shadow-lg border-0 rounded-4 glass-card">
 
             <!-- Header -->
             <div class="modal-header bg-light border-0 rounded-top-4">
@@ -116,12 +118,11 @@
                 <i class="bi bi-envelope-open me-2"></i> @lang('Message Details')
                 </h5>
 
-                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                        aria-label="@lang('Close')"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@lang('Close')"></button>
             </div>
 
             <!-- Body -->
-            <div class="modal-body px-4 py-3">
+            <div class="modal-body px-4 py-3 bg-light">
 
                 <div class="mb-3">
                 <span class="text-muted small">@lang('Name')</span>

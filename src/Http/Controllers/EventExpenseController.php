@@ -12,10 +12,17 @@ class EventExpenseController extends Controller
     public function index(Request $request, $eventId)
     {
         $event = Event::findOrFail($eventId);
-        $expenses = $event->expenses()->orderByDesc('id')->get();
+        $query = $event->expenses()
+            ->orderByDesc('id')
+            ->when($request->filled('title'), function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->title . '%');
+            });
+
+        $expenses = $query->get();
         $totalAmount = $event->totalExpense();
+        $filterAmount = $expenses->sum('amount');
         
-        return view('em_core::events.expenses.index', compact('event', 'expenses', 'totalAmount'));
+        return view('em_core::events.expenses.index', compact('event', 'expenses', 'totalAmount', 'filterAmount'));
     }
 
     public function store(Request $request, $eventId)

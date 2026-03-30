@@ -98,7 +98,7 @@
                             <label class="font-weight-bold text-primary">
                                 <i class="fas fa-user-shield me-1"></i> @lang('Role') <span class="text-danger">*</span>
                             </label>
-                            <div class="border p-3 rounded">
+                            {{-- <div class="border p-3 rounded">
                                 @foreach($roles as $role)
                                     <div class="custom-control custom-radio mb-2">
                                         <input type="radio" class="custom-control-input"
@@ -114,7 +114,27 @@
                                         </label>
                                     </div>
                                 @endforeach
+                            </div> --}}
+                            <div class="border p-3 rounded">
+                                @foreach($roles as $role)
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input"
+                                            type="radio"
+                                            name="role"
+                                            id="role_{{ $role->id }}"
+                                            value="{{ $role->id }}"
+                                            {{ (old('role', $userRoles[0] ?? null) == $role->id) ? 'checked' : '' }}
+                                            required
+                                            @if($user->id == 1) disabled @endif
+                                        >
+                                        <label class="form-check-label fw-bold" for="role_{{ $role->id }}">
+                                            {{ $role->name }}
+                                            <small class="text-muted">- {{ $role->description }}</small>
+                                        </label>
+                                    </div>
+                                @endforeach
                             </div>
+
                             @if($user->id == 1)
                                 <small class="form-text text-danger">@lang('Role cannot be changed for the super admin.')</small>
                             @endif
@@ -123,22 +143,23 @@
                             @enderror
                         </div>
 
-                        <div class="form-group mb-3 mt-4">
-                            <div class="custom-control custom-switch {{ $user->id === auth()->id() ? 'disabled' : '' }}">
-                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" value="1"
-                                       {{ old('is_active', $user->is_active) ? 'checked' : '' }}
-                                       {{ $user->id === auth()->id() ? 'disabled checked' : '' }}>
-                                <label class="custom-control-label font-weight-bold" for="is_active">
-                                    <i class="fas fa-toggle-on me-1"></i> @lang('Active User')
-                                </label>
-                                @if($user->id === auth()->id())
-                                    <small class="form-text text-danger">@lang('You cannot deactivate your own account.')</small>
-                                    <input type="hidden" name="is_active" value="1">
-                                @else
-                                    <small class="form-text text-muted">@lang('Inactive users cannot log in to the system.')</small>
-                                @endif
-                            </div>
+                        <div class="form-check form-switch mb-3 mt-4">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}
+                                {{ $user->id === auth()->id() ? 'disabled checked' : '' }}>
+                            <label class="form-check-label font-weight-bold" for="is_active">
+                                 @lang('Active User')
+                            </label>
+                            @if($user->id === auth()->id())
+                                <small class="form-text text-danger">@lang('You cannot deactivate your own account.')</small>
+                                <input type="hidden" name="is_active" value="1">
+                            @else
+                                <small class="form-text text-muted">@lang('Inactive users cannot log in to the system.')</small>
+                            @endif
                         </div>
+
+
+
                     </div>
                 </div>
 
