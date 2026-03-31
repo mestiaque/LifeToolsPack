@@ -113,6 +113,7 @@ Route::middleware(['web'])->group(function () {
 
             // Event Expenses routes
             Route::get('events/{event}/expenses', [EventExpenseController::class, 'index'])->name('events.expenses.index');
+            Route::get('events/{event}/expenses/print', [EventExpenseController::class, 'print'])->name('events.expenses.print');
             Route::post('events/{event}/expenses', [EventExpenseController::class, 'store'])->name('events.expenses.store');
             Route::put('events/{event}/expenses/{id}', [EventExpenseController::class, 'update'])->name('events.expenses.update');
             Route::delete('events/{event}/expenses/{id}', [EventExpenseController::class, 'destroy'])->name('events.expenses.delete');

@@ -12,12 +12,15 @@
 @section('content')
   <div class="row">
     <div class="col-lg-12 mb-4">
-      <div class="card border-left-primary shadow h-100 w-100 py-2">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">
-            {{ $event->title }}
-            <small class="text-muted">({{ formatDateTime($event->start) }} {{ $event->end ? '- ' . formatDateTime($event->end) : '' }})</small>
-          </h6>
+      <div class="card border-left-primary shadow h-100 w-100 ">
+        <div class="card-header py-1 d-flex align-items-center ">
+            <h6 class="m-0 font-weight-bold text-primary w-100">
+                {{ $event->title }}
+                <small class="text-muted">({{ formatDateTime($event->start) }} {{ $event->end ? '- ' . formatDateTime($event->end) : '' }})</small>
+            </h6>
+            <a href="{{ route('admin.events.expenses.print', $event->id) }}" class="btn btn-sm btn-encodex-print float-end">
+                <i class="fas fa-print"></i> @lang('Print')
+            </a>
         </div>
         <div class="card-body">
 
@@ -52,11 +55,11 @@
               <tbody>
                 @forelse ($expenses as $expense)
                   <tr>
-                    <td class="text-center">{{ $loop->iteration }}</td>
+                    <td class="text-center">{{ toBanglaNumber($loop->iteration) }}</td>
                     <td>{{ $expense->title }}</td>
-                    <td class="text-end">{{ number_format($expense->amount) }}</td>
+                    <td class="text-end">{{ toBanglaNumber($expense->amount, 2) }}</td>
                     <td>{{ $expense->description ?? '-' }}</td>
-                    <td class="text-center">{{ formatDateTime($expense->created_at) }}</td>
+                    <td class="text-center">{{ formatDate($expense->created_at) }}</td>
                     <td class="d-flex justify-content-center">
                       <button type="button" class="btn btn-sm btn-encodex-edit me-1" data-bs-toggle="modal" data-bs-target="#expenseModal{{ $expense->id }}" title="@lang('Edit')">
                         <i class="fas fa-edit"></i>
@@ -77,7 +80,7 @@
                 @endforelse
                 <tr>
                   <td colspan="2" class="text-end"><strong>@lang('Total')</strong></td>
-                  <td class="text-end"><strong>{{ number_format($filterAmount, 2) }}</strong></td>
+                  <td class="text-end"><strong>{{ toBanglaNumber($filterAmount, 2) }}</strong></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -150,6 +153,11 @@
                 <label for="description" class="form-label">@lang('Description')</label>
                 <textarea class="form-control" name="description" rows="2">{{ $expense->description }}</textarea>
               </div>
+              <div class="mb-3">
+                <label for="created_at" class="form-label">@lang('Created At')</label>
+                <input type="date" class="form-control" name="created_at" value="{{ $expense->created_at->format('Y-m-d') }}">
+              </div>
+
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-encodex-clear btn-sm" data-bs-dismiss="modal">@lang('Close')</button>

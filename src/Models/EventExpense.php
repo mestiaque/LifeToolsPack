@@ -13,6 +13,8 @@ class EventExpense extends Model
         'title',
         'amount',
         'description',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [

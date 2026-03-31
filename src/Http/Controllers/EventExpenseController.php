@@ -21,7 +21,7 @@ class EventExpenseController extends Controller
         $expenses = $query->get();
         $totalAmount = $event->totalExpense();
         $filterAmount = $expenses->sum('amount');
-        
+
         return view('em_core::events.expenses.index', compact('event', 'expenses', 'totalAmount', 'filterAmount'));
     }
 
@@ -34,7 +34,7 @@ class EventExpenseController extends Controller
         ]);
 
         $event = Event::findOrFail($eventId);
-        
+
         EventExpense::create([
             'event_id' => $event->id,
             'title' => $request->title,
@@ -55,11 +55,12 @@ class EventExpenseController extends Controller
         ]);
 
         $expense = EventExpense::where('event_id', $eventId)->findOrFail($id);
-        
+
         $expense->update([
             'title' => $request->title,
             'amount' => $request->amount,
             'description' => $request->description,
+            'created_at' => $request->created_at, // Preserve original created_at
         ]);
 
         return redirect()->route('admin.events.expenses.index', $eventId)
@@ -73,5 +74,17 @@ class EventExpenseController extends Controller
 
         return redirect()->route('admin.events.expenses.index', $eventId)
             ->with('success', __('Expense deleted successfully.'));
+    }
+
+    public function print(Request $request, $eventId)
+    {
+        $expense = EventExpense::where('event_id', $eventId)
+            ->when($request->filled('title'), function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->title . '%');
+            })
+            ->orderByDesc('id')
+            ->get();
+        $event = Event::findOrFail($eventId);
+        return view('em_core::events.expenses.print', compact('expense', 'event'));
     }
 }
