@@ -20,7 +20,7 @@ return [
                 'title'      => 'All Loans',
                 'route'      => 'admin.loans.index',
                 'permit'     => 'loan.show',
-                'icon_color' => 'icc-1',
+                'icon_color' => 'icc-2',
                 'for_active' => 'admin.loans',
             ],
             [
@@ -28,7 +28,7 @@ return [
                 'title'      => 'Loan Users',
                 'route'      => 'admin.loan-users.index',
                 'permit'     => 'loan_user.show',
-                'icon_color' => 'icc-2',
+                'icon_color' => 'icc-3',
                 'for_active' => 'admin.loan-users',
             ],
         ]
@@ -37,7 +37,7 @@ return [
     [
         'title'      => 'Daily Expense',
         'icon'       => 'fas fa-receipt',
-        'icon_color' => 'icc-3',
+        'icon_color' => 'icc-11',
         'route'      => 'admin.daily-expenses.index',
         'permit'     => 'daily-expense.show',
         'for_active' => 'admin.daily-expenses',
@@ -48,7 +48,7 @@ return [
     [
         'title'      => 'Drive',
         'icon'       => 'fas fa-hdd',
-        'icon_color' => 'icc-4',
+        'icon_color' => 'icc-21',
         'route'      => 'admin.drive',
         'permit'     => 'drive.view',
         'for_active' => 'admin.drive',
@@ -57,7 +57,7 @@ return [
     [
         'title'      => 'Disk',
         'icon'       => 'fas fa-compact-disc',
-        'icon_color' => 'icc-5',
+        'icon_color' => 'icc-33',
         'route'      => 'admin.disks.index',
         'permit'     => 'disk.show',
         'for_active' => 'admin.disks',
@@ -66,7 +66,7 @@ return [
     [
         'title'      => 'Gallery',
         'icon'       => 'fas fa-images',
-        'icon_color' => 'icc-6',
+        'icon_color' => 'icc-44',
         'route'      => 'admin.gallery.index',
         'permit'     => 'gallery.action',
         'for_active' => 'admin.gallery',
@@ -75,7 +75,7 @@ return [
     [
         'title'      => 'Messages',
         'icon'       => 'fas fa-envelope',
-        'icon_color' => 'icc-7',
+        'icon_color' => 'icc-55',
         'route'      => 'admin.messages.index',
         'permit'     => 'message.show',
         'for_active' => 'admin.messages',
@@ -84,7 +84,7 @@ return [
     [
         'title'      => 'Events',
         'icon'       => 'fas fa-calendar-alt',
-        'icon_color' => 'icc-8',
+        'icon_color' => 'icc-66',
         'route'      => 'admin.events.index',
         'permit'     => 'event.show',
         'for_active' => 'admin.events',
@@ -93,7 +93,7 @@ return [
     [
         'title'      => 'HerCycle',
         'icon'       => 'fas fa-heart',
-        'icon_color' => 'icc-9',
+        'icon_color' => 'icc-77',
         'route'      => 'admin.hercycle.index',
         'permit'     => 'hercycle.show',
         'for_active' => 'admin.hercycle',
@@ -103,7 +103,7 @@ return [
     [
         'title'      => 'User Management',
         'icon'       => 'fas fa-users-cog',
-        'icon_color' => 'icc-10',
+        'icon_color' => 'icc-88',
         'sl'         => 10,
         'children'   => [
             [
@@ -111,7 +111,7 @@ return [
                 'title'      => 'Users',
                 'route'      => 'admin.users.index',
                 'permit'     => 'user.view',
-                'icon_color' => 'icc-11',
+                'icon_color' => 'icc-87',
                 'for_active' => 'admin.users',
             ],
             [
@@ -119,7 +119,7 @@ return [
                 'title'      => 'Roles',
                 'route'      => 'admin.roles.index',
                 'permit'     => 'role.view',
-                'icon_color' => 'icc-12',
+                'icon_color' => 'icc-86',
                 'for_active' => 'admin.roles',
             ],
         ]
@@ -129,7 +129,7 @@ return [
         'title'      => 'Settings',
         'icon'       => 'fas fa-cog',
         'route'      => 'admin.settings.edit',
-        'icon_color' => 'icc-12',
+        'icon_color' => 'icc-100',
         'for_active' => 'admin.settings',
         'sl'         => 11,
     ],
