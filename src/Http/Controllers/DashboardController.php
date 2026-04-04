@@ -16,8 +16,8 @@ class DashboardController extends Controller
             ->get()
             ->filter(fn($loan) => $loan->dueAmount() > 0);
 
-        $totalPayable    = $loans->where('type', 'given')->sum(fn($loan) => $loan->dueAmount());
-        $totalReceivable = $loans->where('type', 'taken')->sum(fn($loan) => $loan->dueAmount());
+        $totalPayable    = $loans->where('type', 'taken')->sum(fn($loan) => $loan->dueAmount());
+        $totalReceivable = $loans->where('type', 'given')->sum(fn($loan) => $loan->dueAmount());
 
         // Drive: total folders, subfolders, files
         $totalFolders = \ME\EmCore\Models\Folder::count();

@@ -13,6 +13,8 @@ class CreateEventExpensesTable extends Migration
             $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
             $table->string('title');
             $table->decimal('amount', 10, 2);
+            $table->decimal('amount_min', 10, 2);
+            $table->decimal('amount_max', 10, 2);
             $table->text('description')->nullable();
             $table->timestamps();
         });

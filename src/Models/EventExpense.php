@@ -12,6 +12,8 @@ class EventExpense extends Model
         'event_id',
         'title',
         'amount',
+        'amount_min',
+        'amount_max',
         'description',
         'created_at',
         'updated_at',
@@ -19,6 +21,8 @@ class EventExpense extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'amount_min' => 'decimal:2',
+        'amount_max' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -27,4 +31,5 @@ class EventExpense extends Model
     {
         return $this->belongsTo(Event::class);
     }
+
 }

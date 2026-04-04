@@ -124,17 +124,17 @@
                         <canvas id="loanPieChart" width="100" height="100"></canvas>
                         <div class="loan-legend">
                             <div class="loan-item">
-                                <span class="loan-dot" style="background:#10b981"></span>
+                                <span class="loan-dot" style="background:#ef4444"></span>
                                 <div>
                                     <div class="loan-label">Payable</div>
-                                    <div class="loan-val text-success fw-bold">৳ {{ number_format($totalPayable, 2) }}</div>
+                                    <div class="loan-val text-danger fw-bold">৳ {{ number_format($totalPayable, 2) }}</div>
                                 </div>
                             </div>
                             <div class="loan-item mt-3">
-                                <span class="loan-dot" style="background:#ef4444"></span>
+                                <span class="loan-dot" style="background:#10b981"></span>
                                 <div>
                                     <div class="loan-label">Receivable</div>
-                                    <div class="loan-val text-danger fw-bold">৳ {{ number_format($totalReceivable, 2) }}</div>
+                                    <div class="loan-val text-success fw-bold">৳ {{ number_format($totalReceivable, 2) }}</div>
                                 </div>
                             </div>
                         </div>
@@ -719,7 +719,7 @@
 				labels: ['Payable', 'Receivable'],
 				datasets: [{
 					data: [{{ $totalPayable }}, {{ $totalReceivable }}],
-					backgroundColor: ['#10b981', '#ef4444'],
+					backgroundColor: ['#ef4444', '#10b981'],
 					borderWidth: 0,
 					hoverOffset: 6
 				}]

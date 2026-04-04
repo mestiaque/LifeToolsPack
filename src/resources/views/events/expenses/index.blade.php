@@ -18,7 +18,7 @@
                 {{ $event->title }}
                 <small class="text-muted">({{ formatDateTime($event->start) }} {{ $event->end ? '- ' . formatDateTime($event->end) : '' }})</small>
             </h6>
-            <a href="{{ route('admin.events.expenses.print', $event->id) }}" class="btn btn-sm btn-encodex-print float-end">
+            <a href="{{ route('admin.events.expenses.print', array_merge( ['event' => $event->id], request()->all() )) }}" class="btn btn-sm btn-encodex-print float-end" target="_blank">
                 <i class="fas fa-print"></i> @lang('Print')
             </a>
         </div>
@@ -28,6 +28,14 @@
             <div class="row">
               <div class="col-md">
                 <input type="text" name="title" class="form-control form-control-sm" placeholder="@lang('Enter Title')" value="{{ request('title') }}">
+              </div>
+              <div class="col-md-2">
+                <select name="amount_type" id="" class="form-control form-control-sm">
+                    <option value="">@lang('Select Amount Type')</option>
+                    <option value="amount" {{ request('amount_type') == 'amount' ? 'selected' : '' }}>@lang('Amount')</option>
+                    <option value="amount_min" {{ request('amount_type') == 'amount_min' ? 'selected' : '' }}>@lang('Min Amount')</option>
+                    <option value="amount_max" {{ request('amount_type') == 'amount_max' ? 'selected' : '' }}>@lang('Max Amount')</option>
+                </select>
               </div>
               <div class="col-md">
                 <button type="submit" class="btn btn-sm btn-encodex-search rounded">
@@ -57,7 +65,7 @@
                   <tr>
                     <td class="text-center">{{ toBanglaNumber($loop->iteration) }}</td>
                     <td>{{ $expense->title }}</td>
-                    <td class="text-end">{{ toBanglaNumber($expense->amount, 2) }}</td>
+                    <td class="text-end">{{ toBanglaNumber($expense->show_amount, 2) }}</td>
                     <td>{{ $expense->description ?? '-' }}</td>
                     <td class="text-center">{{ formatDate($expense->created_at) }}</td>
                     <td class="d-flex justify-content-center">
@@ -94,78 +102,103 @@
     </div>
   </div>
 
-  <!-- ================= Modals ================= -->
-  <!-- Create Modal -->
-  <div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true">
-    <div class="modal-dialog glass-card shadow">
-      <div class="modal-content ">
-        <form method="POST" action="{{ route('admin.events.expenses.store', $event->id) }}">
-          @csrf
-          <div class="modal-header">
-            <h5 class="modal-title" id="expenseModalLabel">@lang('Add Expense')</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@lang('Close')"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="title" class="form-label">@lang('Title') <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" name="title" required>
+    <!-- ================= Modals ================= -->
+    <!-- Create Modal -->
+    <div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog glass-card shadow">
+            <div class="modal-content ">
+                <form method="POST" action="{{ route('admin.events.expenses.store', $event->id) }}">
+                    @csrf
+                    <input type="hidden" name="filter_title" value="{{ request('title') }}">
+                    <input type="hidden" name="filter_amount_type" value="{{ request('amount_type', 'amount') }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="expenseModalLabel">@lang('Add Expense')</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@lang('Close')"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">@lang('Title') <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="title" list="titleSuggestions" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">@lang('Amount') <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="amount" step="0.01" min="0" value="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount_min" class="form-label">@lang('Min Amount') <span class="text-danger"></span></label>
+                            <input type="number" class="form-control" name="amount_min" step="0.01" min="0" >
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount_max" class="form-label">@lang('Max Amount') <span class="text-danger"></span></label>
+                            <input type="number" class="form-control" name="amount_max" step="0.01" min="0" >
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">@lang('Description')</label>
+                            <textarea class="form-control" name="description" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-encodex-clear btn-sm" data-bs-dismiss="modal">@lang('Close')</button>
+                        <button type="submit" class="btn btn-encodex-save btn-sm">@lang('Save')</button>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3">
-              <label for="amount" class="form-label">@lang('Amount') <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" name="amount" step="0.01" min="0" required>
-            </div>
-            <div class="mb-3">
-              <label for="description" class="form-label">@lang('Description')</label>
-              <textarea class="form-control" name="description" rows="2"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-encodex-clear btn-sm" data-bs-dismiss="modal">@lang('Close')</button>
-            <button type="submit" class="btn btn-encodex-create btn-sm">@lang('Save')</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Modals -->
-  @foreach ($expenses as $expense)
-    <div class="modal fade" id="expenseModal{{ $expense->id }}" tabindex="-1" aria-labelledby="expenseModalLabel{{ $expense->id }}" aria-hidden="true">
-      <div class="modal-dialog glass-card shadow">
-        <div class="modal-content">
-          <form method="POST" action="{{ route('admin.events.expenses.update', [$event->id, $expense->id]) }}">
-            @csrf
-            @method('PUT')
-            <div class="modal-header">
-              <h5 class="modal-title" id="expenseModalLabel{{ $expense->id }}">@lang('Edit Expense')</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@lang('Close')"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="title" class="form-label">@lang('Title') <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="title" value="{{ $expense->title }}" required>
-              </div>
-              <div class="mb-3">
-                <label for="amount" class="form-label">@lang('Amount') <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" name="amount" step="0.01" min="0" value="{{ $expense->amount }}" required>
-              </div>
-              <div class="mb-3">
-                <label for="description" class="form-label">@lang('Description')</label>
-                <textarea class="form-control" name="description" rows="2">{{ $expense->description }}</textarea>
-              </div>
-              <div class="mb-3">
-                <label for="created_at" class="form-label">@lang('Created At')</label>
-                <input type="date" class="form-control" name="created_at" value="{{ $expense->created_at->format('Y-m-d') }}">
-              </div>
-
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-encodex-clear btn-sm" data-bs-dismiss="modal">@lang('Close')</button>
-              <button type="submit" class="btn btn-encodex-create btn-sm">@lang('Update')</button>
-            </div>
-          </form>
         </div>
-      </div>
     </div>
-  @endforeach
+
+    <!-- Edit Modals -->
+    @foreach ($expenses as $expense)
+        <div class="modal fade" id="expenseModal{{ $expense->id }}" tabindex="-1" aria-labelledby="expenseModalLabel{{ $expense->id }}" aria-hidden="true">
+            <div class="modal-dialog glass-card shadow">
+                <div class="modal-content">
+                    <form method="POST" action="{{ route('admin.events.expenses.update', [$event->id, $expense->id]) }}">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="filter_title" value="{{ request('title') }}">
+                        <input type="hidden" name="filter_amount_type" value="{{ request('amount_type', 'amount') }}">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="expenseModalLabel{{ $expense->id }}">@lang('Edit Expense')</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@lang('Close')"></button>
+                        </div>
+                        <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">@lang('Title') <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="title" value="{{ $expense->title }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">@lang('Amount') <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="amount" step="0.01" min="0" value="{{ $expense->amount }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount_min" class="form-label">@lang('Min Amount') <span class="text-danger"></span></label>
+                            <input type="number" class="form-control" name="amount_min" step="0.01" min="0" value="{{ $expense->amount_min }}" >
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount_max" class="form-label">@lang('Max Amount') <span class="text-danger"></span></label>
+                            <input type="number" class="form-control" name="amount_max" step="0.01" min="0" value="{{ $expense->amount_max }}" >
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">@lang('Description')</label>
+                            <textarea class="form-control" name="description" rows="2">{{ $expense->description }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="created_at" class="form-label">@lang('Created At')</label>
+                            <input type="date" class="form-control" name="created_at" value="{{ $expense->created_at->format('Y-m-d') }}">
+                        </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-encodex-clear btn-sm" data-bs-dismiss="modal">@lang('Close')</button>
+                            <button type="submit" class="btn btn-encodex-save btn-sm">@lang('Update')</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    <datalist id="titleSuggestions">
+        <option value="Nilufa : ">
+        <option value="Estiaque : ">
+    </datalist>
 @endsection

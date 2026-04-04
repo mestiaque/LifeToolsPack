@@ -1,6 +1,6 @@
-@extends('me::printMaster')
+@extends('me::print')
 @section('title', __('Print Daily Expenses'))
-@section('printCont')
+@section('contents')
     <table class="table-encodex table-bordered">
         <thead>
             <tr>
@@ -13,7 +13,7 @@
             @foreach($expense as $item)
                 <tr>
                     <td class="text-center">{{ $item->title }}</td>
-                    <td class="text-end">{{ toBanglaNumber($item->amount, 2) }}</td>
+                    <td class="text-end">{{ toBanglaNumber($item->show_amount, 2) }}</td>
                     <td class="text-center">{{ formatDate($item->created_at) }}</td>
                 </tr>
             @endforeach
@@ -21,7 +21,7 @@
         <tfoot>
             <tr>
                 <th class="text-end">@lang('Total')</th>
-                <th class="text-end">{{ toBanglaNumber($expense->sum('amount'), 2) }}</th>
+                <th class="text-end">{{ toBanglaNumber($expense->sum('show_amount'), 2) }}</th>
                 <th></th>
             </tr>
         </tfoot>
