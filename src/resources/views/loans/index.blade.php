@@ -3,8 +3,8 @@
 @section('title', __('Loans'))
 
 @push('buttons')
+{{-- <a href="{{ route('admin.loans.payment-planner') }}" class="btn btn-sm btn-encodex-list">@lang('Payment Planner')</a> --}}
   <a href="{{ route('admin.loans.create') }}" class="btn btn-sm btn-encodex-create">@lang('Add Loan')</a>
-  <a href="{{ route('admin.loans.payment-planner') }}" class="btn btn-sm btn-encodex-list">@lang('Payment Planner')</a>
 @endpush
 
 @section('content')

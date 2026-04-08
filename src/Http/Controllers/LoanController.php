@@ -121,16 +121,20 @@ class LoanController extends Controller
     public function paymentPlanner()
     {
         $today = Carbon::today();
-        $startMonth = $today->copy()->startOfMonth();
+        $startMonth = $today->copy()->startOfYear();
+        $currentMonthKey = $today->format('Y-m');
+        $nextMonthKey = $today->copy()->addMonth()->format('Y-m');
         $months = [];
 
         for ($i = 0; $i < 12; $i++) {
             $month = $startMonth->copy()->addMonths($i);
             $monthKey = $month->format('Y-m');
             $months[$monthKey] = [
-                'month' => $month->format('M y'),
+                'month' => $month->format('M Y'),
                 'payable' => 0,
                 'receivable' => 0,
+                'is_current' => $monthKey === $currentMonthKey,
+                'is_next' => $monthKey === $nextMonthKey,
             ];
         }
 
@@ -491,11 +495,12 @@ class LoanController extends Controller
         $finalAmounts = [];
 
         for ($i = 1; $i <= $installmentCount; $i++) {
-            $labelRaw = trim((string) ($labels[$i - 1] ?? ''));
+            $hasLabel = array_key_exists($i - 1, $labels);
+            $labelRaw = $hasLabel ? (string) $labels[$i - 1] : '';
             $dateRaw = (string) ($dates[$i - 1] ?? '');
             $amountRaw = $amounts[$i - 1] ?? null;
 
-            $finalLabels[] = $labelRaw !== '' ? $labelRaw : ($i . ' Installment');
+            $finalLabels[] = $hasLabel ? $labelRaw : ($i . ' Installment');
 
             if ($dateRaw !== '' && strtotime($dateRaw) !== false) {
                 $finalDates[] = Carbon::parse($dateRaw)->format('Y-m-d');

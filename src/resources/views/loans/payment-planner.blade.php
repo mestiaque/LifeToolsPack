@@ -57,14 +57,17 @@
     <div class="col-lg-4 col-md-12 mb-4">
         <div class="card shadow h-100">
             <div class="card-header bg-primary text-white p-2 fw-bold">
-                @lang('Payable: This Month + Next 11 Months')
+                @lang('This Month + Next 11 Months')
             </div>
             <div class="card-body">
                 <div class="planner-month-list">
                     @foreach ($months as $month)
-                        <div class="planner-month-item">
-                            <div class="planner-month-name">{{ $month['month'] }}</div>
-                            <div class="planner-month-amount text-danger">{{ toBanglaNumber($month['payable'], 2) }}</div>
+                        <div class="planner-month-item {{ $loop->first ? 'planner-month-current' : '' }} {{ $loop->index === 1 ? 'planner-month-next' : '' }}">
+                            <span class="planner-month-inline-part planner-month-name">{{ $month['month'] }}</span>
+                            <span class="planner-month-divider">|</span>
+                            <span class="planner-month-inline-part planner-month-payable">@lang('Payable'): {{ toBanglaNumber($month['payable'], 2) }}</span>
+                            <span class="planner-month-divider">|</span>
+                            <span class="planner-month-inline-part planner-month-receivable">@lang('Receivable'): {{ toBanglaNumber($month['receivable'], 2) }}</span>
                         </div>
                     @endforeach
                 </div>
@@ -83,19 +86,36 @@
     .planner-month-item {
         border: 1px solid #e5e7eb;
         border-radius: 8px;
-        padding: 10px 12px;
+        padding: 8px 10px;
         background: #f9fafb;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        overflow-x: auto;
+    }
+    .planner-month-current {
+        background: #fee2e2;
+    }
+    .planner-month-next {
+        background: #facc1557;
     }
     .planner-month-name {
         font-weight: 600;
-        font-size: 13px;
-        line-height: 1.2;
+        color: #1f2937;
     }
-    .planner-month-amount {
-        margin-top: 4px;
+    .planner-month-payable {
+        color: #b91c1c;
         font-weight: 700;
-        font-size: 15px;
-        line-height: 1.2;
+    }
+    .planner-month-receivable {
+        color: #166534;
+        font-weight: 700;
+    }
+    .planner-month-divider {
+        color: #6b7280;
+        font-weight: 700;
     }
 </style>
 @endpush

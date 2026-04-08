@@ -153,6 +153,10 @@
             return;
         }
 
+        let lastAmountValue = amountInput.value;
+        let lastBaseDateValue = dateInput.value;
+        let lastInstallmentValue = installmentInput.value;
+
         function formatDate(dateObj) {
             const year = dateObj.getFullYear();
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -174,10 +178,28 @@
             }
         }
 
+        function getSplitAmounts(totalAmount, count) {
+            const safeCount = Math.max(count, 1);
+            const totalCents = Math.max(Math.round((parseFloat(totalAmount) || 0) * 100), 0);
+            const baseCents = Math.floor(totalCents / safeCount);
+            const remainder = totalCents % safeCount;
+            const parts = [];
+
+            for (let i = 0; i < safeCount; i++) {
+                const cents = baseCents + (i < remainder ? 1 : 0);
+                parts.push((cents / 100).toFixed(2));
+            }
+
+            return parts;
+        }
+
         function buildInstallmentRows() {
             const installmentCount = Math.max(parseInt(installmentInput.value, 10) || 1, 1);
             const amount = parseFloat(amountInput.value) || 0;
             const baseDateValue = dateInput.value;
+            const amountChanged = String(amountInput.value) !== String(lastAmountValue);
+            const baseDateChanged = String(baseDateValue) !== String(lastBaseDateValue);
+            const installmentChanged = String(installmentInput.value) !== String(lastInstallmentValue);
 
             const existingRows = body.querySelectorAll('tr');
             const existingLabels = [];
@@ -210,16 +232,21 @@
 
             wrapper.style.display = '';
 
-            const perInstallment = amount / installmentCount;
+            const splitAmounts = getSplitAmounts(amount, installmentCount);
 
             for (let i = 1; i <= installmentCount; i++) {
                 const currentDate = new Date(baseDate);
                 currentDate.setMonth(baseDate.getMonth() + i);
 
                 const row = document.createElement('tr');
-                const labelValue = existingLabels[i - 1] || `${getOrdinal(i)} Installment`;
-                const expectedDate = existingDates[i - 1] || formatDate(currentDate);
-                const amountValue = existingAmounts[i - 1] || perInstallment.toFixed(2);
+                const hasStoredLabel = (i - 1) < existingLabels.length;
+                const labelValue = hasStoredLabel ? existingLabels[i - 1] : `${getOrdinal(i)} Installment`;
+                const expectedDate = baseDateChanged
+                    ? formatDate(currentDate)
+                    : (existingDates[i - 1] || formatDate(currentDate));
+                const amountValue = (amountChanged || installmentChanged)
+                    ? splitAmounts[i - 1]
+                    : (existingAmounts[i - 1] || splitAmounts[i - 1]);
                 const hasStoredDoneState = (i - 1) < existingDoneFlags.length;
                 const isChecked = hasStoredDoneState
                     ? existingDoneFlags[i - 1]
@@ -238,9 +265,15 @@
                 `;
                 body.appendChild(row);
             }
+
+            lastAmountValue = amountInput.value;
+            lastBaseDateValue = baseDateValue;
+            lastInstallmentValue = installmentInput.value;
         }
 
-        // Keep schedule rows manually editable; regenerate only when installment count changes.
+        // Keep schedule rows editable, but recalculate split/default dates when source fields change.
+        amountInput.addEventListener('input', buildInstallmentRows);
+        dateInput.addEventListener('change', buildInstallmentRows);
         installmentInput.addEventListener('input', buildInstallmentRows);
         buildInstallmentRows();
     })();
