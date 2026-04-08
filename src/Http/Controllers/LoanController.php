@@ -6,6 +6,7 @@ use ME\EmCore\Models\Loan;
 use ME\EmCore\Models\LoanUser;
 use ME\EmCore\Models\Repayment;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use ME\Http\Controllers\Controller;
 use App\Http\Middleware\AuthorizationMiddleware;
 
@@ -18,7 +19,7 @@ class LoanController extends Controller
             return;
         }
 
-        $this->middleware('authorization:loan.show')->only(['index']);
+        $this->middleware('authorization:loan.show')->only(['index', 'paymentPlanner']);
         $this->middleware('authorization:loan.create')->only(['createLoan', 'storeLoan']);
         $this->middleware('authorization:loan.edit')->only(['editLoan', 'updateLoan']);
         $this->middleware('authorization:loan.delete')->only(['deleteLoan']);
@@ -116,6 +117,95 @@ class LoanController extends Controller
         return view('em_core::loans.history', compact('loan', 'repayments'));
     }
 
+    // Payment planner for upcoming payable/receivable installment schedule
+    public function paymentPlanner()
+    {
+        $today = Carbon::today();
+        $startMonth = $today->copy()->startOfMonth();
+        $months = [];
+
+        for ($i = 0; $i < 12; $i++) {
+            $month = $startMonth->copy()->addMonths($i);
+            $monthKey = $month->format('Y-m');
+            $months[$monthKey] = [
+                'month' => $month->format('M y'),
+                'payable' => 0,
+                'receivable' => 0,
+            ];
+        }
+
+        $schedule = [];
+
+        $loans = Loan::with('loanUser')
+            ->whereHas('loanUser', function ($q) {
+                $q->where('is_active', true);
+            })
+            ->get();
+
+        foreach ($loans as $loan) {
+            $installmentCount = max((int) ($loan->installment ?? 1), 1);
+            $loanAmount = (float) $loan->amount;
+            $totalRepayment = (float) $loan->totalRepayment();
+            $remainingAmount = round($loanAmount - $totalRepayment, 2);
+
+            // If remaining amount is zero (or less), do not show in planner.
+            if ($remainingAmount <= 0) {
+                continue;
+            }
+
+            $perInstallmentAmount = $loanAmount / $installmentCount;
+
+            $manualCompleted = min(max((int) ($loan->completed_installments ?? 0), 0), $installmentCount);
+            $repaymentCompleted = 0;
+            if ($perInstallmentAmount > 0) {
+                $repaymentCompleted = (int) floor(($totalRepayment + 0.00001) / $perInstallmentAmount);
+            }
+            $repaymentCompleted = min(max($repaymentCompleted, 0), $installmentCount);
+            $completedInstallments = max($manualCompleted, $repaymentCompleted);
+
+            if ($completedInstallments >= $installmentCount) {
+                continue;
+            }
+
+            $baseDate = Carbon::parse($loan->date)->startOfDay();
+
+            for ($i = $completedInstallments + 1; $i <= $installmentCount; $i++) {
+                $expectedDate = $baseDate->copy()->addMonths($i);
+                $monthKey = $expectedDate->format('Y-m');
+                $isPayable = $loan->type === 'taken';
+
+                $item = [
+                    'date' => $expectedDate->format('Y-m-d'),
+                    'party' => $loan->loanUser->name ?? '-',
+                    'amount' => $perInstallmentAmount,
+                    'direction' => $isPayable ? 'payable' : 'receivable',
+                    'direction_label' => $isPayable ? __('Pay') : __('Receive'),
+                    'installment_no' => $i,
+                    'loan_id' => $loan->id,
+                ];
+
+                $schedule[] = $item;
+
+                if (isset($months[$monthKey])) {
+                    if ($isPayable) {
+                        $months[$monthKey]['payable'] += $perInstallmentAmount;
+                    } else {
+                        $months[$monthKey]['receivable'] += $perInstallmentAmount;
+                    }
+                }
+            }
+        }
+
+        usort($schedule, function ($a, $b) {
+            return strcmp($a['date'], $b['date']);
+        });
+
+        return view('em_core::loans.payment-planner', [
+            'schedule' => $schedule,
+            'months' => array_values($months),
+        ]);
+    }
+
     // Create loan form (show loan users for selection)
     public function createLoan()
     {
@@ -130,10 +220,13 @@ class LoanController extends Controller
             'amount' => 'required|numeric',
             'type' => 'required|in:given,taken',
             'date' => 'required|date',
+            'installment' => 'required|integer|min:1',
             'note' => 'nullable|string',
             'loan_user_id' => 'required|integer|min:1',
         ]);
-        $loan = Loan::create($request->only(['loan_user_id', 'amount', 'type', 'date', 'note']));
+        $payload = $request->only(['loan_user_id', 'amount', 'type', 'date', 'installment', 'note']);
+        $payload['completed_installments'] = 0;
+        $loan = Loan::create($payload);
 
         return redirect()->route('admin.loans.index')->with('success', __('Loan created successfully.'));
     }
@@ -154,10 +247,22 @@ class LoanController extends Controller
             'amount' => 'required|numeric',
             'type' => 'required|in:given,taken',
             'date' => 'required|date',
+            'installment' => 'required|integer|min:1',
+            'done_installments' => 'nullable|array',
+            'done_installments.*' => 'integer|min:1',
             'note' => 'nullable|string',
             'loan_user_id' => 'required|integer|min:1',
         ]);
-        $loan->update($request->only(['amount', 'type', 'date', 'note', 'loan_user_id']));
+        $installmentCount = (int) $request->installment;
+        $completedInstallments = collect($request->input('done_installments', []))
+            ->map(fn ($value) => (int) $value)
+            ->filter(fn ($value) => $value >= 1 && $value <= $installmentCount)
+            ->unique()
+            ->count();
+
+        $payload = $request->only(['amount', 'type', 'date', 'installment', 'note', 'loan_user_id']);
+        $payload['completed_installments'] = $completedInstallments;
+        $loan->update($payload);
 
 
         return redirect()->route('admin.loans.index')->with('success', __('Loan updated successfully.'));
@@ -194,6 +299,79 @@ class LoanController extends Controller
     {
         Repayment::findOrFail($id)->delete();
         return redirect()->back()->with('success', __('Repayment deleted successfully.'));
+    }
+
+    // Show user history with all loans and repayments as a statement
+    public function userHistory($userId)
+    {
+        $loanUser = LoanUser::findOrFail($userId);
+        $loans = Loan::where('loan_user_id', $userId)->with('repayments')->get();
+
+        // Prepare statement data - combine loans and repayments with dates
+        $transactions = [];
+
+        // Add loans to transactions
+        foreach ($loans as $loan) {
+            $transactions[] = [
+                'date' => $loan->date,
+                'type' => 'loan',
+                'loan_type' => $loan->type,
+                'description' => ucfirst($loan->type) . ' Loan - ' . ($loan->note ? $loan->note : 'No note'),
+                'amount' => $loan->amount,
+                'loan_id' => $loan->id,
+                'note' => $loan->note,
+            ];
+
+            // Add repayments for this loan
+            foreach ($loan->repayments as $repayment) {
+                $transactions[] = [
+                    'date' => $repayment->date,
+                    'type' => 'repayment',
+                    'loan_type' => $loan->type,
+                    'description' => 'Repayment for ' . ucfirst($loan->type) . ' Loan',
+                    'amount' => -$repayment->amount,
+                    'loan_id' => $loan->id,
+                    'repayment_id' => $repayment->id,
+                    'note' => $repayment->note,
+                ];
+            }
+        }
+
+        // Sort transactions by date
+        usort($transactions, function($a, $b) {
+            return strtotime($a['date']) - strtotime($b['date']);
+        });
+
+        // Calculate summaries
+        $givenLoans = $loans->where('type', 'given');
+        $takenLoans = $loans->where('type', 'taken');
+
+        $totalGivenAmount = $givenLoans->sum('amount');
+        $totalTakenAmount = $takenLoans->sum('amount');
+
+        $totalGivenRepayment = $givenLoans->sum(function($loan) {
+            return $loan->totalRepayment();
+        });
+        $totalTakenRepayment = $takenLoans->sum(function($loan) {
+            return $loan->totalRepayment();
+        });
+
+        $totalGivenDue = $givenLoans->sum(function($loan) {
+            return $loan->dueAmount();
+        });
+        $totalTakenDue = $takenLoans->sum(function($loan) {
+            return $loan->dueAmount();
+        });
+
+        $netBalance = $totalGivenDue - $totalTakenDue;
+
+        return view('em_core::loans.user-history', compact(
+            'loanUser', 'loans', 'transactions',
+            'totalGivenAmount', 'totalTakenAmount',
+            'totalGivenRepayment', 'totalTakenRepayment',
+            'totalGivenDue', 'totalTakenDue',
+            'netBalance'
+        ));
     }
 
     /**

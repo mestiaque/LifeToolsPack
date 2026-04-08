@@ -91,7 +91,9 @@ Route::middleware(['web'])->group(function () {
 
             // Loan routes
             Route::get('/loans', [LoanController::class, 'index'])->name('loans.index');
+            Route::get('/loans/payment-planner', [LoanController::class, 'paymentPlanner'])->name('loans.payment-planner');
             Route::get('/loans/history/{user}', [LoanController::class, 'history'])->name('loans.history');
+            Route::get('/loans/user-history/{user}', [LoanController::class, 'userHistory'])->name('loans.user-history');
 
             Route::get('/loans/create', [LoanController::class, 'createLoan'])->name('loans.create');
             Route::post('/loans/store', [LoanController::class, 'storeLoan'])->name('loans.store');

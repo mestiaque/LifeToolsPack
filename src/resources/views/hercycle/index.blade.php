@@ -56,6 +56,42 @@
     .bg-blue-soft { background-color: #EFF6FF; border: 1px solid #DBEAFE; }
     .bg-orange-soft { background-color: #FFF7ED; border: 1px solid #FFEDD5; }
     .bg-green-soft { background-color: #F0FDF4; border: 1px solid #DCFCE7; }
+
+
+    /* =========================
+   SCROLLBAR (Chrome, Edge, Safari)
+========================= */
+
+/* পুরো scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Track (background) */
+::-webkit-scrollbar-track {
+  background: #A855F7 !important; /* dark background */
+  border-radius: 10px;
+}
+
+/* Thumb (scroll handle) */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #A855F7, #DB2777); /* purple → pink */
+  border-radius: 10px;
+}
+
+/* Hover effect */
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #A855F7, #DB2777);
+}
+
+/* =========================
+   FIREFOX SUPPORT
+========================= */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #DB2777 #ffddfea6; /* thumb track */
+}
 </style>
 
 @endpush
@@ -224,9 +260,9 @@
     <!-- Period Log -->
     <div class="card shadow-sm border-0 rounded-4 mb-4 bgM">
         <div class="card-body p-4">
-            <h4 class="text-her-pink fw-bold mb-4">📅 Period Log</h4>
-            <div class="history-list pe-2" style="max-height: 300px; overflow-y: auto;">
-                @forelse($periods as $period)
+            <h4 class="text-her-pink fw-bold mb-4">📅 Period Log <button type="button" class="btn btn-sm btn-encodex-pink float-end" data-bs-toggle="modal" data-bs-target="#periodLogModal">@lang('All Period')</button></h4>
+            <div class="history-list" style="max-height: 300px; overflow-y: auto;">
+                @forelse($periods->take(3) as $period)
                     <div class="d-flex justify-content-between align-items-center p-3 border border-light-subtle rounded-3 mb-3 bg-her-light-pink">
                         <div>
                             <div class="fw-bold text-dark">{{ $period->start_date->format('M d, Y') }} - {{ $period->end_date ? $period->end_date->format('M d, Y') : 'Ongoing' }}</div>
@@ -411,16 +447,27 @@
     </div>
 </div>
 
-<!-- Day Detail Modal -->
-<div class="modal fade" id="dayDetailModal" tabindex="-1" aria-hidden="true">
+<!-- Period Log Modal -->
+<div class="modal fade" id="periodLogModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-her-pink fw-bold" id="dayDetailTitle">Day Details</h5>
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-her-pink fw-bold" id="periodLogTitle">Period Log</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body pb-4" id="dayDetailContent">
-                <!-- Content loaded dynamically -->
+            <div class="modal-body pb-4" id="periodLogContent" style="max-height: 50vh; overflow:auto">
+                <table class="table table-striped">
+                    @forelse($periods as $period)
+                        <tr>
+                            <td class="fw-bold text-dark">{{ $period->start_date->format('M d, Y') }} - {{ $period->end_date ? $period->end_date->format('M d, Y') : 'Ongoing' }}</td>
+                            <td class="text-muted small">{{ $period->start_date->diffInDays($period->end_date ?? $period->start_date) + 1 }} days</td>
+                        </tr>
+                    @empty
+                    <tr>
+                        <td colspan="2" class="text-center text-muted p-4 rounded-3 bg-her-light-pink">No periods recorded yet. Start tracking today!</td>
+                    </tr>
+                    @endforelse
+                </table>
             </div>
         </div>
     </div>

@@ -26,6 +26,14 @@
                 <td>{{ $loan->date }}</td>
             </tr>
             <tr>
+                <th>@lang('Installment')</th>
+                <td>{{ max((int) ($loan->installment ?? 1), 1) }}</td>
+            </tr>
+            <tr>
+                <th>@lang('Completed Installments')</th>
+                <td>{{ min(max((int) ($loan->completed_installments ?? 0), 0), max((int) ($loan->installment ?? 1), 1)) }}</td>
+            </tr>
+            <tr>
                 <th>@lang('Note')</th>
                 <td>{{ $loan->note }}</td>
             </tr>
@@ -38,6 +46,38 @@
                 <td>{{ toBanglaNumber($loan->dueAmount(), 2) }}</td>
             </tr>
         </table>
+
+        @php
+            $installmentCount = max((int) ($loan->installment ?? 1), 1);
+            $completedInstallments = min(max((int) ($loan->completed_installments ?? 0), 0), $installmentCount);
+            $baseDate = \Carbon\Carbon::parse($loan->date);
+            $installmentAmount = $loan->amount / $installmentCount;
+            $today = \Carbon\Carbon::today();
+        @endphp
+        <div class="border rounded p-3">
+            <div class="installment-line-wrap">
+                <div class="installment-line-track"></div>
+                <div class="installment-line-points" style="grid-template-columns: repeat({{ $installmentCount }}, minmax(70px, 1fr));">
+                    @for ($i = 1; $i <= $installmentCount; $i++)
+                        @php
+                            $expectedDate = $baseDate->copy()->addMonths($i);
+                            if ($i <= $completedInstallments) {
+                                $statusClass = 'done';
+                            } elseif ($expectedDate->lt($today)) {
+                                $statusClass = 'expired';
+                            } else {
+                                $statusClass = 'pending';
+                            }
+                        @endphp
+                        <div class="installment-line-item text-center">
+                            <div class="installment-line-amount">{{ toBanglaNumber($installmentAmount, 2) }}</div>
+                            <div class="installment-line-dot installment-line-dot-{{ $statusClass }}" title="{{ ucfirst($statusClass) }}"></div>
+                            <div class="installment-line-date">{{ $expectedDate->format('Y-m-d') }}</div>
+                        </div>
+                    @endfor
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -144,6 +184,68 @@
         </div>
     </div>
 </div>
+
+@push('css')
+<style>
+    .installment-line-wrap {
+        --dot-size: 16px;
+        --amount-space: 22px;
+        position: relative;
+        padding: 8px;
+    }
+    .installment-line-track {
+        position: absolute;
+        top: calc(8px + var(--amount-space) + (var(--dot-size) / 2));
+        left: 14px;
+        right: 14px;
+        height: 2px;
+        background: #d1d5db;
+        z-index: 1;
+    }
+    .installment-line-points {
+        display: grid;
+        gap: 0;
+        position: relative;
+        z-index: 2;
+    }
+    .installment-line-item {
+        min-width: 0;
+        position: relative;
+        padding-top: var(--amount-space);
+    }
+    .installment-line-amount {
+        font-size: 12px;
+        font-weight: 600;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+    .installment-line-dot {
+        width: var(--dot-size);
+        height: var(--dot-size);
+        border-radius: 50%;
+        margin: 0 auto;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 1px rgba(31, 41, 55, 0.45), 0 0 0 4px rgba(255, 255, 255, 0.85);
+    }
+    .installment-line-dot-done {
+        background: #22c55e;
+    }
+    .installment-line-dot-pending {
+        background: #eab308;
+    }
+    .installment-line-dot-expired {
+        background: #ef4444;
+    }
+    .installment-line-date {
+        font-size: 11px;
+        margin-top: 8px;
+        white-space: nowrap;
+    }
+</style>
+@endpush
 
 @push('js')
 <script>

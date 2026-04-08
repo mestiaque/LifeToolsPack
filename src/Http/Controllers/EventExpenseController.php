@@ -30,8 +30,10 @@ class EventExpenseController extends Controller
         $expenses = $query->get();
 
         $filterAmount = $expenses->sum('show_amount');
+        $filterAmountMin = $expenses->sum('amount_min');
+        $filterAmountMax = $expenses->sum('amount_max');
 
-        return view('em_core::events.expenses.index', compact('event', 'expenses', 'filterAmount', 'amountType'));
+        return view('em_core::events.expenses.index', compact('event', 'expenses', 'filterAmount', 'filterAmountMin', 'filterAmountMax', 'amountType'));
     }
 
     public function store(Request $request, $eventId)

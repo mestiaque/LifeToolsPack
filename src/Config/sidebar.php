@@ -31,6 +31,14 @@ return [
                 'icon_color' => 'icc-3',
                 'for_active' => 'admin.loan-users',
             ],
+            [
+                'icon'       => 'fas fa-calendar-check',
+                'title'      => 'Payment Planner',
+                'route'      => 'admin.loans.payment-planner',
+                'permit'     => 'loan.show',
+                'icon_color' => 'icc-3',
+                'for_active' => 'admin.loans.payment-planner',
+            ],
         ]
     ],
 
@@ -99,31 +107,6 @@ return [
         'for_active' => 'admin.hercycle',
         'sl'         => 9,
     ],
-
-    [
-        'title'      => 'User Management',
-        'icon'       => 'fas fa-users-cog',
-        'icon_color' => 'icc-88',
-        'sl'         => 10,
-        'children'   => [
-            [
-                'icon'       => 'fas fa-users',
-                'title'      => 'Users',
-                'route'      => 'admin.users.index',
-                'permit'     => 'user.view',
-                'icon_color' => 'icc-87',
-                'for_active' => 'admin.users',
-            ],
-            [
-                'icon'       => 'fas fa-user-shield',
-                'title'      => 'Roles',
-                'route'      => 'admin.roles.index',
-                'permit'     => 'role.view',
-                'icon_color' => 'icc-86',
-                'for_active' => 'admin.roles',
-            ],
-        ]
-    ],
     [
         'permit'     => 'setting.edit',
         'title'      => 'Settings',
@@ -131,8 +114,33 @@ return [
         'route'      => 'admin.settings.edit',
         'icon_color' => 'icc-100',
         'for_active' => 'admin.settings',
-        'sl'         => 11,
+        'sl'         => 10,
     ],
+    // [
+    //     'title'      => 'User Management',
+    //     'icon'       => 'fas fa-users-cog',
+    //     'icon_color' => 'icc-88',
+    //     'sl'         => 11,
+    //     'children'   => [
+    //         [
+    //             'icon'       => 'fas fa-users',
+    //             'title'      => 'Users',
+    //             'route'      => 'admin.users.index',
+    //             'permit'     => 'user.view',
+    //             'icon_color' => 'icc-87',
+    //             'for_active' => 'admin.users',
+    //         ],
+    //         [
+    //             'icon'       => 'fas fa-user-shield',
+    //             'title'      => 'Roles',
+    //             'route'      => 'admin.roles.index',
+    //             'permit'     => 'role.view',
+    //             'icon_color' => 'icc-86',
+    //             'for_active' => 'admin.roles',
+    //         ],
+    //     ]
+    // ],
+
 
 
 

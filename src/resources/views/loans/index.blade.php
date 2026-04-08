@@ -4,6 +4,7 @@
 
 @push('buttons')
   <a href="{{ route('admin.loans.create') }}" class="btn btn-sm btn-encodex-create">@lang('Add Loan')</a>
+  <a href="{{ route('admin.loans.payment-planner') }}" class="btn btn-sm btn-encodex-list">@lang('Payment Planner')</a>
 @endpush
 
 @section('content')
@@ -194,9 +195,9 @@
           <table class="table table-bordered table-sm mb-0 table-striped mt-3">
             <thead>
               <tr class="bg-encodex-light text-white">
-                <th class="bg-encodex-light text-white">@lang('User')</th>
-                <th class="bg-encodex-light text-white">@lang('Net Balance')</th>
-                <th class="bg-encodex-light text-white">@lang('Status')</th>
+                <th class="bg-encodex-light text-white text-center">@lang('User')</th>
+                <th class="bg-encodex-light text-white text-center">@lang('Net Balance')</th>
+                <th class="bg-encodex-light text-white text-center">@lang('Status')</th>
               </tr>
             </thead>
             <tbody>
@@ -206,7 +207,7 @@
                   $isReceivable = $netBalance > 0;
                 @endphp
                 <tr>
-                  <td>{{ ($summary['user']->name ?? '-') }}</td>
+                  <td><a href="{{ route('admin.loans.user-history', $summary['user']->id ?? 0) }}"><i class="fas fa-info-circle"></i></a> {{ ($summary['user']->name ?? '-') }}  </td>
                   <td class="text-end">{{ toBanglaNumber(abs($netBalance), 2) }}</td>
                   <td class="text-center">
                     @if($netBalance == 0)
@@ -284,10 +285,59 @@
                             </div>
 
                             <div class="col-md-6">
+                              <div class="border rounded p-3">
+                                <small class="text-muted">@lang('Installment')</small>
+                                <h6 class="fw-bold mb-0">{{ max((int) ($loan->installment ?? 1), 1) }}</h6>
+                              </div>
+                            </div>
+
+                            <div class="col-md-6">
+                              <div class="border rounded p-3">
+                                <small class="text-muted">@lang('Completed Installments')</small>
+                                <h6 class="fw-bold mb-0">{{ min(max((int) ($loan->completed_installments ?? 0), 0), max((int) ($loan->installment ?? 1), 1)) }}</h6>
+                              </div>
+                            </div>
+
+                            <div class="col-md-6">
                                 <div class="border rounded p-3">
                                     <small class="text-muted">@lang('Note')</small>
                                     <h6 class="fw-normal mb-0">{{ $loan->note ?? 'N/A' }}</h6>
                                 </div>
+                            </div>
+
+                            <div class="col-12">
+                              @php
+                                $installmentCount = max((int) ($loan->installment ?? 1), 1);
+                                $completedInstallments = min(max((int) ($loan->completed_installments ?? 0), 0), $installmentCount);
+                                $baseDate = \Carbon\Carbon::parse($loan->date);
+                                $installmentAmount = $loan->amount / $installmentCount;
+                                $today = \Carbon\Carbon::today();
+                              @endphp
+                              <div class="border rounded p-3">
+                                <small class="text-muted d-block mb-2">@lang('Installment Schedule')</small>
+                                <div class="installment-line-wrap">
+                                  <div class="installment-line-track"></div>
+                                  <div class="installment-line-points" style="grid-template-columns: repeat({{ $installmentCount }}, minmax(70px, 1fr));">
+                                    @for ($i = 1; $i <= $installmentCount; $i++)
+                                      @php
+                                        $expectedDate = $baseDate->copy()->addMonths($i);
+                                        if ($i <= $completedInstallments) {
+                                            $statusClass = 'done';
+                                        } elseif ($expectedDate->lt($today)) {
+                                            $statusClass = 'expired';
+                                        } else {
+                                            $statusClass = 'pending';
+                                        }
+                                      @endphp
+                                      <div class="installment-line-item text-center">
+                                        <div class="installment-line-amount">{{ toBanglaNumber($installmentAmount, 2) }}</div>
+                                        <div class="installment-line-dot installment-line-dot-{{ $statusClass }}" title="{{ ucfirst($statusClass) }}"></div>
+                                        <div class="installment-line-date">{{ $expectedDate->format('Y-m-d') }}</div>
+                                      </div>
+                                    @endfor
+                                  </div>
+                                </div>
+                              </div>
                             </div>
 
                         </div>
@@ -318,6 +368,63 @@
     }
     .bg-danger-light {
       background: rgba(244, 67, 54, 0.1) !important;
+    }
+    .installment-line-wrap {
+      --dot-size: 16px;
+      --amount-space: 22px;
+      position: relative;
+      padding: 8px;
+    }
+    .installment-line-track {
+      position: absolute;
+      top: calc(8px + var(--amount-space) + (var(--dot-size) / 2));
+      left: 14px;
+      right: 14px;
+      height: 2px;
+      background: #d1d5db;
+      z-index: 1;
+    }
+    .installment-line-points {
+      display: grid;
+      gap: 0;
+      position: relative;
+      z-index: 2;
+    }
+    .installment-line-item {
+      min-width: 0;
+      position: relative;
+      padding-top: var(--amount-space);
+    }
+    .installment-line-amount {
+      font-size: 12px;
+      font-weight: 600;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+    .installment-line-dot {
+      width: var(--dot-size);
+      height: var(--dot-size);
+      border-radius: 50%;
+      margin: 0 auto;
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 1px rgba(31, 41, 55, 0.45), 0 0 0 4px rgba(255, 255, 255, 0.85);
+    }
+    .installment-line-dot-done {
+      background: #22c55e;
+    }
+    .installment-line-dot-pending {
+      background: #eab308;
+    }
+    .installment-line-dot-expired {
+      background: #ef4444;
+    }
+    .installment-line-date {
+      font-size: 11px;
+      margin-top: 8px;
+      white-space: nowrap;
     }
   </style>
 @endpush

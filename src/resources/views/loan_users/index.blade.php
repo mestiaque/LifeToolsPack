@@ -36,7 +36,7 @@
                             @foreach ($loanUsers as $lu)
                                 <tr>
                                     <td class="text-center">{{ $loop->iteration }}</td>
-                                    <td>{{ $lu->name }}</td>
+                                    <td><a href="{{ route('admin.loans.user-history', $lu->id) }}"><i class="fas fa-info-circle"></i></a> {{ $lu->name }} </td>
                                     <td class="text-center">
                                         @if($lu->is_active)
                                             <span class="badge bg-success">@lang('Active')</span>

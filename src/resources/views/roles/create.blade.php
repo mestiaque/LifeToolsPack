@@ -3,7 +3,7 @@
 @section('title', trans('Create Role'))
 
 @push('buttons')
-  @component('mecomponents.btn.add-button', [
+  @component('me::components.btn.add-button', [
       'route' => route('admin.roles.index'),
       'text' => __('All Roles'),
       'class' => 'btn-encodex-list'
