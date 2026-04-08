@@ -7,7 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Loan extends Model
 {
     protected $fillable = [
-        'loan_user_id', 'amount', 'type', 'date', 'installment', 'completed_installments', 'note'
+        'loan_user_id', 'amount', 'type', 'date', 'installment', 'completed_installments',
+        'installment_labels', 'installment_expected_dates', 'installment_amounts', 'note'
+    ];
+
+    protected $casts = [
+        'installment_labels' => 'array',
+        'installment_expected_dates' => 'array',
+        'installment_amounts' => 'array',
     ];
 
     public function loanUser()

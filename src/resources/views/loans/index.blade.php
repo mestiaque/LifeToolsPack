@@ -311,6 +311,8 @@
                                 $completedInstallments = min(max((int) ($loan->completed_installments ?? 0), 0), $installmentCount);
                                 $baseDate = \Carbon\Carbon::parse($loan->date);
                                 $installmentAmount = $loan->amount / $installmentCount;
+                                $savedDates = is_array($loan->installment_expected_dates) ? $loan->installment_expected_dates : [];
+                                $savedAmounts = is_array($loan->installment_amounts) ? $loan->installment_amounts : [];
                                 $today = \Carbon\Carbon::today();
                               @endphp
                               <div class="border rounded p-3">
@@ -320,7 +322,12 @@
                                   <div class="installment-line-points" style="grid-template-columns: repeat({{ $installmentCount }}, minmax(70px, 1fr));">
                                     @for ($i = 1; $i <= $installmentCount; $i++)
                                       @php
-                                        $expectedDate = $baseDate->copy()->addMonths($i);
+                                      $expectedDate = !empty($savedDates[$i - 1])
+                                        ? \Carbon\Carbon::parse($savedDates[$i - 1])
+                                        : $baseDate->copy()->addMonths($i);
+                                      $amountForItem = is_numeric($savedAmounts[$i - 1] ?? null)
+                                        ? (float) $savedAmounts[$i - 1]
+                                        : $installmentAmount;
                                         if ($i <= $completedInstallments) {
                                             $statusClass = 'done';
                                         } elseif ($expectedDate->lt($today)) {
@@ -330,7 +337,7 @@
                                         }
                                       @endphp
                                       <div class="installment-line-item text-center">
-                                        <div class="installment-line-amount">{{ toBanglaNumber($installmentAmount, 2) }}</div>
+                                        <div class="installment-line-amount">{{ toBanglaNumber($amountForItem, 2) }}</div>
                                         <div class="installment-line-dot installment-line-dot-{{ $statusClass }}" title="{{ ucfirst($statusClass) }}"></div>
                                         <div class="installment-line-date">{{ $expectedDate->format('Y-m-d') }}</div>
                                       </div>

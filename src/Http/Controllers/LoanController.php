@@ -154,11 +154,25 @@ class LoanController extends Controller
             }
 
             $perInstallmentAmount = $loanAmount / $installmentCount;
+            $installmentAmounts = is_array($loan->installment_amounts) ? $loan->installment_amounts : [];
+            $normalizedAmounts = [];
+            for ($idx = 0; $idx < $installmentCount; $idx++) {
+                $rawAmount = $installmentAmounts[$idx] ?? null;
+                $normalizedAmounts[$idx] = is_numeric($rawAmount) ? (float) $rawAmount : $perInstallmentAmount;
+            }
+
+            $installmentDates = is_array($loan->installment_expected_dates) ? $loan->installment_expected_dates : [];
 
             $manualCompleted = min(max((int) ($loan->completed_installments ?? 0), 0), $installmentCount);
             $repaymentCompleted = 0;
-            if ($perInstallmentAmount > 0) {
-                $repaymentCompleted = (int) floor(($totalRepayment + 0.00001) / $perInstallmentAmount);
+            $runningSum = 0.0;
+            foreach ($normalizedAmounts as $idx => $amountValue) {
+                $runningSum += (float) $amountValue;
+                if (($totalRepayment + 0.00001) >= $runningSum) {
+                    $repaymentCompleted = $idx + 1;
+                } else {
+                    break;
+                }
             }
             $repaymentCompleted = min(max($repaymentCompleted, 0), $installmentCount);
             $completedInstallments = max($manualCompleted, $repaymentCompleted);
@@ -170,14 +184,16 @@ class LoanController extends Controller
             $baseDate = Carbon::parse($loan->date)->startOfDay();
 
             for ($i = $completedInstallments + 1; $i <= $installmentCount; $i++) {
-                $expectedDate = $baseDate->copy()->addMonths($i);
+                $expectedDateValue = $installmentDates[$i - 1] ?? null;
+                $expectedDate = $expectedDateValue ? Carbon::parse($expectedDateValue) : $baseDate->copy()->addMonths($i);
                 $monthKey = $expectedDate->format('Y-m');
                 $isPayable = $loan->type === 'taken';
+                $itemAmount = (float) ($normalizedAmounts[$i - 1] ?? $perInstallmentAmount);
 
                 $item = [
                     'date' => $expectedDate->format('Y-m-d'),
                     'party' => $loan->loanUser->name ?? '-',
-                    'amount' => $perInstallmentAmount,
+                    'amount' => $itemAmount,
                     'direction' => $isPayable ? 'payable' : 'receivable',
                     'direction_label' => $isPayable ? __('Pay') : __('Receive'),
                     'installment_no' => $i,
@@ -188,9 +204,9 @@ class LoanController extends Controller
 
                 if (isset($months[$monthKey])) {
                     if ($isPayable) {
-                        $months[$monthKey]['payable'] += $perInstallmentAmount;
+                        $months[$monthKey]['payable'] += $itemAmount;
                     } else {
-                        $months[$monthKey]['receivable'] += $perInstallmentAmount;
+                        $months[$monthKey]['receivable'] += $itemAmount;
                     }
                 }
             }
@@ -221,11 +237,18 @@ class LoanController extends Controller
             'type' => 'required|in:given,taken',
             'date' => 'required|date',
             'installment' => 'required|integer|min:1',
+            'installment_labels' => 'nullable|array',
+            'installment_labels.*' => 'nullable|string',
+            'installment_expected_dates' => 'nullable|array',
+            'installment_expected_dates.*' => 'nullable|date',
+            'installment_amounts' => 'nullable|array',
+            'installment_amounts.*' => 'nullable|numeric|min:0',
             'note' => 'nullable|string',
             'loan_user_id' => 'required|integer|min:1',
         ]);
         $payload = $request->only(['loan_user_id', 'amount', 'type', 'date', 'installment', 'note']);
         $payload['completed_installments'] = 0;
+        $payload = array_merge($payload, $this->buildInstallmentSchedulePayload($request));
         $loan = Loan::create($payload);
 
         return redirect()->route('admin.loans.index')->with('success', __('Loan created successfully.'));
@@ -248,6 +271,12 @@ class LoanController extends Controller
             'type' => 'required|in:given,taken',
             'date' => 'required|date',
             'installment' => 'required|integer|min:1',
+            'installment_labels' => 'nullable|array',
+            'installment_labels.*' => 'nullable|string',
+            'installment_expected_dates' => 'nullable|array',
+            'installment_expected_dates.*' => 'nullable|date',
+            'installment_amounts' => 'nullable|array',
+            'installment_amounts.*' => 'nullable|numeric|min:0',
             'done_installments' => 'nullable|array',
             'done_installments.*' => 'integer|min:1',
             'note' => 'nullable|string',
@@ -262,6 +291,7 @@ class LoanController extends Controller
 
         $payload = $request->only(['amount', 'type', 'date', 'installment', 'note', 'loan_user_id']);
         $payload['completed_installments'] = $completedInstallments;
+        $payload = array_merge($payload, $this->buildInstallmentSchedulePayload($request));
         $loan->update($payload);
 
 
@@ -442,6 +472,44 @@ class LoanController extends Controller
             'totalGivenDue' => $totalGivenDue,
             'totalTakenDue' => $totalTakenDue,
             'userSummary' => $userSummary
+        ];
+    }
+
+    private function buildInstallmentSchedulePayload(Request $request): array
+    {
+        $installmentCount = max((int) $request->input('installment', 1), 1);
+        $baseDate = Carbon::parse($request->input('date'))->startOfDay();
+        $amount = (float) $request->input('amount', 0);
+        $perInstallment = $installmentCount > 0 ? ($amount / $installmentCount) : 0;
+
+        $labels = (array) $request->input('installment_labels', []);
+        $dates = (array) $request->input('installment_expected_dates', []);
+        $amounts = (array) $request->input('installment_amounts', []);
+
+        $finalLabels = [];
+        $finalDates = [];
+        $finalAmounts = [];
+
+        for ($i = 1; $i <= $installmentCount; $i++) {
+            $labelRaw = trim((string) ($labels[$i - 1] ?? ''));
+            $dateRaw = (string) ($dates[$i - 1] ?? '');
+            $amountRaw = $amounts[$i - 1] ?? null;
+
+            $finalLabels[] = $labelRaw !== '' ? $labelRaw : ($i . ' Installment');
+
+            if ($dateRaw !== '' && strtotime($dateRaw) !== false) {
+                $finalDates[] = Carbon::parse($dateRaw)->format('Y-m-d');
+            } else {
+                $finalDates[] = $baseDate->copy()->addMonths($i)->format('Y-m-d');
+            }
+
+            $finalAmounts[] = is_numeric($amountRaw) ? round((float) $amountRaw, 2) : round($perInstallment, 2);
+        }
+
+        return [
+            'installment_labels' => $finalLabels,
+            'installment_expected_dates' => $finalDates,
+            'installment_amounts' => $finalAmounts,
         ];
     }
 }

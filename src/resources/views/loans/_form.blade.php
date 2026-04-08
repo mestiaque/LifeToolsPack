@@ -80,15 +80,21 @@
                 </thead>
                 <tbody id="installment_schedule_body">
                     @php
-                        $oldInstallmentDates = old('installment_expected_dates', []);
-                        $oldInstallmentAmounts = old('installment_amounts', []);
-                        $oldDoneInstallments = old('done_installments', []);
+                        $savedInstallmentLabels = $loan->installment_labels ?? [];
+                        $savedInstallmentDates = $loan->installment_expected_dates ?? [];
+                        $savedInstallmentAmounts = $loan->installment_amounts ?? [];
+
+                        $oldInstallmentLabels = old('installment_labels', $savedInstallmentLabels);
+                        $oldInstallmentDates = old('installment_expected_dates', $savedInstallmentDates);
+                        $oldInstallmentAmounts = old('installment_amounts', $savedInstallmentAmounts);
+                        $oldDoneInstallments = old('done_installments');
+                        $defaultCompletedCount = (int) ($loan->completed_installments ?? 0);
                     @endphp
-                    @if (!empty($oldInstallmentDates) || !empty($oldInstallmentAmounts))
-                        @for ($i = 0; $i < max(count($oldInstallmentDates), count($oldInstallmentAmounts)); $i++)
+                    @if (!empty($oldInstallmentLabels) || !empty($oldInstallmentDates) || !empty($oldInstallmentAmounts))
+                        @for ($i = 0; $i < max(count($oldInstallmentLabels), count($oldInstallmentDates), count($oldInstallmentAmounts)); $i++)
                             <tr>
                                 <td>
-                                    <input type="text" class="form-control form-control-sm" name="installment_labels[]" value="{{ ($i + 1) . ' Installment' }}">
+                                    <input type="text" class="form-control form-control-sm" name="installment_labels[]" value="{{ $oldInstallmentLabels[$i] ?? (($i + 1) . ' Installment') }}">
                                 </td>
                                 <td>
                                     <input type="date" class="form-control form-control-sm" name="installment_expected_dates[]" value="{{ $oldInstallmentDates[$i] ?? '' }}">
@@ -98,7 +104,12 @@
                                 </td>
                                 @if (isset($loan))
                                     <td class="text-center align-middle">
-                                        <input type="checkbox" class="form-check-input" name="done_installments[]" value="{{ $i + 1 }}" {{ in_array($i + 1, $oldDoneInstallments, true) ? 'checked' : '' }}>
+                                        @php
+                                            $checked = is_array($oldDoneInstallments)
+                                                ? in_array($i + 1, $oldDoneInstallments, true)
+                                                : (($i + 1) <= $defaultCompletedCount);
+                                        @endphp
+                                        <input type="checkbox" class="form-check-input" name="done_installments[]" value="{{ $i + 1 }}" {{ $checked ? 'checked' : '' }}>
                                     </td>
                                 @endif
                             </tr>
@@ -169,13 +180,19 @@
             const baseDateValue = dateInput.value;
 
             const existingRows = body.querySelectorAll('tr');
+            const existingLabels = [];
             const existingDates = [];
+            const existingAmounts = [];
             const existingDoneFlags = [];
 
             existingRows.forEach((row) => {
+                const labelEl = row.querySelector('input[name="installment_labels[]"]');
                 const dateEl = row.querySelector('input[name="installment_expected_dates[]"]');
+                const amountEl = row.querySelector('input[name="installment_amounts[]"]');
                 const doneEl = row.querySelector('input[name="done_installments[]"]');
+                existingLabels.push(labelEl ? labelEl.value : '');
                 existingDates.push(dateEl ? dateEl.value : '');
+                existingAmounts.push(amountEl ? amountEl.value : '');
                 existingDoneFlags.push(doneEl ? doneEl.checked : false);
             });
 
@@ -200,14 +217,16 @@
                 currentDate.setMonth(baseDate.getMonth() + i);
 
                 const row = document.createElement('tr');
+                const labelValue = existingLabels[i - 1] || `${getOrdinal(i)} Installment`;
                 const expectedDate = existingDates[i - 1] || formatDate(currentDate);
-                const amountValue = perInstallment.toFixed(2);
-                const isChecked = typeof existingDoneFlags[i - 1] === 'boolean'
+                const amountValue = existingAmounts[i - 1] || perInstallment.toFixed(2);
+                const hasStoredDoneState = (i - 1) < existingDoneFlags.length;
+                const isChecked = hasStoredDoneState
                     ? existingDoneFlags[i - 1]
                     : (isEditMode && i <= defaultCompletedCount);
                 row.innerHTML = `
                     <td>
-                        <input type="text" class="form-control form-control-sm" name="installment_labels[]" value="${getOrdinal(i)} Installment">
+                        <input type="text" class="form-control form-control-sm" name="installment_labels[]" value="${labelValue}">
                     </td>
                     <td>
                         <input type="date" class="form-control form-control-sm" name="installment_expected_dates[]" value="${expectedDate}">
@@ -221,8 +240,7 @@
             }
         }
 
-        amountInput.addEventListener('input', buildInstallmentRows);
-        dateInput.addEventListener('change', buildInstallmentRows);
+        // Keep schedule rows manually editable; regenerate only when installment count changes.
         installmentInput.addEventListener('input', buildInstallmentRows);
         buildInstallmentRows();
     })();
