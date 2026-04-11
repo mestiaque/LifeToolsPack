@@ -121,7 +121,7 @@ class LoanController extends Controller
     public function paymentPlanner()
     {
         $today = Carbon::today();
-        $startMonth = $today->copy()->startOfYear();
+        $startMonth = $today->copy()->startOfMonth();
         $currentMonthKey = $today->format('Y-m');
         $nextMonthKey = $today->copy()->addMonth()->format('Y-m');
         $months = [];

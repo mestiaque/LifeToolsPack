@@ -23,7 +23,9 @@ class DriveController extends Controller
 
         $this->middleware('authorization:drive.view')->only(['index']);
         $this->middleware('authorization:drive.folder.create')->only(['createFolder']);
+        $this->middleware('authorization:drive.folder.create')->only(['updateFolder']);
         $this->middleware('authorization:drive.upload')->only(['upload']);
+        $this->middleware('authorization:drive.upload')->only(['updateFileName']);
         $this->middleware('authorization:drive.delete')->only(['delete', 'deleteFolder']);
         $this->middleware('authorization:drive.share')->only(['share', 'shareFolder']);
     }
@@ -67,6 +69,23 @@ class DriveController extends Controller
         return redirect()->back();
     }
 
+    public function updateFolder(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $folder = Folder::findOrFail($id);
+        if ($folder->user_id !== Auth::id()) {
+            return back()->withErrors(['You do not have permission to update this folder.']);
+        }
+
+        $folder->name = trim($request->name);
+        $folder->save();
+
+        return back()->with('success', 'Folder renamed successfully.');
+    }
+
     public function upload(Request $request)
     {
         $request->validate([
@@ -103,6 +122,30 @@ class DriveController extends Controller
         return redirect()->back()->with('folder', $folder->id);
     }
 
+    public function updateFileName(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $document = Document::findOrFail($id);
+        if ($document->user_id !== Auth::id()) {
+            return back()->withErrors(['You do not have permission to update this file.']);
+        }
+
+        $newName = trim($request->name);
+        $currentExt = pathinfo($document->name, PATHINFO_EXTENSION);
+        $newExt = pathinfo($newName, PATHINFO_EXTENSION);
+        if ($currentExt && !$newExt) {
+            $newName .= '.' . $currentExt;
+        }
+
+        $document->name = $newName;
+        $document->save();
+
+        return back()->with('success', 'File name updated successfully.');
+    }
+
     public function preview($id)
     {
         $document = Document::findOrFail($id);
@@ -134,21 +177,21 @@ class DriveController extends Controller
     public function deleteFolder($id)
     {
         $folder = Folder::findOrFail($id);
-        
+
         // Check if folder belongs to the authenticated user
         if ($folder->user_id !== Auth::id()) {
             return back()->withErrors(['You do not have permission to delete this folder.']);
         }
-        
+
         // Recursively delete all documents in this folder and its subfolders
         $this->deleteFolderContents($folder);
-        
+
         // Delete the folder itself
         $folder->delete();
-        
+
         return back()->with('success', 'Folder deleted successfully.');
     }
-    
+
     private function deleteFolderContents($folder)
     {
         // Delete all documents in this folder
@@ -156,7 +199,7 @@ class DriveController extends Controller
             Storage::delete($doc->file_path);
             $doc->delete();
         }
-        
+
         // Recursively delete contents of subfolders
         foreach ($folder->children as $child) {
             $this->deleteFolderContents($child);

@@ -22,9 +22,9 @@ use ME\EmCore\Http\Controllers\HerCycleController;
 
 Route::middleware(['web'])->group(function () {
 
-    Route::get('protfolio/', [FrontController::class, 'index'])->name('home');
-    Route::get('/cv', [FrontController::class, 'cv']);
-    Route::get('/curriculum-vitae', [FrontController::class, 'cv'])->name('cv');
+    // Route::get('protfolio/', [FrontController::class, 'index'])->name('home');
+    // Route::get('/cv', [FrontController::class, 'cv']);
+    // Route::get('/curriculum-vitae', [FrontController::class, 'cv'])->name('cv');
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
     //gallery
     Route::middleware([LocaleMiddleware::class])->group(function () {
@@ -55,7 +55,8 @@ Route::middleware(['web'])->group(function () {
 
 
     Route::middleware(['auth', LocaleMiddleware::class])->group(function () {
-
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/admin', [DashboardController::class, 'index'])->name('dashboard');
         Route::group([ 'prefix' => 'admin', 'as' => 'admin.'], function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
             Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
@@ -79,8 +80,10 @@ Route::middleware(['web'])->group(function () {
             // Drive routes
             Route::get('/drive', [DriveController::class, 'index'])->name('drive');
             Route::post('/drive/folder', [DriveController::class, 'createFolder'])->name('drive.folder.create');
+            Route::put('/drive/folder/update/{id}', [DriveController::class, 'updateFolder'])->name('drive.folder.update');
             Route::delete('/drive/folder/delete/{id}', [DriveController::class, 'deleteFolder'])->name('drive.folder.delete');
             Route::post('/drive/upload', [DriveController::class, 'upload'])->name('drive.upload');
+            Route::put('/drive/file/update/{id}', [DriveController::class, 'updateFileName'])->name('drive.file.update');
             Route::delete('/drive/delete/{id}', [DriveController::class, 'delete'])->name('drive.delete');
             // Share & OTP routes for documents
             Route::post('/drive/share/{id}', [DriveController::class, 'share'])->name('drive.share');

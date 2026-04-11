@@ -62,7 +62,7 @@
             <div class="card-body">
                 <div class="planner-month-list">
                     @foreach ($months as $month)
-                        <div class="planner-month-item {{ $loop->first ? 'planner-month-current' : '' }} {{ $loop->index === 1 ? 'planner-month-next' : '' }}">
+                        <div class="planner-month-item {{ $month['is_current'] ? 'planner-month-current' : '' }} {{ $month['is_next'] ? 'planner-month-next' : '' }}">
                             <span class="planner-month-inline-part planner-month-name">{{ $month['month'] }}</span>
                             <span class="planner-month-divider">|</span>
                             <span class="planner-month-inline-part planner-month-payable">@lang('Payable'): {{ toBanglaNumber($month['payable'], 2) }}</span>

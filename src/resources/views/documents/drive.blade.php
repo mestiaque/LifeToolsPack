@@ -4,10 +4,10 @@
 
 @section('content')
 
-<div class="container-fluid">
+<div class="container-fluid drive-shell">
     <div class="row">
         <!-- Sidebar: Folder Tree -->
-        <div class="col-md-3 drive-sidebar py-4">
+        <div class="col-md-3 drive-sidebar py-4" id="driveSidebarTree">
             <!-- Share Link Alerts -->
             @foreach($folders as $folder)
                 @if(session('share_folder_link_' . $folder->id))
@@ -38,7 +38,7 @@
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </a>
             </div>
-            <ul class="list-group mb-3 rounded-3 shadow-sm">
+            <ul class="list-group drive-tree-root mb-3 rounded-3 shadow-sm">
                 @foreach($folders as $folder)
                     @php
                         // Determine if this folder or any child/subchild is active
@@ -48,8 +48,8 @@
                             ($folder->children && $folder->children->flatMap->children->contains('id', $currentFolder->id))
                         );
                     @endphp
-                    <li class="list-group-item {{ isset($currentFolder) && $currentFolder->id == $folder->id ? 'active' : '' }}">
-                        <div class="d-flex justify-content-between align-items-center">
+                    <li class="list-group-item drive-tree-node {{ isset($currentFolder) && $currentFolder->id == $folder->id ? 'active' : '' }}" data-drive-name="{{ Str::lower($folder->name) }}">
+                        <div class="d-flex justify-content-between align-items-center drive-node-row">
                             <span class="d-flex align-items-center">
                                 <i class="bi bi-folder-fill me-1"></i>
                                 <a href="{{ route('admin.drive', ['folder' => $folder->id]) }}" class="{{ isset($currentFolder) && $currentFolder->id == $folder->id ? 'text-primary' : '' }}">
@@ -62,8 +62,11 @@
                                     </button>
                                 @endif
                             </span>
-                            <div class="d-flex gap-1">
-                                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $folder->id }}" title="Share Folder">
+                            <div class="d-flex gap-1 drive-folder-actions">
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $folder->id }}" title="Rename Folder">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $folder->id }}" title="Share Folder">
                                     <i class="bi bi-share"></i>
                                 </button>
                                 <form method="POST" action="{{ route('admin.drive.folder.delete', $folder->id) }}" onsubmit="return confirm('Are you sure you want to delete this folder and all its contents?');">
@@ -72,6 +75,29 @@
                                     <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Folder">
                                         <i class="bi bi-trash"></i>
                                     </button>
+                                </form>
+                            </div>
+                        </div>
+                        <!-- Folder Rename Modal -->
+                        <div class="modal fade" id="renameFolderModal-{{ $folder->id }}" tabindex="-1" aria-labelledby="renameFolderModalLabel-{{ $folder->id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <form method="POST" action="{{ route('admin.drive.folder.update', $folder->id) }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="renameFolderModalLabel-{{ $folder->id }}">Rename Folder</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <label class="form-label">Folder name</label>
+                                            <input type="text" name="name" class="form-control" value="{{ $folder->name }}" maxlength="255" required>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -103,7 +129,7 @@
                             </div>
                         </div>
                         @if($folder->children && count($folder->children))
-                            <ul class="collapse ms-3 mt-2 {{ $isActive ? 'show' : '' }}" id="folder-{{ $folder->id }}">
+                            <ul class="collapse drive-children ms-3 mt-2 {{ $isActive ? 'show' : '' }}" id="folder-{{ $folder->id }}">
                                 @foreach($folder->children as $child)
                                     @php
                                         $isChildActive = isset($currentFolder) && (
@@ -111,8 +137,8 @@
                                             ($child->children && $child->children->contains('id', $currentFolder->id))
                                         );
                                     @endphp
-                                    <li>
-                                        <div class="d-flex justify-content-between align-items-center">
+                                    <li class="drive-tree-node" data-drive-name="{{ Str::lower($child->name) }}">
+                                        <div class="d-flex justify-content-between align-items-center drive-node-row">
                                             <span class="d-flex align-items-center">
                                                 <i class="bi bi-folder me-1"></i>
                                                 <a href="{{ route('admin.drive', ['folder' => $child->id]) }}" class="{{ isset($currentFolder) && $currentFolder->id == $child->id ? 'fw-bold text-primary' : '' }}">
@@ -125,8 +151,11 @@
                                                     </button>
                                                 @endif
                                             </span>
-                                            <div class="d-flex gap-1">
-                                                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $child->id }}" title="Share Folder">
+                                            <div class="d-flex gap-1 drive-folder-actions">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $child->id }}" title="Rename Folder">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $child->id }}" title="Share Folder">
                                                     <i class="bi bi-share"></i>
                                                 </button>
                                                 <form method="POST" action="{{ route('admin.drive.folder.delete', $child->id) }}" onsubmit="return confirm('Are you sure you want to delete this subfolder and all its contents?');">
@@ -135,6 +164,29 @@
                                                     <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Subfolder">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <!-- Subfolder Rename Modal -->
+                                        <div class="modal fade" id="renameFolderModal-{{ $child->id }}" tabindex="-1" aria-labelledby="renameFolderModalLabel-{{ $child->id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <form method="POST" action="{{ route('admin.drive.folder.update', $child->id) }}">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="renameFolderModalLabel-{{ $child->id }}">Rename Folder</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <label class="form-label">Folder name</label>
+                                                            <input type="text" name="name" class="form-control" value="{{ $child->name }}" maxlength="255" required>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                        </div>
+                                                    </div>
                                                 </form>
                                             </div>
                                         </div>
@@ -166,10 +218,10 @@
                                             </div>
                                         </div>
                                         @if($child->children && count($child->children))
-                                            <ul class="collapse ms-3 mt-2 {{ $isChildActive ? 'show' : '' }}" id="folder-{{ $child->id }}">
+                                            <ul class="collapse drive-children ms-3 mt-2 {{ $isChildActive ? 'show' : '' }}" id="folder-{{ $child->id }}">
                                                 @foreach($child->children as $subchild)
-                                                    <li>
-                                                        <div class="d-flex justify-content-between align-items-center">
+                                                    <li class="drive-tree-node" data-drive-name="{{ Str::lower($subchild->name) }}">
+                                                        <div class="d-flex justify-content-between align-items-center drive-node-row">
                                                             <span class="d-flex align-items-center">
                                                                 <i class="bi bi-folder me-1"></i>
                                                                 <a href="{{ route('admin.drive', ['folder' => $subchild->id]) }}" class="{{ isset($currentFolder) && $currentFolder->id == $subchild->id ? 'fw-bold text-primary' : '' }}">
@@ -177,8 +229,11 @@
                                                                 </a>
                                                                 <span class="badge bg-secondary ms-2">{{ $subchild->documents->count() }}</span>
                                                             </span>
-                                                            <div class="d-flex gap-1">
-                                                                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $subchild->id }}" title="Share Folder">
+                                                            <div class="d-flex gap-1 drive-folder-actions">
+                                                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $subchild->id }}" title="Rename Folder">
+                                                                    <i class="bi bi-pencil-square"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $subchild->id }}" title="Share Folder">
                                                                     <i class="bi bi-share"></i>
                                                                 </button>
                                                                 <form method="POST" action="{{ route('admin.drive.folder.delete', $subchild->id) }}" onsubmit="return confirm('Are you sure you want to delete this sub-subfolder and all its contents?');">
@@ -187,6 +242,29 @@
                                                                     <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Sub-subfolder">
                                                                         <i class="bi bi-trash"></i>
                                                                     </button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Sub-subfolder Rename Modal -->
+                                                        <div class="modal fade" id="renameFolderModal-{{ $subchild->id }}" tabindex="-1" aria-labelledby="renameFolderModalLabel-{{ $subchild->id }}" aria-hidden="true">
+                                                            <div class="modal-dialog modal-dialog-centered">
+                                                                <form method="POST" action="{{ route('admin.drive.folder.update', $subchild->id) }}">
+                                                                    @csrf
+                                                                    @method('PUT')
+                                                                    <div class="modal-content">
+                                                                        <div class="modal-header">
+                                                                            <h5 class="modal-title" id="renameFolderModalLabel-{{ $subchild->id }}">Rename Folder</h5>
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        </div>
+                                                                        <div class="modal-body">
+                                                                            <label class="form-label">Folder name</label>
+                                                                            <input type="text" name="name" class="form-control" value="{{ $subchild->name }}" maxlength="255" required>
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                                        </div>
+                                                                    </div>
                                                                 </form>
                                                             </div>
                                                         </div>
@@ -283,6 +361,25 @@
                 @endif
             @endforeach
 
+            <div class="drive-quickbar">
+                <div class="drive-crumbs">
+                    <i class="bi bi-hdd-network me-1"></i>
+                    <span>My Drive</span>
+                    @if($currentFolder)
+                        <i class="bi bi-chevron-right small mx-1"></i>
+                        <span class="fw-semibold text-dark">{{ $currentFolder->name }}</span>
+                    @endif
+                </div>
+                <div class="drive-search-mock">
+                    <i class="bi bi-search"></i>
+                    <input type="search" id="driveSearchInput" class="drive-search-input" placeholder="Search in Drive" aria-label="Search in Drive">
+                </div>
+                <div class="drive-view-mock">
+                    <button type="button" id="driveGridBtn" class="btn btn-light btn-sm is-active" title="Gallery view"><i class="bi bi-grid"></i></button>
+                    <button type="button" id="driveListBtn" class="btn btn-light btn-sm" title="List view"><i class="bi bi-list-ul"></i></button>
+                </div>
+            </div>
+
             <div class="drive-main-header">
                 <div>
                     <h5 class="mb-0 fw-semibold text-dark d-inline-flex align-items-center">
@@ -293,24 +390,47 @@
                     </h5>
                 </div>
                 @if($currentFolder)
-                <form method="POST" action="{{ route('admin.drive.upload') }}" enctype="multipart/form-data" class="mb-0">
-                    @csrf
-                    <div class="input-group rounded-2 shadow-sm" style="max-width:330px;">
-                        <input type="file" name="file[]" class="form-control rounded-start-2" required multiple accept="image/*" onchange="if(this.files.length>10){alert('Max 10 files allowed');this.value='';}">
-                        <input type="hidden" name="folder_id" value="{{ $currentFolder->id }}">
-                        <button type="submit" class="btn btn-success btn-sm rounded-end-2"><i class="bi bi-upload"></i> Upload</button>
-                    </div>
-                    <small class="text-muted">Max 10 files, total 100MB.</small>
-                </form>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="bi bi-upload"></i> Upload Files
+                </button>
+                @else
+                <button type="button" class="btn btn-success btn-sm" disabled title="Select a folder to upload files">
+                    <i class="bi bi-upload"></i> Upload Files
+                </button>
                 @endif
             </div>
             @if($currentFolder)
-            <div class="row mt-3">
+            <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <form method="POST" action="{{ route('admin.drive.upload') }}" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="folder_id" value="{{ $currentFolder->id }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="uploadModalLabel">Upload Files</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <label class="form-label">Choose files (max 10)</label>
+                                <input id="driveUploadInput" type="file" name="file[]" class="form-control" required multiple>
+                                <small class="text-muted d-block mt-2">Max 10 files, total 100MB.</small>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-success">Upload</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
+            @if($currentFolder)
+            <div id="driveFilesGrid" class="row mt-3 drive-files-grid">
                 @forelse($documents as $doc)
                 @php
                     $fileExists = Storage::exists($doc->file_path);
                 @endphp
-                <div class="col-lg-3 col-md-4 col-6 mb-4">
+                <div class="col-lg-3 col-md-4 col-6 mb-4 drive-file-col" data-drive-file="{{ Str::lower($doc->name) }}">
                     <div class="drive-file-card h-100 position-relative p-3 text-center">
                         <div class="position-absolute top-0 end-0 mt-2 me-2">
                             <div class="dropdown">
@@ -319,9 +439,14 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#shareModal-{{ $doc->id }}">
+                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#renameFileModal-{{ $doc->id }}">
+                                            <i class="bi bi-pencil-square"></i> Rename
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#shareModal-{{ $doc->id }}">
                                             <i class="bi bi-share"></i> Share
-                                        </a>
+                                        </button>
                                     </li>
                                     <li>
                                         <a href="{{ route('admin.drive.download', $doc->id) }}" class="dropdown-item">
@@ -347,7 +472,7 @@
                                     <div>File missing</div>
                                 </div>
                             @elseif(Str::startsWith($doc->mime_type, 'image'))
-                                <img loading="lazy" src="{{ route('admin.drive.preview', $doc->id) }}" loading="lazy" class="drive-file-thumb mb-2 border" />
+                                <img loading="lazy" src="{{ route('admin.drive.preview', $doc->id) }}" class="drive-file-thumb mb-2 border" />
                             @elseif(Str::startsWith($doc->mime_type, 'application/pdf'))
                                 <i class="bi bi-file-earmark-pdf display-5 text-danger"></i>
                             @elseif(Str::endsWith($doc->mime_type, 'zip'))
@@ -365,6 +490,29 @@
                                 @endif
                             </div>
                         @endif
+                    </div>
+                    <!-- Rename File Modal -->
+                    <div class="modal fade" id="renameFileModal-{{ $doc->id }}" tabindex="-1" aria-labelledby="renameFileModalLabel-{{ $doc->id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <form method="POST" action="{{ route('admin.drive.file.update', $doc->id) }}">
+                                @csrf
+                                @method('PUT')
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="renameFileModalLabel-{{ $doc->id }}">Rename File</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <label class="form-label">File name</label>
+                                        <input type="text" name="name" class="form-control" value="{{ $doc->name }}" maxlength="255" required>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                     <!-- Share Modal -->
                     <div class="modal fade" id="shareModal-{{ $doc->id }}" tabindex="-1" aria-labelledby="shareModalLabel-{{ $doc->id }}" aria-hidden="true">
@@ -402,72 +550,326 @@
 
 @push('css')
 <style>
+    .drive-shell {
+        --drive-surface: #ffffff;
+        --drive-soft-surface: #f7f9fc;
+        --drive-border: #dce4ef;
+        --drive-text: #12263a;
+        --drive-muted: #5c6f82;
+        --drive-primary: #0b5ed7;
+        --drive-primary-soft: #e9f2ff;
+        --drive-success-soft: #eafaf3;
+        --drive-shadow-sm: 0 4px 14px rgba(19, 42, 76, 0.08);
+        --drive-shadow-md: 0 10px 26px rgba(19, 42, 76, 0.12);
+        color: var(--drive-text);
+        background: radial-gradient(circle at 8% 0%, #f3f8ff 0, #f9fbff 35%, #ffffff 70%);
+    }
     .drive-sidebar {
-        background: #f5f7fa;
-        border-right: 1px solid #e9ecef;
+        background: linear-gradient(180deg, #f8fbff 0%, #f1f6ff 100%);
+        border-right: 1px solid var(--drive-border);
         min-height: 100vh;
+        position: relative;
+    }
+    .drive-sidebar::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(11, 94, 215, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(11, 94, 215, 0.03) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.5;
     }
     .drive-sidebar .list-group-item.active {
-        background: none;
-        color: #000000;
-        font-weight: 600;
+        background: var(--drive-primary-soft);
+        color: #083a84;
+        border-color: #c8daf8;
+        box-shadow: inset 3px 0 0 var(--drive-primary);
+        font-weight: 700;
     }
     .drive-sidebar .list-group-item a {
         text-decoration: none;
-        color: inherit;
+        color: #1e3d63;
+        transition: color .2s ease;
+    }
+    .drive-sidebar .list-group-item a:hover {
+        color: var(--drive-primary);
+    }
+    .drive-sidebar .list-group {
+        border: 1px solid var(--drive-border);
+        background: #ffffffd9;
+        backdrop-filter: blur(2px);
+    }
+    .drive-sidebar .list-group-item {
+        border-color: #edf2f8;
+        padding: .6rem .75rem;
+    }
+    .drive-tree-root .drive-tree-node {
+        padding: .42rem .55rem;
+        border-radius: 8px;
+        margin: 2px 4px;
+    }
+    .drive-node-row {
+        gap: 8px;
+    }
+    .drive-node-row > span {
+        min-width: 0;
+    }
+    .drive-node-row a {
+        max-width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .drive-children {
+        position: relative;
+        margin-left: .8rem !important;
+        padding-left: .55rem;
+    }
+    .drive-children::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 2px;
+        bottom: 6px;
+        width: 1px;
+        background: #d3dded;
+    }
+    .drive-folder-actions {
+        flex-shrink: 0;
+    }
+    .drive-folder-actions .btn {
+        padding: .2rem .38rem;
+    }
+    .drive-sidebar .list-group ul {
+        list-style: none;
+        padding-left: .65rem;
+        margin-bottom: 0;
     }
     .drive-folder-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #0b5ed7;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: .01em;
+        color: #0947a6;
     }
     .drive-main {
-        background: #fff;
+        background: transparent;
         min-height: 100vh;
         padding-bottom: 32px;
     }
-    .drive-file-card {
-        transition: box-shadow .2s;
-        border: 1px solid #e9ecef;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px #e9ecef;
-        overflow: hidden;
+    .drive-quickbar {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--drive-border);
+        border-radius: 12px;
+        background: #ffffffc9;
+        box-shadow: var(--drive-shadow-sm);
     }
-    .drive-file-card:hover {
-        box-shadow: 0 4px 16px #b4e9fc;
-        border-color: #0b5ed7;
+    .drive-crumbs {
+        display: inline-flex;
+        align-items: center;
+        color: var(--drive-muted);
+        font-size: .9rem;
     }
-    .drive-file-thumb {
-        max-height: 110px;
-        object-fit: cover;
-        border-radius: 6px;
-        box-shadow: 0 1px 4px #e9ecef;
+    .drive-search-mock {
+        border: 1px solid #d8e3f2;
+        border-radius: 999px;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 12px;
+        color: #647b96;
+        background: #f8fbff;
     }
-    .drive-file-name {
-        font-size: 1rem;
-        font-weight: 500;
-        text-truncate: ellipsis;
-        margin-top: 8px;
-        color: #222;
+    .drive-search-input {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        outline: 0;
+        color: #395678;
+        font-size: .92rem;
     }
-    .drive-file-actions .btn {
-        margin: 0 3px;
+    .drive-search-input::placeholder {
+        color: #7088a3;
+    }
+    .drive-view-mock {
+        display: inline-flex;
+        gap: 6px;
+    }
+    .drive-view-mock .btn.is-active {
+        background: #e7f0ff;
+        border-color: #bdd2f3;
+        color: #1e4f93;
     }
     .drive-main-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 24px;
+        padding: 14px 16px;
+        border: 1px solid var(--drive-border);
+        border-radius: 14px;
+        background: linear-gradient(120deg, #ffffff 0%, #f6faff 100%);
+        box-shadow: var(--drive-shadow-sm);
+    }
+    .drive-main-header h5 {
+        color: #0f2f54;
+    }
+    .drive-file-card {
+        transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
+        border: 1px solid var(--drive-border);
+        border-radius: 14px;
+        box-shadow: var(--drive-shadow-sm);
+        background: var(--drive-surface);
+        overflow: visible;
+        animation: driveFadeUp .35s ease both;
+    }
+    .drive-file-col {
+        position: relative;
+        z-index: 1;
+        overflow: visible;
+    }
+    .drive-file-col.dropdown-open {
+        z-index: 30;
+    }
+    .drive-file-card .dropdown-menu {
+        z-index: 1090;
+    }
+    .drive-file-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--drive-shadow-md);
+        border-color: #b9d1f5;
+    }
+    .drive-files-grid.drive-list-mode > .drive-file-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .drive-files-grid.drive-list-mode .drive-file-card {
+        display: grid;
+        grid-template-columns: 92px 1fr auto;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+        padding: 12px !important;
+    }
+    .drive-files-grid.drive-list-mode .drive-file-card > div:first-of-type {
+        margin-bottom: 0 !important;
+    }
+    .drive-files-grid.drive-list-mode .drive-file-thumb {
+        max-height: 64px;
+    }
+    .drive-files-grid.drive-list-mode .drive-file-name {
+        margin-top: 0;
+        max-width: 100%;
+    }
+    .drive-files-grid.drive-list-mode .drive-file-actions {
+        margin-top: 0 !important;
+        justify-self: end;
+        white-space: nowrap;
+    }
+    .drive-file-thumb {
+        max-height: 110px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(23, 40, 79, 0.12);
+    }
+    .drive-file-name {
+        font-size: .95rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 8px;
+        color: #163455;
+    }
+    .drive-file-actions .btn {
+        margin: 0 3px;
+        border-radius: 8px;
+    }
+    .drive-sidebar .alert,
+    .drive-main .alert {
+        border-radius: 10px;
+        border: 1px solid #cfe0fb;
+        background: #f3f8ff;
+    }
+    .drive-sidebar .card,
+    .drive-main .card {
+        border: 1px solid var(--drive-border);
+        box-shadow: var(--drive-shadow-sm);
+        border-radius: 14px;
+    }
+    .drive-main .badge.bg-secondary,
+    .drive-sidebar .badge.bg-secondary {
+        background: #dce8fb !important;
+        color: #23456c;
+        border: 1px solid #c8d8f1;
+    }
+    .drive-folder-actions .btn {
+        border-radius: 8px;
+    }
+    .drive-folder-actions .btn-outline-primary {
+        border-color: #b9cff2;
+        color: #2f5d95;
+    }
+    .drive-folder-actions .btn-outline-primary:hover {
+        background: #e8f1ff;
+        color: #0d4ea4;
+    }
+    .drive-file-card .dropdown .btn {
+        border: 1px solid #d4deec;
+        color: #35567d;
+    }
+    .drive-file-card .dropdown .btn:hover {
+        background: var(--drive-primary-soft);
+        color: var(--drive-primary);
+    }
+    @keyframes driveFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
     @media (max-width: 767px) {
+        .drive-shell {
+            background: #f8fbff;
+        }
         .drive-sidebar {
             min-height: auto;
             border-right: none;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid var(--drive-border);
         }
         .drive-main-header {
             flex-direction: column;
             align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+        }
+        .drive-quickbar {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .drive-view-mock {
+            justify-content: flex-start;
+        }
+        .drive-file-card {
+            border-radius: 12px;
+        }
+        .drive-files-grid.drive-list-mode .drive-file-card {
+            grid-template-columns: 64px 1fr;
+        }
+        .drive-files-grid.drive-list-mode .drive-file-actions {
+            justify-self: start;
+            grid-column: 1 / -1;
+            margin-top: 8px !important;
         }
     }
 </style>
@@ -476,10 +878,92 @@
 @push('js')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        // Keep modals outside scrollable/overflow containers to prevent clipping.
+        document.querySelectorAll('.modal').forEach(function (modalEl) {
+            if (modalEl.parentElement !== document.body) {
+                document.body.appendChild(modalEl);
+            }
+        });
+
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl)
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        var searchInput = document.getElementById('driveSearchInput');
+        var fileCols = Array.from(document.querySelectorAll('.drive-file-col'));
+        var treeNodes = Array.from(document.querySelectorAll('.drive-tree-node'));
+        var grid = document.getElementById('driveFilesGrid');
+        var gridBtn = document.getElementById('driveGridBtn');
+        var listBtn = document.getElementById('driveListBtn');
+        var uploadInput = document.getElementById('driveUploadInput');
+
+        var normalize = function (value) {
+            return (value || '').toString().trim().toLowerCase();
+        };
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                var query = normalize(searchInput.value);
+
+                fileCols.forEach(function (node) {
+                    var name = normalize(node.getAttribute('data-drive-file'));
+                    node.style.display = !query || name.indexOf(query) !== -1 ? '' : 'none';
+                });
+
+                treeNodes.forEach(function (node) {
+                    var name = normalize(node.getAttribute('data-drive-name'));
+                    node.style.display = !query || name.indexOf(query) !== -1 ? '' : 'none';
+                });
+            });
+        }
+
+        if (grid && gridBtn && listBtn) {
+            var setMode = function (mode) {
+                var isList = mode === 'list';
+                grid.classList.toggle('drive-list-mode', isList);
+                listBtn.classList.toggle('is-active', isList);
+                gridBtn.classList.toggle('is-active', !isList);
+            };
+
+            gridBtn.addEventListener('click', function () {
+                setMode('grid');
+            });
+
+            listBtn.addEventListener('click', function () {
+                setMode('list');
+            });
+        }
+
+        if (uploadInput) {
+            uploadInput.addEventListener('change', function () {
+                if (this.files && this.files.length > 10) {
+                    alert('Max 10 files allowed');
+                    this.value = '';
+                }
+            });
+        }
+
+        document.querySelectorAll('.drive-folder-actions .btn, .dropdown-item[data-bs-toggle="modal"]').forEach(function (btn) {
+            btn.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
         })
+
+        document.querySelectorAll('.drive-file-col .dropdown').forEach(function (dropdownEl) {
+            var cardCol = dropdownEl.closest('.drive-file-col');
+            if (!cardCol) {
+                return;
+            }
+
+            dropdownEl.addEventListener('shown.bs.dropdown', function () {
+                cardCol.classList.add('dropdown-open');
+            });
+
+            dropdownEl.addEventListener('hidden.bs.dropdown', function () {
+                cardCol.classList.remove('dropdown-open');
+            });
+        });
     });
 </script>
 @endpush
