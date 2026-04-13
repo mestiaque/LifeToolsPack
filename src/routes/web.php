@@ -56,8 +56,8 @@ Route::middleware(['web'])->group(function () {
 
 
     Route::middleware(['auth', LocaleMiddleware::class])->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/admin', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/admin', [DashboardController::class, 'index']);
         Route::group([ 'prefix' => 'admin', 'as' => 'admin.'], function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
             Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
