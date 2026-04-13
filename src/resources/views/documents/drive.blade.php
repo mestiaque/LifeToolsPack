@@ -2,12 +2,32 @@
 
 @section('title', 'Drive')
 
+@push('buttons')
+    @if($currentFolder)
+        <button type="button" class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            <i class="fa fa-upload"></i> Upload Files
+        </button>
+    @else
+        <button type="button" class="btn btn-sm btn-encodex-create" disabled title="Select a folder to upload files">
+            <i class="fa fa-upload"></i> Upload Files
+        </button>
+    @endif
+
+    <a href="{{ route('admin.drive') }}" class="btn btn-sm btn-encodex-clear" title="Reset to root folders">
+        <i class="fa fa-undo"></i> Reset
+    </a>
+
+    <a href="{{ route('admin.drive.share.history') }}" class="btn btn-sm btn-encodex-create" title="View share visitor history">
+        <i class="fa fa-history"></i> Share History
+    </a>
+@endpush
+
 @section('content')
 
 <div class="container-fluid drive-shell">
     <div class="row">
         <!-- Sidebar: Folder Tree -->
-        <div class="col-md-3 drive-sidebar py-4" id="driveSidebarTree">
+        <div class="col-md-3 drive-sidebar py-1" id="driveSidebarTree">
             <!-- Share Link Alerts -->
             @foreach($folders as $folder)
                 @if(session('share_folder_link_' . $folder->id))
@@ -32,12 +52,10 @@
                 @endif
             @endforeach
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            {{-- <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="drive-folder-title"><i class="bi bi-folder2-open"></i> Folders</span>
-                <a href="{{ route('admin.drive') }}" class="btn btn-outline-secondary btn-sm" title="Reset to root folders">
-                    <i class="bi bi-arrow-counterclockwise"></i>
-                </a>
-            </div>
+
+            </div> --}}
             <ul class="list-group drive-tree-root mb-3 rounded-3 shadow-sm">
                 @foreach($folders as $folder)
                     @php
@@ -50,7 +68,7 @@
                     @endphp
                     <li class="list-group-item drive-tree-node {{ isset($currentFolder) && $currentFolder->id == $folder->id ? 'active' : '' }}" data-drive-name="{{ Str::lower($folder->name) }}">
                         <div class="d-flex justify-content-between align-items-center drive-node-row">
-                            <span class="d-flex align-items-center">
+                            <span class="d-flex align-items-center drive-node-main">
                                 <i class="bi bi-folder-fill me-1"></i>
                                 <a href="{{ route('admin.drive', ['folder' => $folder->id]) }}" class="{{ isset($currentFolder) && $currentFolder->id == $folder->id ? 'text-primary' : '' }}">
                                     {{ $folder->name }}
@@ -62,20 +80,32 @@
                                     </button>
                                 @endif
                             </span>
-                            <div class="d-flex gap-1 drive-folder-actions">
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $folder->id }}" title="Rename Folder">
-                                    <i class="bi bi-pencil-square"></i>
+                            <div class="drive-folder-actions dropdown dropstart">
+                                <button type="button" class="btn btn-sm drive-folder-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Folder actions">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $folder->id }}" title="Share Folder">
-                                    <i class="bi bi-share"></i>
-                                </button>
-                                <form method="POST" action="{{ route('admin.drive.folder.delete', $folder->id) }}" onsubmit="return confirm('Are you sure you want to delete this folder and all its contents?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Folder">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li>
+                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $folder->id }}">
+                                            <i class="bi bi-pencil-square me-1"></i> Edit
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $folder->id }}">
+                                            <i class="bi bi-share me-1"></i> Share
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('admin.drive.folder.delete', $folder->id) }}" onsubmit="return confirm('Are you sure you want to delete this folder and all its contents?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                         <!-- Folder Rename Modal -->
@@ -139,7 +169,7 @@
                                     @endphp
                                     <li class="drive-tree-node" data-drive-name="{{ Str::lower($child->name) }}">
                                         <div class="d-flex justify-content-between align-items-center drive-node-row">
-                                            <span class="d-flex align-items-center">
+                                            <span class="d-flex align-items-center drive-node-main">
                                                 <i class="bi bi-folder me-1"></i>
                                                 <a href="{{ route('admin.drive', ['folder' => $child->id]) }}" class="{{ isset($currentFolder) && $currentFolder->id == $child->id ? 'fw-bold text-primary' : '' }}">
                                                     {{ $child->name }}
@@ -151,20 +181,32 @@
                                                     </button>
                                                 @endif
                                             </span>
-                                            <div class="d-flex gap-1 drive-folder-actions">
-                                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $child->id }}" title="Rename Folder">
-                                                    <i class="bi bi-pencil-square"></i>
+                                            <div class="drive-folder-actions dropdown dropstart">
+                                                <button type="button" class="btn btn-sm drive-folder-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Folder actions">
+                                                    <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $child->id }}" title="Share Folder">
-                                                    <i class="bi bi-share"></i>
-                                                </button>
-                                                <form method="POST" action="{{ route('admin.drive.folder.delete', $child->id) }}" onsubmit="return confirm('Are you sure you want to delete this subfolder and all its contents?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Subfolder">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </form>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                    <li>
+                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $child->id }}">
+                                                            <i class="bi bi-pencil-square me-1"></i> Edit
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $child->id }}">
+                                                            <i class="bi bi-share me-1"></i> Share
+                                                        </button>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <form method="POST" action="{{ route('admin.drive.folder.delete', $child->id) }}" onsubmit="return confirm('Are you sure you want to delete this subfolder and all its contents?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="dropdown-item text-danger">
+                                                                <i class="bi bi-trash me-1"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                </ul>
                                             </div>
                                         </div>
                                         <!-- Subfolder Rename Modal -->
@@ -222,27 +264,39 @@
                                                 @foreach($child->children as $subchild)
                                                     <li class="drive-tree-node" data-drive-name="{{ Str::lower($subchild->name) }}">
                                                         <div class="d-flex justify-content-between align-items-center drive-node-row">
-                                                            <span class="d-flex align-items-center">
+                                                            <span class="d-flex align-items-center drive-node-main">
                                                                 <i class="bi bi-folder me-1"></i>
                                                                 <a href="{{ route('admin.drive', ['folder' => $subchild->id]) }}" class="{{ isset($currentFolder) && $currentFolder->id == $subchild->id ? 'fw-bold text-primary' : '' }}">
                                                                     {{ $subchild->name }}
                                                                 </a>
                                                                 <span class="badge bg-secondary ms-2">{{ $subchild->documents->count() }}</span>
                                                             </span>
-                                                            <div class="d-flex gap-1 drive-folder-actions">
-                                                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $subchild->id }}" title="Rename Folder">
-                                                                    <i class="bi bi-pencil-square"></i>
+                                                            <div class="drive-folder-actions dropdown dropstart">
+                                                                <button type="button" class="btn btn-sm drive-folder-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Folder actions">
+                                                                    <i class="bi bi-three-dots-vertical"></i>
                                                                 </button>
-                                                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $subchild->id }}" title="Share Folder">
-                                                                    <i class="bi bi-share"></i>
-                                                                </button>
-                                                                <form method="POST" action="{{ route('admin.drive.folder.delete', $subchild->id) }}" onsubmit="return confirm('Are you sure you want to delete this sub-subfolder and all its contents?');">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Sub-subfolder">
-                                                                        <i class="bi bi-trash"></i>
-                                                                    </button>
-                                                                </form>
+                                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                                    <li>
+                                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#renameFolderModal-{{ $subchild->id }}">
+                                                                            <i class="bi bi-pencil-square me-1"></i> Edit
+                                                                        </button>
+                                                                    </li>
+                                                                    <li>
+                                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#shareFolderModal-{{ $subchild->id }}">
+                                                                            <i class="bi bi-share me-1"></i> Share
+                                                                        </button>
+                                                                    </li>
+                                                                    <li><hr class="dropdown-divider"></li>
+                                                                    <li>
+                                                                        <form method="POST" action="{{ route('admin.drive.folder.delete', $subchild->id) }}" onsubmit="return confirm('Are you sure you want to delete this sub-subfolder and all its contents?');">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                            <button type="submit" class="dropdown-item text-danger">
+                                                                                <i class="bi bi-trash me-1"></i> Delete
+                                                                            </button>
+                                                                        </form>
+                                                                    </li>
+                                                                </ul>
                                                             </div>
                                                         </div>
                                                         <!-- Sub-subfolder Rename Modal -->
@@ -306,57 +360,61 @@
                     </li>
                 @endforeach
             </ul>
-            <!-- Folder Creation Form -->
-            <div class="card border-0 shadow-sm rounded-3 mt-4">
-                <div class="card-body p-3">
-                    @if(isset($currentFolder))
-                        {{-- Allow subfolder creation if depth < 2 --}}
-                        @php
-                            $depth = 0;
-                            $folderPtr = $currentFolder;
-                            while ($folderPtr && $folderPtr->parent_id) {
-                                $depth++;
-                                $folderPtr = $folderPtr->parent;
-                            }
-                        @endphp
-                        @if($depth < 2)
-                            <form method="POST" action="{{ route('admin.drive.folder.create') }}">
-                                @csrf
-                                <label class="form-label fw-bold text-secondary">
-                                    Create Subfolder in <span class="text-primary">{{ $currentFolder->name }}</span>
-                                </label>
-                                <input type="text" name="name" class="form-control mb-2 rounded-2" placeholder="Subfolder name" required>
-                                <input type="hidden" name="parent_id" value="{{ $currentFolder->id }}">
-                                <button type="submit" class="btn btn-primary btn-sm w-100 rounded-2">
-                                    <i class="bi bi-folder-plus"></i> New Subfolder
-                                </button>
-                            </form>
-                        @else
-                            <div class="alert alert-warning mb-0">Creating sub-subfolders is not allowed.</div>
-                        @endif
-                    @else
+            <!-- Folder Creation Inline Form -->
+            <div class="drive-create-inline mt-2">
+                @if(isset($currentFolder))
+                    @php
+                        $depth = 0;
+                        $folderPtr = $currentFolder;
+                        while ($folderPtr && $folderPtr->parent_id) {
+                            $depth++;
+                            $folderPtr = $folderPtr->parent;
+                        }
+                    @endphp
+                    @if($depth < 2)
                         <form method="POST" action="{{ route('admin.drive.folder.create') }}">
                             @csrf
-                            <label class="form-label fw-bold text-secondary">Create Root Folder</label>
-                            <input type="text" name="name" class="form-control mb-2 rounded-2" placeholder="Root folder name" required>
-                            <input type="hidden" name="parent_id" value="">
-                            <button type="submit" class="btn btn-success btn-sm w-100 rounded-2"><i class="bi bi-folder-plus"></i> New Root Folder</button>
+                            <label class="form-label fw-bold text-secondary">
+                                Create Subfolder in <span class="text-primary">{{ $currentFolder->name }}</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="name" class="form-control rounded-start-2" placeholder="Subfolder name" required>
+                                <input type="hidden" name="parent_id" value="{{ $currentFolder->id }}">
+                                <button type="submit" class="btn btn-primary rounded-end-2">
+                                    <i class="bi bi-folder-plus me-1"></i> Create
+                                </button>
+                            </div>
                         </form>
+                    @else
+                        <div class="alert alert-warning mb-0">Creating sub-subfolders is not allowed.</div>
                     @endif
-                </div>
+                @else
+                    <form method="POST" action="{{ route('admin.drive.folder.create') }}">
+                        @csrf
+                        <label class="form-label fw-bold text-secondary">Create Root Folder</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="name" class="form-control rounded-start-2" placeholder="Root folder name" required>
+                            <input type="hidden" name="parent_id" value="">
+                            <button type="submit" class="btn btn-success rounded-end-2">
+                                <i class="bi bi-folder-plus me-1"></i> Create
+                            </button>
+                        </div>
+                    </form>
+                @endif
             </div>
         </div>
         <!-- Main: Documents Panel -->
-        <div class="col-md-9 drive-main py-4">
+        <div class="col-md-9 drive-main py-1">
 
-            {{-- Show file share link and OTP if available --}}
+            {{-- Show file share link if available --}}
             @foreach($documents as $doc)
                 @if(session('share_link_' . $doc->id))
                     <div class="alert alert-info">
                         <strong>File Share Link:</strong>
                         <a href="{{ session('share_link_' . $doc->id) }}" target="_blank">{{ session('share_link_' . $doc->id) }}</a>
                         <br>
-                        <strong>OTP:</strong> <span class="fw-bold">{{ session('share_otp_' . $doc->id) }}</span>
+                        <strong>Mode:</strong>
+                        <span class="fw-bold text-capitalize">{{ session('share_mode_' . $doc->id) }}</span>
                     </div>
                 @endif
             @endforeach
@@ -380,25 +438,6 @@
                 </div>
             </div>
 
-            <div class="drive-main-header">
-                <div>
-                    <h5 class="mb-0 fw-semibold text-dark d-inline-flex align-items-center">
-                        <i class="bi bi-files"></i> {{ $currentFolder->name ?? 'Files' }}
-                        @if($currentFolder)
-                            <span class="badge bg-secondary ms-2">{{ $documents->count() }} files</span>
-                        @endif
-                    </h5>
-                </div>
-                @if($currentFolder)
-                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                    <i class="bi bi-upload"></i> Upload Files
-                </button>
-                @else
-                <button type="button" class="btn btn-success btn-sm" disabled title="Select a folder to upload files">
-                    <i class="bi bi-upload"></i> Upload Files
-                </button>
-                @endif
-            </div>
             @if($currentFolder)
             <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -434,7 +473,7 @@
                     <div class="drive-file-card h-100 position-relative p-3 text-center">
                         <div class="position-absolute top-0 end-0 mt-2 me-2">
                             <div class="dropdown">
-                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button class="btn btn-light btn-sm rounded-circle image-three-dots" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
@@ -482,14 +521,14 @@
                             @endif
                         </div>
                         <div class="drive-file-name" title="{{ $doc->name }}">{{ Str::limit($doc->name, 22) }}</div>
-                        @if($fileExists)
+                        {{-- @if($fileExists)
                             <div class="drive-file-actions mt-2">
                                 <a href="{{ route('admin.drive.download', $doc->id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Download"><i class="bi bi-download"></i></a>
                                 @if(Str::startsWith($doc->mime_type, 'application/pdf'))
                                     <a href="{{ route('admin.drive.preview', $doc->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Preview PDF"><i class="bi bi-eye"></i></a>
                                 @endif
                             </div>
-                        @endif
+                        @endif --}}
                     </div>
                     <!-- Rename File Modal -->
                     <div class="modal fade" id="renameFileModal-{{ $doc->id }}" tabindex="-1" aria-labelledby="renameFileModalLabel-{{ $doc->id }}" aria-hidden="true">
@@ -525,7 +564,19 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <p>Click "Generate Link" to create a shareable link with OTP protection.</p>
+                                        <p class="mb-2">Choose sharing mode:</p>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="share_mode" id="shareModeTemp-{{ $doc->id }}" value="temporary" checked>
+                                            <label class="form-check-label" for="shareModeTemp-{{ $doc->id }}">
+                                                Temporary Share (One-time access)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="share_mode" id="shareModePermanent-{{ $doc->id }}" value="permanent">
+                                            <label class="form-check-label" for="shareModePermanent-{{ $doc->id }}">
+                                                Permanent Share (Unlimited lifetime access)
+                                            </label>
+                                        </div>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="submit" class="btn btn-primary">Generate Link</button>
@@ -569,6 +620,8 @@
         border-right: 1px solid var(--drive-border);
         min-height: 100vh;
         position: relative;
+        z-index: 200;
+        overflow: visible;
     }
     .drive-sidebar::after {
         content: '';
@@ -578,6 +631,10 @@
         background-image: linear-gradient(rgba(11, 94, 215, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(11, 94, 215, 0.03) 1px, transparent 1px);
         background-size: 20px 20px;
         opacity: 0.5;
+        z-index: 0;
+    }
+    .drive-sidebar > * {
+        position: relative;
     }
     .drive-sidebar .list-group-item.active {
         background: var(--drive-primary-soft);
@@ -598,21 +655,50 @@
         border: 1px solid var(--drive-border);
         background: #ffffffd9;
         backdrop-filter: blur(2px);
+        overflow: visible !important;
+        z-index: 30;
     }
     .drive-sidebar .list-group-item {
         border-color: #edf2f8;
         padding: .6rem .75rem;
+        overflow: visible !important;
     }
     .drive-tree-root .drive-tree-node {
         padding: .42rem .55rem;
         border-radius: 8px;
         margin: 2px 4px;
+        transition: background-color .2s ease, transform .2s ease;
+        overflow: visible;
+    }
+    .drive-tree-root .drive-tree-node.dropdown-open {
+        position: relative;
+        z-index: 1250;
+    }
+    .drive-tree-root > .drive-tree-node.dropdown-open {
+        z-index: 1300;
+    }
+    .drive-tree-root .drive-tree-node:hover {
+        background: #f4f8ff;
     }
     .drive-node-row {
         gap: 8px;
     }
     .drive-node-row > span {
         min-width: 0;
+    }
+    .drive-node-main i.bi-folder-fill,
+    .drive-node-main i.bi-folder {
+        color: #2e6fc6;
+        background: #eaf2ff;
+        border: 1px solid #ccdcf6;
+        border-radius: 6px;
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .8rem;
+        margin-right: .45rem !important;
     }
     .drive-node-row a {
         max-width: 130px;
@@ -637,8 +723,17 @@
     .drive-folder-actions {
         flex-shrink: 0;
     }
-    .drive-folder-actions .btn {
-        padding: .2rem .38rem;
+    .drive-folder-actions .dropdown-menu {
+        min-width: 10rem;
+        border-radius: 10px;
+        border: 1px solid #d9e4f5;
+        z-index: 1260;
+    }
+    .drive-create-inline .input-group .form-control {
+        border-color: #c7d8f1;
+    }
+    .drive-create-inline .input-group .btn {
+        min-width: 102px;
     }
     .drive-sidebar .list-group ul {
         list-style: none;
@@ -655,6 +750,8 @@
         background: transparent;
         min-height: 100vh;
         padding-bottom: 32px;
+        position: relative;
+        z-index: 1;
     }
     .drive-quickbar {
         display: grid;
@@ -809,20 +906,32 @@
         color: #23456c;
         border: 1px solid #c8d8f1;
     }
-    .drive-folder-actions .btn {
+    .drive-folder-menu-btn {
+        border: 1px solid #d4deec;
+        color: #35567d;
         border-radius: 8px;
+        padding: .15rem .35rem;
+        line-height: 1;
+        background: #fff;
     }
-    .drive-folder-actions .btn-outline-primary {
-        border-color: #b9cff2;
-        color: #2f5d95;
-    }
-    .drive-folder-actions .btn-outline-primary:hover {
-        background: #e8f1ff;
-        color: #0d4ea4;
+    .drive-folder-menu-btn:hover,
+    .drive-folder-menu-btn:focus {
+        background: var(--drive-primary-soft);
+        color: var(--drive-primary);
+        border-color: #bfd3f0;
+        box-shadow: none;
     }
     .drive-file-card .dropdown .btn {
         border: 1px solid #d4deec;
         color: #35567d;
+    }
+
+    .modal {
+        z-index: 3500;
+    }
+
+    .image-three-dots{
+        padding: 5px 9px !important;
     }
     .drive-file-card .dropdown .btn:hover {
         background: var(--drive-primary-soft);
@@ -846,6 +955,15 @@
             min-height: auto;
             border-right: none;
             border-bottom: 1px solid var(--drive-border);
+        }
+        .drive-tree-root .drive-tree-node.dropdown-open {
+            z-index: 1400;
+        }
+        .drive-tree-root > .drive-tree-node.dropdown-open {
+            z-index: 1450;
+        }
+        .drive-folder-actions .dropdown-menu {
+            z-index: 1410;
         }
         .drive-main-header {
             flex-direction: column;
@@ -944,11 +1062,38 @@
             });
         }
 
-        document.querySelectorAll('.drive-folder-actions .btn, .dropdown-item[data-bs-toggle="modal"]').forEach(function (btn) {
+        document.querySelectorAll('.drive-folder-actions .dropdown-item[data-bs-toggle="modal"], .dropdown-item[data-bs-toggle="modal"]').forEach(function (btn) {
             btn.addEventListener('click', function (event) {
                 event.stopPropagation();
             });
-        })
+        });
+
+        document.querySelectorAll('#driveSidebarTree .drive-tree-node .dropdown').forEach(function (dropdownEl) {
+            var treeNode = dropdownEl.closest('.drive-tree-node');
+            var rootTreeNode = dropdownEl.closest('.list-group-item.drive-tree-node');
+            if (!treeNode) {
+                return;
+            }
+
+            dropdownEl.addEventListener('shown.bs.dropdown', function () {
+                treeNode.classList.add('dropdown-open');
+                if (rootTreeNode) {
+                    rootTreeNode.classList.add('dropdown-open');
+                }
+            });
+
+            dropdownEl.addEventListener('hidden.bs.dropdown', function () {
+                treeNode.classList.remove('dropdown-open');
+                if (rootTreeNode && rootTreeNode !== treeNode) {
+                    var hasOpenDescendant = rootTreeNode.querySelector('.dropdown.show');
+                    if (!hasOpenDescendant) {
+                        rootTreeNode.classList.remove('dropdown-open');
+                    }
+                } else if (rootTreeNode) {
+                    rootTreeNode.classList.remove('dropdown-open');
+                }
+            });
+        });
 
         document.querySelectorAll('.drive-file-col .dropdown').forEach(function (dropdownEl) {
             var cardCol = dropdownEl.closest('.drive-file-col');

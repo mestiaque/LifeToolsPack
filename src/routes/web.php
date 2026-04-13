@@ -32,6 +32,7 @@ Route::middleware(['web'])->group(function () {
         Route::post('/gallery/upload', [GalleryController::class, 'upload'])->name('gallery.upload');
         Route::get('/gallery/preview/{id}', [GalleryController::class, 'preview'])->name('gallery.preview');
         Route::get('/drive/shared/{id}', [DriveController::class, 'sharedAccessForm'])->name('drive.shared.form');
+        Route::get('/drive/shared/{id}/heartbeat', [DriveController::class, 'sharedHeartbeat'])->name('drive.shared.heartbeat');
         Route::post('/drive/shared/{id}/verify', [DriveController::class, 'verifyOtp'])->name('drive.shared.verify');
         Route::get('/drive/folder/shared/{id}', [DriveController::class, 'sharedFolderAccessForm'])->name('drive.folder.shared.form');
         Route::post('/drive/folder/shared/{id}/verify', [DriveController::class, 'verifyFolderOtp'])->name('drive.folder.shared.verify');
@@ -79,6 +80,7 @@ Route::middleware(['web'])->group(function () {
 
             // Drive routes
             Route::get('/drive', [DriveController::class, 'index'])->name('drive');
+            Route::get('/drive/share-history', [DriveController::class, 'shareHistory'])->name('drive.share.history');
             Route::post('/drive/folder', [DriveController::class, 'createFolder'])->name('drive.folder.create');
             Route::put('/drive/folder/update/{id}', [DriveController::class, 'updateFolder'])->name('drive.folder.update');
             Route::delete('/drive/folder/delete/{id}', [DriveController::class, 'deleteFolder'])->name('drive.folder.delete');
@@ -147,4 +149,3 @@ Route::middleware(['web'])->group(function () {
 
 
 Route::get('sitemap.xml', [FrontController::class, 'sitemap'])->name('sitemap');
-

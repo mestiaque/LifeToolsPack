@@ -4,6 +4,7 @@ namespace ME\EmCore\Http\Controllers;
 
 use ME\EmCore\Models\Folder;
 use ME\EmCore\Models\Document;
+use ME\EmCore\Models\DriveShareVisit;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
@@ -27,7 +28,7 @@ class DriveController extends Controller
         $this->middleware('authorization:drive.upload')->only(['upload']);
         $this->middleware('authorization:drive.upload')->only(['updateFileName']);
         $this->middleware('authorization:drive.delete')->only(['delete', 'deleteFolder']);
-        $this->middleware('authorization:drive.share')->only(['share', 'shareFolder']);
+        $this->middleware('authorization:drive.share')->only(['share', 'shareFolder', 'shareHistory']);
     }
 
     public function index(Request $request)
@@ -40,6 +41,22 @@ class DriveController extends Controller
             $documents = $currentFolder ? $currentFolder->documents : [];
         }
         return view('em_core::documents.drive', compact('folders', 'currentFolder', 'documents'));
+    }
+
+    public function shareHistory(Request $request)
+    {
+        $shareType = $request->get('type');
+
+        $visitsQuery = DriveShareVisit::with(['document', 'folder'])
+            ->orderByRaw('COALESCE(last_visited_at, created_at) DESC');
+
+        if (in_array($shareType, ['file', 'folder'], true)) {
+            $visitsQuery->where('share_type', $shareType);
+        }
+
+        $visits = $visitsQuery->paginate(20)->withQueryString();
+
+        return view('em_core::documents.share_history', compact('visits', 'shareType'));
     }
 
     public function createFolder(Request $request)
@@ -209,20 +226,26 @@ class DriveController extends Controller
 
     public function share($id, Request $request)
     {
-        $doc = Document::findOrFail($id);
-        $otp = rand(100000, 999999);
-        $shareToken = Str::random(32);
+        $request->validate([
+            'share_mode' => 'required|in:temporary,permanent',
+        ]);
 
-        // Store OTP and token in cache for 10 minutes
-        Cache::put("share_{$shareToken}_otp", $otp, now()->addMinutes(30));
-        Cache::put("share_{$shareToken}_doc", $doc->id, now()->addMinutes(30));
+        $doc = Document::findOrFail($id);
+        $shareToken = Str::random(32);
+        $shareMode = $request->input('share_mode');
+
+        $doc->share_token = $shareToken;
+        $doc->share_mode = $shareMode;
+        $doc->share_token_created_at = now();
+        $doc->share_token_used_at = null;
+        $doc->save();
 
         $link = route('drive.shared.form', ['id' => $doc->id, 'token' => $shareToken]);
         session()->flash('share_link_' . $doc->id, $link);
-        session()->flash('share_otp_' . $doc->id, $otp); // Show OTP for demo
+        session()->flash('share_mode_' . $doc->id, $shareMode);
 
-        // Send OTP and link to Telegram
-        $msg = "Document Share OTP: {$otp}\nLink: {$link}";
+        $label = $shareMode === 'temporary' ? 'Temporary' : 'Permanent';
+        $msg = "Document Share ({$label}) Link: {$link}";
         $this->telegram->sendMessage($msg);
 
         return back();
@@ -231,36 +254,52 @@ class DriveController extends Controller
     public function sharedAccessForm($id, Request $request)
     {
         $token = $request->get('token');
-        // Check if token exists
-        if (!Cache::has("share_{$token}_otp") || !Cache::has("share_{$token}_doc")) {
+        $document = Document::findOrFail($id);
+
+        if (!$this->isValidDocumentShare($document, $token)) {
             if (!auth()->check()) {
-                abort(404, 'Invalid OTP or expired link.');
+                abort(404, 'Invalid or expired share link.');
             }
             return redirect()->route('admin.drive')->withErrors(['Invalid or expired share link.']);
         }
-        return view('em_core::documents.otp', ['doc_id' => $id, 'token' => $token]);
+
+        // Temporary link should be usable only once.
+        if ($document->share_mode === 'temporary') {
+            $document->share_token_used_at = now();
+            $document->save();
+        }
+
+        $this->recordShareVisit('file', $token, $request, $document, null);
+
+        return view('em_core::documents.otp_result', [
+            'document' => $document,
+            'shareMode' => $document->share_mode,
+            'shareToken' => $token,
+            'enableAutoRefresh' => $document->share_mode === 'temporary',
+        ]);
+    }
+
+    public function sharedHeartbeat($id, Request $request)
+    {
+        $token = $request->get('token');
+        $document = Document::find($id);
+
+        $isValid = $document && $this->isValidDocumentShare($document, $token);
+
+        return response()->json([
+            'ok' => true,
+            'valid' => (bool) $isValid,
+            'checked_at' => now()->toDateTimeString(),
+        ]);
     }
 
     public function verifyOtp($id, Request $request)
     {
-        $otp = $request->input('otp');
-        $token = $request->input('token');
-        $expectedOtp = Cache::get("share_{$token}_otp");
-        $docId = Cache::get("share_{$token}_doc");
-
-        if ($expectedOtp && $docId == $id && $otp == $expectedOtp) {
-            $document = Document::findOrFail($id);
-            // Optionally, clear OTP after use
-            Cache::forget("share_{$token}_otp");
-            Cache::forget("share_{$token}_doc");
-            // Show image preview and download button in blade
-            return view('em_core::documents.otp_result', ['document' => $document]);
-        } else {
-            if (!auth()->check()) {
-                abort(404, 'Invalid OTP or expired link.');
-            }
-            return back()->withErrors(['Invalid OTP or expired link.']);
-        }
+        // File sharing no longer uses OTP. Keep this endpoint for backward compatibility.
+        return redirect()->route('drive.shared.form', [
+            'id' => $id,
+            'token' => $request->input('token'),
+        ]);
     }
 
     public function shareFolder($id, Request $request)
@@ -292,6 +331,10 @@ class DriveController extends Controller
             }
             return redirect()->route('admin.drive')->withErrors(['Invalid or expired share link.']);
         }
+
+        $folder = Folder::findOrFail($id);
+        $this->recordShareVisit('folder', $token, $request, null, $folder);
+
         return view('em_core::documents.folder_otp', ['folder_id' => $id, 'token' => $token]);
     }
 
@@ -315,5 +358,171 @@ class DriveController extends Controller
             return back()->withErrors(['Invalid OTP or expired link.']);
         }
     }
-}
 
+    private function isValidDocumentShare(Document $document, ?string $token): bool
+    {
+        if (!$token || !$document->share_token || $document->share_token !== $token) {
+            return false;
+        }
+
+        if (!in_array($document->share_mode, ['temporary', 'permanent'], true)) {
+            return false;
+        }
+
+        if ($document->share_mode === 'temporary' && $document->share_token_used_at) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function recordShareVisit(string $shareType, ?string $token, Request $request, ?Document $document = null, ?Folder $folder = null): void
+    {
+        $ip = $this->resolveClientPublicIp($request);
+        $userAgent = (string) $request->userAgent();
+        $browser = $this->detectBrowser($userAgent);
+        $os = $this->detectOs($userAgent);
+        $deviceType = $this->detectDeviceType($userAgent);
+        $deviceName = $this->detectDeviceName($userAgent);
+
+        $visit = DriveShareVisit::firstOrNew([
+            'share_type' => $shareType,
+            'share_token' => $token,
+            'ip_address' => $ip,
+        ]);
+
+        $visit->document_id = $document ? $document->id : null;
+        $visit->folder_id = $folder ? $folder->id : null;
+        $visit->visited_url = (string) $request->fullUrl();
+        $visit->referer = (string) $request->headers->get('referer');
+        $visit->user_agent = $userAgent;
+        $visit->browser = $browser;
+        $visit->os = $os;
+        $visit->device_type = $deviceType;
+        $visit->device_name = $deviceName;
+
+        if (!$visit->exists) {
+            $visit->first_visited_at = now();
+            $visit->visit_count = 1;
+        } else {
+            $visit->visit_count = ((int) $visit->visit_count) + 1;
+        }
+
+        $visit->last_visited_at = now();
+        $visit->save();
+    }
+
+    private function resolveClientPublicIp(Request $request): string
+    {
+        $candidates = [];
+
+        $forwardedFor = (string) $request->headers->get('x-forwarded-for', '');
+        if ($forwardedFor !== '') {
+            $parts = array_map('trim', explode(',', $forwardedFor));
+            $candidates = array_merge($candidates, $parts);
+        }
+
+        $headerKeys = [
+            'cf-connecting-ip',
+            'x-real-ip',
+            'true-client-ip',
+            'client-ip',
+        ];
+
+        foreach ($headerKeys as $key) {
+            $value = trim((string) $request->headers->get($key, ''));
+            if ($value !== '') {
+                $candidates[] = $value;
+            }
+        }
+
+        $requestIp = trim((string) $request->ip());
+        if ($requestIp !== '') {
+            $candidates[] = $requestIp;
+        }
+
+        foreach ($candidates as $candidate) {
+            if ($this->isValidPublicIp($candidate)) {
+                return $candidate;
+            }
+        }
+
+        foreach ($candidates as $candidate) {
+            if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+                return $candidate;
+            }
+        }
+
+        return 'unknown';
+    }
+
+    private function isValidPublicIp(string $ip): bool
+    {
+        return (bool) filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        );
+    }
+
+    private function detectBrowser(string $ua): string
+    {
+        $map = [
+            'Edg/' => 'Microsoft Edge',
+            'OPR/' => 'Opera',
+            'Chrome/' => 'Chrome',
+            'Firefox/' => 'Firefox',
+            'Safari/' => 'Safari',
+            'MSIE ' => 'Internet Explorer',
+            'Trident/' => 'Internet Explorer',
+        ];
+
+        foreach ($map as $needle => $label) {
+            if (stripos($ua, $needle) !== false) {
+                return $label;
+            }
+        }
+
+        return 'Unknown';
+    }
+
+    private function detectOs(string $ua): string
+    {
+        $map = [
+            'Windows NT' => 'Windows',
+            'Mac OS X' => 'macOS',
+            'Android' => 'Android',
+            'iPhone' => 'iOS',
+            'iPad' => 'iPadOS',
+            'Linux' => 'Linux',
+        ];
+
+        foreach ($map as $needle => $label) {
+            if (stripos($ua, $needle) !== false) {
+                return $label;
+            }
+        }
+
+        return 'Unknown';
+    }
+
+    private function detectDeviceType(string $ua): string
+    {
+        if (stripos($ua, 'iPad') !== false || stripos($ua, 'Tablet') !== false) {
+            return 'Tablet';
+        }
+        if (stripos($ua, 'Mobile') !== false || stripos($ua, 'Android') !== false || stripos($ua, 'iPhone') !== false) {
+            return 'Mobile';
+        }
+        return 'Desktop';
+    }
+
+    private function detectDeviceName(string $ua): string
+    {
+        if (preg_match('/\\(([^\\)]+)\\)/', $ua, $matches)) {
+            return Str::limit($matches[1], 120, '');
+        }
+
+        return 'Unknown Device';
+    }
+}

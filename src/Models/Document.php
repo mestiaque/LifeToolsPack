@@ -14,7 +14,16 @@ class Document extends Model
     protected $guarded   = [];
 
     protected $fillable = [
-        'folder_id', 'name', 'file_path', 'mime_type', 'size', 'user_id'
+        'folder_id',
+        'name',
+        'file_path',
+        'mime_type',
+        'size',
+        'user_id',
+        'share_token',
+        'share_mode',
+        'share_token_created_at',
+        'share_token_used_at',
     ];
 
     public function folder(): BelongsTo

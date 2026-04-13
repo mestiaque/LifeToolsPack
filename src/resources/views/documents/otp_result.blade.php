@@ -11,6 +11,16 @@
                     <h5 class="mb-0 fw-semibold text-primary">File Preview</h5>
                 </div>
                 <div class="card-body text-center p-4">
+                    @if(($shareMode ?? null) === 'temporary')
+                        <div class="alert alert-warning text-start">
+                            <strong>Temporary Share:</strong> This link is one-time access only.
+                        </div>
+                    @elseif(($shareMode ?? null) === 'permanent')
+                        <div class="alert alert-success text-start">
+                            <strong>Permanent Share:</strong> This file can be viewed anytime.
+                        </div>
+                    @endif
+
                     @if(Str::startsWith($document->mime_type, 'image'))
                         <img loading="lazy" src="{{ route('drive.preview', $document->id) }}" class="img-fluid mb-3 rounded border" style="max-height:350px;object-fit:cover;" />
                     @else
@@ -26,3 +36,23 @@
     </div>
 </div>
 @endsection
+
+@if(($enableAutoRefresh ?? false) && !empty($shareToken ?? null))
+    @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+                fetch("{{ route('drive.shared.heartbeat', ['id' => $document->id, 'token' => $shareToken]) }}", {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    cache: 'no-store'
+                }).finally(function () {
+                    window.location.reload();
+                });
+            }, 30000);
+        });
+    </script>
+    @endpush
+@endif
