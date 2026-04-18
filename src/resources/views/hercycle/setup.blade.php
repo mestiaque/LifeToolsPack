@@ -50,6 +50,11 @@
                     </div>
 
                     <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">বাংলা নাম (ঐচ্ছিক)</label>
+                        <input type="text" name="name_bn" class="form-control form-control- rounded-3" placeholder="বাংলায় নাম লিখুন">
+                    </div>
+
+                    <div class="mb-4">
                         <label class="form-label fw-semibold text-dark">Date of Birth</label>
                         <input type="date" name="dob" class="form-control form-control- rounded-3" required onchange="updateAge()">
                     </div>

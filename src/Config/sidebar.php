@@ -101,7 +101,7 @@ return [
     [
         'title'      => 'HerCycle',
         'icon'       => 'fas fa-heart',
-        'icon_color' => 'icc-77',
+        'icon_color' => 'icc-51',
         'route'      => 'admin.hercycle.index',
         'permit'     => 'hercycle.show',
         'for_active' => 'admin.hercycle',

@@ -112,19 +112,25 @@ class HerCycleController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'name_bn' => 'nullable|string|max:255',
             'dob' => 'required|date',
             'weight' => 'required|numeric|min:20|max:200',
             'height' => 'required|numeric|min:100|max:250',
             'blood_group' => 'required|string|max:5',
+            'notify_emails' => 'nullable|string',
+            'notify_phones' => 'nullable|string',
         ]);
         $user = Auth::user();
         $profile = HerCycleProfile::create([
             'user_id' => $user->id,
             'name' => $request->name,
+            'name_bn' => $request->name_bn,
             'dob' => $request->dob,
             'weight' => $request->weight,
             'height' => $request->height,
             'blood_group' => $request->blood_group,
+            'notify_emails' => $request->notify_emails,
+            'notify_phones' => $request->notify_phones,
         ]);
         // Create default notification settings
         HerCycleNotification::create([
@@ -138,6 +144,7 @@ class HerCycleController extends Controller
         $profile = HerCycleProfile::findOrFail($id);
         $request->validate([
             'name' => 'required|string|max:255',
+            'name_bn' => 'nullable|string|max:255',
             'dob' => 'required|date',
             'weight' => 'required|numeric|min:20|max:200',
             'height' => 'required|numeric|min:100|max:250',
@@ -145,10 +152,13 @@ class HerCycleController extends Controller
         ]);
         $profile->update([
             'name' => $request->name,
+            'name_bn' => $request->name_bn,
             'dob' => $request->dob,
             'weight' => $request->weight,
             'height' => $request->height,
             'blood_group' => $request->blood_group,
+            'notify_emails' => $request->notify_emails,
+            'notify_phones' => $request->notify_phones,
         ]);
         return redirect()->route('admin.hercycle.index')->with('success', 'Profile updated successfully!');
     }
@@ -504,5 +514,92 @@ class HerCycleController extends Controller
                 'is_active' => true,
             ]);
         }
+    }
+
+    public function sendNotifications()
+    {
+        $language = 'bn';
+        $profiles = HerCycleProfile::whereNotNull('notify_emails')
+            ->orWhereNotNull('notify_phones')
+            ->get();
+
+        foreach ($profiles as $profile) {
+            $notification = HerCycleNotification::where('profile_id', $profile->id)->first();
+            if (!$notification) {
+                continue;
+            }
+
+            $emails = array_filter(array_map('trim', explode(',', $profile->notify_emails)));
+            if (count($emails)) {
+                $lastPeriod = HerCyclePeriod::where('profile_id', $profile->id)->orderBy('start_date', 'desc')->first();
+                $nextStart = $profile->getNextPeriodStart();
+                $profileName = $language === 'bn' ? $profile->name_bn : $profile->name;
+                $lastCycleStart = $lastPeriod ? formatDate($lastPeriod->start_date, 'd M, Y') : '--';
+                $predictedStart = $nextStart ? formatDate($nextStart, 'd M, Y') : '--';
+
+                $titleEn = '💕 HerCycle — Period Reminder';
+                $titleBn = '💕 হারসাইকেল — পিরিয়ড রিমাইন্ডার';
+
+                $contentEn = "<p>Dear <strong>{$profileName}</strong>,</p>" .
+                    "<p>Your last cycle started on <strong>{$lastCycleStart}</strong>.<br>" .
+                    "According to our prediction, your next cycle may start on <strong>{$predictedStart}</strong> (or a few days before/after).<br>" .
+                    "<span style='color:#db2777;font-weight:600;'>💕 Get ready to take care of yourself!</span></p>" .
+                    "<div class='highlight-box'>" .
+                    "<strong>Preparation Tips:</strong><ul>" .
+                    "<li>✓ Keep pads/tissues ready</li>" .
+                    "<li>✓ Track your symptoms</li>" .
+                    "<li>✓ Stay hydrated (drink plenty of water)</li>" .
+                    "<li>✓ Eat healthy foods (fruits, vegetables, iron-rich foods)</li>" .
+                    "<li>✓ Avoid junk food, excess sugar, and caffeine</li>" .
+                    "<li>✓ Try hot water bag therapy for cramps</li>" .
+                    "<li>✓ Rest and get enough sleep</li>" .
+                    "</ul></div>";
+
+                $contentBn = "<p>প্রিয় <strong>{$profileName}</strong>,</p>" .
+                    "<p>আশা করি তুমি ভালো আছো। ক্যালেন্ডার মনে করিয়ে দিচ্ছে তোমার সেই বিশেষ দিনগুলো খুব কাছে। তোমার শেষ পিরিয়ড শুরু হয়েছিল <strong>{$lastCycleStart}</strong> তারিখে।</p>" .
+                    "<p>আমাদের প্রেডিকশন অনুযায়ী, তোমার পরবর্তী সাইকেল সম্ভবত <strong>{$predictedStart}</strong> তারিখের আশেপাশে শুরু হতে পারে।</p>" .
+                    "<p style='color:#db2777; font-weight:600;'>💕 এই সময়টাতে নিজের একটু বাড়তি যত্ন নিও, লক্ষ্মীটি। তোমার সুস্থতা আর হাসিমুখ আমার কাছে সবথেকে দামী।</p>" .
+                    "<div class='highlight-box' style='background: #fff1f2; border-left: 4px solid #db2777; padding: 15px; border-radius: 8px;'>" .
+                    "<strong>🌸 তোমার জন্য কিছু ভালোবাসা ও যত্ন:</strong><ul style='list-style-type: none; padding-left: 0;'>" .
+                    "<li>✨ প্রয়োজনীয় প্যাড বা টিস্যু হাতের কাছে গুছিয়ে রেখো।</li>" .
+                    "<li>✨ শরীর হাইড্রেটেড রাখতে প্রচুর পানি পান করো।</li>" .
+                    "<li>✨ ফলমূল ও আয়রন সমৃদ্ধ পুষ্টিকর খাবার খাওয়ার চেষ্টা করো।</li>" .
+                    "<li>✨ ক্যাফেইন বা অতিরিক্ত চিনিযুক্ত খাবার এড়িয়ে চলো।</li>" .
+                    "<li>✨ পেটে ব্যথা বা ক্র্যাম্প হলে হট ওয়াটার ব্যাগ ব্যবহার করো।</li>" .
+                    "<li>✨ সব কাজ ফেলে রেখে পর্যাপ্ত বিশ্রাম আর ঘুম নিশ্চিত করো।</li>" .
+                    "</ul></div>" .
+                    "<p>সবসময় মনে রেখো, আমি তোমার পাশে আছি। খুব সাবধানে থেকো।</p>";
+
+                $greetingsBn = [
+                    'তোমার সুস্থ ও আরামদায়ক সাইকেল কামনা করছি! 💕',
+                    'নিজের যত্ন নিও—তুমি আমার কাছে খুব স্পেশাল! 🌸',
+                    'সবসময় সুস্থ আর হাসিখুশি থেকো! 💪',
+                    'তোমার জন্য অনেক মায়া আর ভালোবাসা রইলো! 🌺',
+                    'যেকোনো প্রয়োজনে আমি তো আছিই। সাবধানে থেকো! 💗',
+                ];
+
+                $greetingsEn = [
+                    'Wishing you a healthy and comfortable cycle! 💕',
+                    'Take care of yourself — you deserve it! 🌸',
+                    'Stay healthy and strong! 💪',
+                    'Sending you warmth and care! 🌺',
+                    'You\'ve got this! Wishing you an easy cycle! 💗',
+                ];
+
+
+                foreach ($emails as $email) {
+                    \Mail::to($email)->send(new \ME\Mail\NoticeMailLayout([
+                        'title' => $language === 'bn' ? $titleBn : $titleEn,
+                        'content' => $language === 'bn' ? $contentBn : $contentEn,
+                        'showGreeting' => true,
+                        'greetings' => $language === 'bn' ? $greetingsBn : $greetingsEn,
+                    ]));
+                }
+            }
+
+
+        }
+
+        return redirect()->route('admin.hercycle.index')->with('success', 'Notifications sent successfully!');
     }
 }

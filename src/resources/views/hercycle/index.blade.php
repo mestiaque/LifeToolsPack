@@ -9,6 +9,12 @@
     <button class="btn btn-encodex-edit align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#profileModal">
         <span>⚙️</span> Settings
     </button>
+    <form action="{{ route('admin.hercycle.sendNotifications') }}" method="POST" style="display:inline;">
+        @csrf
+        <button type="submit" class="btn btn-warning align-items-center gap-2">
+            <span>🔔</span> Send Notification
+        </button>
+    </form>
 @endpush
 
 @push('css')
@@ -398,6 +404,10 @@
                         <input type="text" name="name" class="form-control" value="{{ $profile->name }}" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-semibold">বাংলা নাম (ঐচ্ছিক)</label>
+                        <input type="text" name="name_bn" class="form-control" value="{{ $profile->name_bn ?? '' }}" placeholder="বাংলায় নাম লিখুন">
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-semibold">Date of Birth</label>
                         <input type="date" name="dob" class="form-control" value="{{ $profile->dob }}" required>
                     </div>
@@ -425,6 +435,14 @@
                             <option value="AB-" @if($profile->blood_group=="AB-") selected @endif>AB-</option>
                         </select>
                     </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Notification Emails <span class="text-muted small">(comma separated)</span></label>
+                            <input type="text" name="notify_emails" class="form-control" value="{{ $profile->notify_emails ?? '' }}" placeholder="example1@mail.com, example2@mail.com">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Notification Phone Numbers <span class="text-muted small">(comma separated)</span></label>
+                            <input type="text" name="notify_phones" class="form-control" value="{{ $profile->notify_phones ?? '' }}" placeholder="017xxxxxxxx, 018xxxxxxxx">
+                        </div>
                     <button type="submit" class="btn btn-danger w-100 rounded-3 py-2 fw-bold">Update Profile</button>
                 </form>
 

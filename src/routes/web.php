@@ -136,6 +136,8 @@ Route::middleware(['web'])->group(function () {
             Route::post('/hercycle/symptom', [HerCycleController::class, 'storeSymptom'])->name('hercycle.symptom.store');
             Route::put('/hercycle/notifications/{id}', [HerCycleController::class, 'updateNotifications'])->name('hercycle.notifications.update');
             Route::get('/hercycle/month-data', [HerCycleController::class, 'getMonthData'])->name('hercycle.month-data');
+            Route::post('/hercycle/send-notifications', [HerCycleController::class, 'sendNotifications'])->name('hercycle.sendNotifications');
+
         });
 
         Route::get('/calendar/events', [DashboardController::class, 'calendarEvents']);
