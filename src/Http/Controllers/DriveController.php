@@ -27,13 +27,21 @@ class DriveController extends Controller
         $this->middleware('authorization:drive.folder.create')->only(['updateFolder']);
         $this->middleware('authorization:drive.upload')->only(['upload']);
         $this->middleware('authorization:drive.upload')->only(['updateFileName']);
-        $this->middleware('authorization:drive.delete')->only(['delete', 'deleteFolder']);
+        $this->middleware('authorization:drive.delete')->only(['delete']);
+        $this->middleware('authorization:drive.folder.create')->only(['deleteFolder']);
         $this->middleware('authorization:drive.share')->only(['share', 'shareFolder', 'shareHistory']);
     }
 
     public function index(Request $request)
     {
-        $folders = Folder::where('user_id', Auth::id())->whereNull('parent_id')->with('children')->get();
+        $folders = Folder::where('user_id', Auth::id())
+            ->whereNull('parent_id')
+            ->with([
+                'documents',
+                'children.documents',
+                'children.children.documents',
+            ])
+            ->get();
         $currentFolder = null;
         $documents = [];
         if ($request->folder) {
@@ -195,8 +203,9 @@ class DriveController extends Controller
     {
         $folder = Folder::findOrFail($id);
 
-        // Check if folder belongs to the authenticated user
-        if ($folder->user_id !== Auth::id()) {
+        // Allow deleting legacy folders where user_id is missing (null),
+        // but still block folders explicitly owned by another user.
+        if (!is_null($folder->user_id) && (int) $folder->user_id !== (int) Auth::id()) {
             return back()->withErrors(['You do not have permission to delete this folder.']);
         }
 

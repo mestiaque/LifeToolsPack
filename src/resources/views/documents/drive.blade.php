@@ -5,21 +5,21 @@
 @push('buttons')
     @if($currentFolder)
         <button type="button" class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#uploadModal">
-            <i class="fa fa-upload"></i> Upload Files
+            <i class="fa fa-upload"></i>
         </button>
     @else
         <button type="button" class="btn btn-sm btn-encodex-create" disabled title="Select a folder to upload files">
-            <i class="fa fa-upload"></i> Upload Files
+            <i class="fa fa-upload"></i>
         </button>
     @endif
-
-    <a href="{{ route('admin.drive') }}" class="btn btn-sm btn-encodex-clear" title="Reset to root folders">
-        <i class="fa fa-undo"></i> Reset
-    </a>
-
     <a href="{{ route('admin.drive.share.history') }}" class="btn btn-sm btn-encodex-create" title="View share visitor history">
-        <i class="fa fa-history"></i> Share History
+        <i class="fa fa-history"></i>
     </a>
+    <a href="{{ route('admin.drive') }}" class="btn btn-sm btn-encodex-clear" title="Reset to root folders">
+        <i class="fa fa-undo"></i>
+    </a>
+
+
 @endpush
 
 @section('content')
@@ -36,6 +36,10 @@
                         <a href="{{ session('share_folder_link_' . $folder->id) }}" target="_blank">{{ session('share_folder_link_' . $folder->id) }}</a>
                         <br>
                         <strong>OTP:</strong> <span class="fw-bold">{{ session('share_folder_otp_' . $folder->id) }}</span>
+                        <span class="js-share-copy-source d-none"
+                            data-copy-link="{{ session('share_folder_link_' . $folder->id) }}"
+                            data-copy-otp="{{ session('share_folder_otp_' . $folder->id) }}"
+                            data-auto-copy="1"></span>
                     </div>
                 @endif
                 @if($folder->children && count($folder->children))
@@ -46,6 +50,10 @@
                                 <a href="{{ session('share_folder_link_' . $child->id) }}" target="_blank">{{ session('share_folder_link_' . $child->id) }}</a>
                                 <br>
                                 <strong>OTP:</strong> <span class="fw-bold">{{ session('share_folder_otp_' . $child->id) }}</span>
+                                <span class="js-share-copy-source d-none"
+                                    data-copy-link="{{ session('share_folder_link_' . $child->id) }}"
+                                    data-copy-otp="{{ session('share_folder_otp_' . $child->id) }}"
+                                    data-auto-copy="1"></span>
                             </div>
                         @endif
                     @endforeach
@@ -57,6 +65,17 @@
 
             </div> --}}
             <ul class="list-group drive-tree-root mb-3 rounded-3 shadow-sm">
+                @php
+                    $countDocumentsRecursively = function ($folder) use (&$countDocumentsRecursively) {
+                        $count = $folder->documents->count();
+                        if ($folder->children && $folder->children->count()) {
+                            foreach ($folder->children as $childFolder) {
+                                $count += $countDocumentsRecursively($childFolder);
+                            }
+                        }
+                        return $count;
+                    };
+                @endphp
                 @foreach($folders as $folder)
                     @php
                         // Determine if this folder or any child/subchild is active
@@ -73,7 +92,7 @@
                                 <a href="{{ route('admin.drive', ['folder' => $folder->id]) }}" class="{{ isset($currentFolder) && $currentFolder->id == $folder->id ? 'text-primary' : '' }}">
                                     {{ $folder->name }}
                                 </a>
-                                <span class="badge bg-secondary ms-2">{{ $folder->documents->count() }}</span>
+                                <span class="badge bg-secondary ms-2">{{ $countDocumentsRecursively($folder) }}</span>
                                 @if($folder->children && count($folder->children))
                                     <button class="btn btn-link btn-sm p-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#folder-{{ $folder->id }}">
                                         <i class="bi bi-chevron-down"></i>
@@ -148,6 +167,10 @@
                                                     Share Link: <a href="{{ session('share_folder_link_' . $folder->id) }}" target="_blank">{{ session('share_folder_link_' . $folder->id) }}</a>
                                                     <br>
                                                     OTP: <span class="fw-bold">{{ session('share_folder_otp_' . $folder->id) }}</span>
+                                                    <span class="js-share-copy-source d-none"
+                                                        data-copy-link="{{ session('share_folder_link_' . $folder->id) }}"
+                                                        data-copy-otp="{{ session('share_folder_otp_' . $folder->id) }}"
+                                                        data-auto-copy="1"></span>
                                                 </div>
                                             @endif
                                         </div>
@@ -249,6 +272,10 @@
                                                                     Share Link: <a href="{{ session('share_folder_link_' . $child->id) }}" target="_blank">{{ session('share_folder_link_' . $child->id) }}</a>
                                                                     <br>
                                                                     OTP: <span class="fw-bold">{{ session('share_folder_otp_' . $child->id) }}</span>
+                                                                    <span class="js-share-copy-source d-none"
+                                                                        data-copy-link="{{ session('share_folder_link_' . $child->id) }}"
+                                                                        data-copy-otp="{{ session('share_folder_otp_' . $child->id) }}"
+                                                                        data-auto-copy="1"></span>
                                                                 </div>
                                                             @endif
                                                         </div>
@@ -339,6 +366,10 @@
                                                                                     Share Link: <a href="{{ session('share_folder_link_' . $subchild->id) }}" target="_blank">{{ session('share_folder_link_' . $subchild->id) }}</a>
                                                                                     <br>
                                                                                     OTP: <span class="fw-bold">{{ session('share_folder_otp_' . $subchild->id) }}</span>
+                                                                                    <span class="js-share-copy-source d-none"
+                                                                                        data-copy-link="{{ session('share_folder_link_' . $subchild->id) }}"
+                                                                                        data-copy-otp="{{ session('share_folder_otp_' . $subchild->id) }}"
+                                                                                        data-auto-copy="1"></span>
                                                                                 </div>
                                                                             @endif
                                                                         </div>
@@ -415,6 +446,9 @@
                         <br>
                         <strong>Mode:</strong>
                         <span class="fw-bold text-capitalize">{{ session('share_mode_' . $doc->id) }}</span>
+                        <span class="js-share-copy-source d-none"
+                            data-copy-link="{{ session('share_link_' . $doc->id) }}"
+                            data-auto-copy="1"></span>
                     </div>
                 @endif
             @endforeach
@@ -470,7 +504,10 @@
                     $fileExists = Storage::exists($doc->file_path);
                 @endphp
                 <div class="col-lg-3 col-md-4 col-6 mb-4 drive-file-col" data-drive-file="{{ Str::lower($doc->name) }}">
-                    <div class="drive-file-card h-100 position-relative p-3 text-center">
+                    <div
+                        class="drive-file-card h-100 position-relative p-3 text-center {{ $fileExists ? 'js-file-open' : '' }}"
+                        @if($fileExists) data-file-url="{{ route('admin.drive.preview', $doc->id) }}" @endif
+                    >
                         <div class="position-absolute top-0 end-0 mt-2 me-2">
                             <div class="dropdown">
                                 <button class="btn btn-light btn-sm rounded-circle image-three-dots" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -520,7 +557,7 @@
                                 <i class="bi bi-file-earmark-text display-5 text-secondary"></i>
                             @endif
                         </div>
-                        <div class="drive-file-name" title="{{ $doc->name }}">{{ Str::limit($doc->name, 22) }}</div>
+                        <div class="drive-file-name" title="{{ $doc->name }}">{{ $doc->name }}</div>
                         {{-- @if($fileExists)
                             <div class="drive-file-actions mt-2">
                                 <a href="{{ route('admin.drive.download', $doc->id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Download"><i class="bi bi-download"></i></a>
@@ -841,6 +878,9 @@
         box-shadow: var(--drive-shadow-md);
         border-color: #b9d1f5;
     }
+    .drive-file-card.js-file-open {
+        cursor: pointer;
+    }
     .drive-files-grid.drive-list-mode > .drive-file-col {
         flex: 0 0 100%;
         max-width: 100%;
@@ -862,6 +902,10 @@
     .drive-files-grid.drive-list-mode .drive-file-name {
         margin-top: 0;
         max-width: 100%;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
     }
     .drive-files-grid.drive-list-mode .drive-file-actions {
         margin-top: 0 !important;
@@ -1062,6 +1106,135 @@
             });
         }
 
+        var legacyCopy = function (text) {
+            var textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.setAttribute('readonly', '');
+            textArea.style.position = 'absolute';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            var copied = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return copied;
+        };
+
+        var copyText = function (text) {
+            if (!text) {
+                return Promise.resolve(false);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text)
+                    .then(function () { return true; })
+                    .catch(function () { return legacyCopy(text); });
+            }
+            return Promise.resolve(legacyCopy(text));
+        };
+
+        var buildCopyText = function (source) {
+            var link = source.getAttribute('data-copy-link');
+            var otp = source.getAttribute('data-copy-otp');
+            var lines = [];
+
+            if (link) {
+                lines.push('Link: ' + link);
+            }
+            if (otp) {
+                lines.push('OTP: ' + otp);
+            }
+            return lines.join('\n');
+        };
+
+        var showToast = function (message, type) {
+            var container = document.getElementById('driveCopyToastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'driveCopyToastContainer';
+                container.style.position = 'fixed';
+                container.style.top = '16px';
+                container.style.right = '16px';
+                container.style.zIndex = '5000';
+                document.body.appendChild(container);
+            }
+
+            var toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.minWidth = '220px';
+            toast.style.maxWidth = '320px';
+            toast.style.marginTop = '8px';
+            toast.style.padding = '10px 14px';
+            toast.style.borderRadius = '10px';
+            toast.style.boxShadow = '0 8px 18px rgba(0, 0, 0, 0.18)';
+            toast.style.color = '#fff';
+            toast.style.fontSize = '14px';
+            toast.style.background = type === 'success' ? '#198754' : '#dc3545';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-8px)';
+            toast.style.transition = 'all .2s ease';
+
+            container.appendChild(toast);
+            requestAnimationFrame(function () {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            });
+
+            setTimeout(function () {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-8px)';
+                setTimeout(function () {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 220);
+            }, 1800);
+        };
+
+        var pendingCopyText = null;
+        var pendingCopyBound = false;
+
+        var bindDeferredCopyOnUserAction = function () {
+            if (pendingCopyBound) {
+                return;
+            }
+            pendingCopyBound = true;
+
+            var tryDeferredCopy = function () {
+                if (!pendingCopyText) {
+                    return;
+                }
+
+                copyText(pendingCopyText).then(function (ok) {
+                    if (ok) {
+                        showToast('Copied shared link', 'success');
+                        pendingCopyText = null;
+                        pendingCopyBound = false;
+                        document.removeEventListener('click', tryDeferredCopy, true);
+                        document.removeEventListener('keydown', tryDeferredCopy, true);
+                        document.removeEventListener('touchstart', tryDeferredCopy, true);
+                    }
+                });
+            };
+
+            document.addEventListener('click', tryDeferredCopy, true);
+            document.addEventListener('keydown', tryDeferredCopy, true);
+            document.addEventListener('touchstart', tryDeferredCopy, true);
+        };
+
+        var autoCopyTarget = document.querySelector('.js-share-copy-source[data-auto-copy="1"]');
+        if (autoCopyTarget) {
+            var shareText = buildCopyText(autoCopyTarget);
+            copyText(shareText).then(function (ok) {
+                if (ok) {
+                    showToast('Copied shared link', 'success');
+                    return;
+                }
+
+                pendingCopyText = shareText;
+                bindDeferredCopyOnUserAction();
+                showToast('Auto-copy blocked. Tap anywhere once.', 'error');
+            });
+        }
+
         document.querySelectorAll('.drive-folder-actions .dropdown-item[data-bs-toggle="modal"], .dropdown-item[data-bs-toggle="modal"]').forEach(function (btn) {
             btn.addEventListener('click', function (event) {
                 event.stopPropagation();
@@ -1107,6 +1280,19 @@
 
             dropdownEl.addEventListener('hidden.bs.dropdown', function () {
                 cardCol.classList.remove('dropdown-open');
+            });
+        });
+
+        document.querySelectorAll('.js-file-open').forEach(function (card) {
+            card.addEventListener('click', function (event) {
+                if (event.target.closest('button, a, input, label, form, .dropdown, .dropdown-menu, .modal')) {
+                    return;
+                }
+
+                var url = card.getAttribute('data-file-url');
+                if (url) {
+                    window.open(url, '_blank');
+                }
             });
         });
     });

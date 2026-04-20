@@ -11,8 +11,8 @@
     </button>
     <form action="{{ route('admin.hercycle.sendNotifications') }}" method="POST" style="display:inline;">
         @csrf
-        <button type="submit" class="btn btn-warning align-items-center gap-2">
-            <span>🔔</span> Send Notification
+        <button type="submit" class="btn btn-encodex-print align-items-center gap-2">
+            <span>🔔</span> Notifiy
         </button>
     </form>
 @endpush
