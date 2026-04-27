@@ -96,8 +96,12 @@
                                 <tr>
                                 <td colspan="2" class="text-end"><strong>@lang('Total')</strong></td>
                                 <td class="text-end"><strong>{{ toBanglaNumber($filterAmount, 2) }}</strong></td>
-                                <td class="text-end"><strong>{{ toBanglaNumber($filterAmountMin, 2) }}</strong></td>
-                                <td class="text-end"><strong>{{ toBanglaNumber($filterAmountMax, 2) }}</strong></td>
+                                @if(request('amount_type') == 'amount_all')
+                                    <td class="text-end"><strong>{{ toBanglaNumber($filterAmountMin, 2) }}</strong></td>
+                                    <td class="text-end"><strong>{{ toBanglaNumber($filterAmountMax, 2) }}</strong></td>
+                                @endif
+                                <td></td>
+                                <td></td>
                                 <td></td>
                                 </tr>
                             </tbody>

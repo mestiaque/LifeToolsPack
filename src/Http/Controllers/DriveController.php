@@ -23,12 +23,11 @@ class DriveController extends Controller
         $this->telegram = $telegram;
 
         $this->middleware('authorization:drive.view')->only(['index']);
-        $this->middleware('authorization:drive.folder.create')->only(['createFolder']);
-        $this->middleware('authorization:drive.folder.create')->only(['updateFolder']);
+        $this->middleware('authorization:drive.folder_create')->only(['createFolder','updateFolder']);
         $this->middleware('authorization:drive.upload')->only(['upload']);
-        $this->middleware('authorization:drive.upload')->only(['updateFileName']);
+        $this->middleware('authorization:drive.update_file_name')->only(['updateFileName']);
         $this->middleware('authorization:drive.delete')->only(['delete']);
-        $this->middleware('authorization:drive.folder.create')->only(['deleteFolder']);
+        $this->middleware('authorization:drive.folder_delete')->only(['deleteFolder']);
         $this->middleware('authorization:drive.share')->only(['share', 'shareFolder', 'shareHistory']);
     }
 

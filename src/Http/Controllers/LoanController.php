@@ -23,10 +23,11 @@ class LoanController extends Controller
         $this->middleware('authorization:loan.create')->only(['createLoan', 'storeLoan']);
         $this->middleware('authorization:loan.edit')->only(['editLoan', 'updateLoan']);
         $this->middleware('authorization:loan.delete')->only(['deleteLoan']);
-
         $this->middleware('authorization:loan.history')->only(['history']);
         $this->middleware('authorization:loan.history_create')->only(['storeRepayment', 'updateRepayment']);
         $this->middleware('authorization:loan.history_delete')->only(['destroyRepayment']);
+        $this->middleware('authorization:loan.user_history')->only(['userHistory']);
+        $this->middleware('authorization:loan.payment_planner')->only(['paymentPlanner']);
     }
     // List all loans with their loan users
     public function index(Request $request)

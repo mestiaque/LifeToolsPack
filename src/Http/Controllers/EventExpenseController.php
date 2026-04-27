@@ -9,6 +9,14 @@ use ME\Http\Controllers\Controller;
 
 class EventExpenseController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('authorization:event_expense.show')->only(['index']);
+        $this->middleware('authorization:event_expense.create')->only(['store']);
+        $this->middleware('authorization:event_expense.edit')->only(['update']);
+        $this->middleware('authorization:event_expense.delete')->only(['destroy']);
+        $this->middleware('authorization:event_expense.print')->only(['print']);
+    }
     public function index(Request $request, $eventId)
     {
         $event = Event::findOrFail($eventId);

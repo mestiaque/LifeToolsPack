@@ -14,10 +14,21 @@ use ME\Http\Controllers\Controller;
 
 class HerCycleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('authorization:hercycle.index')->only(['index']);
+        $this->middleware('authorization:hercycle.setup')->only(['setup', 'storeProfile']);
+        $this->middleware('authorization:hercycle.updateProfile')->only(['updateProfile']);
+        $this->middleware('authorization:hercycle.storePeriod')->only(['storePeriod']);
+        $this->middleware('authorization:hercycle.updatePeriod')->only(['updatePeriod']);
+        $this->middleware('authorization:hercycle.deletePeriod')->only(['deletePeriod']);
+    }
+
     public function index()
     {
-        $user = Auth::user();
-        $profile = HerCycleProfile::where('user_id', $user->id)->first();
+        // $user = Auth::user();
+        // $profile = HerCycleProfile::where('user_id', $user->id)->first();
+        $profile = HerCycleProfile::first();
         if (!$profile) {
             return redirect()->route('admin.hercycle.setup');
         }
@@ -173,8 +184,9 @@ class HerCycleController extends Controller
                 'after:start_date',
             ],
         ]);
-        $user = Auth::user();
-        $profile = HerCycleProfile::where('user_id', $user->id)->first();
+        // $user = Auth::user();
+        // $profile = HerCycleProfile::where('user_id', $user->id)->first();
+        $profile = HerCycleProfile::first();
 
         // If the same start date already exists, treat this as an update attempt from the log form.
         $existingPeriod = HerCyclePeriod::where('profile_id', $profile->id)

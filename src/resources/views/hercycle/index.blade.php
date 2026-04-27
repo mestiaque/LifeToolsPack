@@ -215,9 +215,9 @@
             $daysUntilPeriod = \Carbon\Carbon::now()->diffInDays($nextStart, false);
         @endphp
         @if($daysUntilPeriod >= 0 && $daysUntilPeriod <= 7)
-            <div class="alert alert-warning d-flex align-items-center mb-4 rounded-3">
+            <div class="alert alert-warning d-flex align-items-center mb-4 rounded-3" style="margin-top: -20px; background: linear-gradient(90deg, #6b18ff91 0%, #bb9bf491 100%);">
                 <span class="me-2 fs-4">📅</span>
-                <span>Your next period is expected in {{ $daysUntilPeriod }} day(s)!</span>
+                <span style="color:black">Your next period is expected in <b style="font-size: 1.2rem;">{{ number_format($daysUntilPeriod) }}</b> day(s)!</span>
             </div>
         @endif
     @endif

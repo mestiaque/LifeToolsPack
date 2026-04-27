@@ -17,7 +17,11 @@ class GalleryController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('authorization:gallery.action')->only(['togglePrivacy', 'delete']);
+        $this->middleware('authorization:gallery.show')->only(['index', 'preview', 'show']);
+        $this->middleware('authorization:gallery.create')->only(['upload']);
+        $this->middleware('authorization:gallery.privacy')->only(['togglePrivacy']);
+        $this->middleware('authorization:gallery.delete')->only(['delete']);
+
     }
 
     public function index(Request $request)

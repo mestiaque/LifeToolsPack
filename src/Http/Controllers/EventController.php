@@ -8,6 +8,14 @@ use ME\Http\Controllers\Controller;
 
 class EventController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('authorization:event.show')->only(['index']);
+        $this->middleware('authorization:event.create')->only(['store']);
+        $this->middleware('authorization:event.edit')->only(['update']);
+        $this->middleware('authorization:event.delete')->only(['destroy']);
+    }
+
     public function index(Request $request)
     {
         $query = Event::query();

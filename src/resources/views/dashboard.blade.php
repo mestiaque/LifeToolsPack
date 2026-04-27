@@ -31,6 +31,7 @@
 
     {{-- ══ KPI STRIP ══ --}}
     <div class="row g-3 mb-4">
+		@can('gallery.show')
         <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi kpi-indigo">
                 <div class="kpi-icon-wrap"><i class="fas fa-images"></i></div>
@@ -41,6 +42,8 @@
                 <div class="kpi-bg-icon"><i class="fas fa-images"></i></div>
             </div>
         </div>
+		@endcan
+		@can('message.show')
         <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi kpi-violet">
                 <div class="kpi-icon-wrap"><i class="fas fa-envelope"></i></div>
@@ -51,6 +54,8 @@
                 <div class="kpi-bg-icon"><i class="fas fa-envelope"></i></div>
             </div>
         </div>
+		@endcan
+		@can('event.show')
         <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi kpi-rose">
                 <div class="kpi-icon-wrap"><i class="fas fa-calendar-check"></i></div>
@@ -61,6 +66,8 @@
                 <div class="kpi-bg-icon"><i class="fas fa-calendar-check"></i></div>
             </div>
         </div>
+		@endcan
+		@can('drive.show')
         <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi kpi-amber">
                 <div class="kpi-icon-wrap"><i class="fas fa-folder-open"></i></div>
@@ -71,6 +78,8 @@
                 <div class="kpi-bg-icon"><i class="fas fa-folder-open"></i></div>
             </div>
         </div>
+		@endcan
+		@can('disk.show')
         <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi kpi-teal">
                 <div class="kpi-icon-wrap"><i class="fas fa-hdd"></i></div>
@@ -81,6 +90,8 @@
                 <div class="kpi-bg-icon"><i class="fas fa-hdd"></i></div>
             </div>
         </div>
+		@endcan
+		@can('project.show')
         <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi kpi-emerald">
                 <div class="kpi-icon-wrap"><i class="fas fa-project-diagram"></i></div>
@@ -91,6 +102,7 @@
                 <div class="kpi-bg-icon"><i class="fas fa-project-diagram"></i></div>
             </div>
         </div>
+		@endcan
     </div>
 
     {{-- ══ MAIN GRID ══ --}}
@@ -101,9 +113,11 @@
             <div class="db-card d-flex flex-column">
                 <div class="db-card-head">
                     <span><i class="fas fa-calendar-alt me-2"></i>Calendar</span>
+					@can('event.create')
                     <button id="add-event-btn" class="db-btn-accent">
                         <i class="fas fa-plus me-1"></i>Add Event
                     </button>
+					@endcan
                 </div>
                 <div class="db-card-body p-3" style="max-height: 36rem">
                     <div id="calendar"></div>
@@ -115,6 +129,7 @@
         <div class="col-lg-4 d-flex flex-column gap-4">
 
             {{-- Loan Overview --}}
+			@can('loan.show')
             <div class="db-card">
                 <div class="db-card-head">
                     <span><i class="fas fa-hand-holding-usd me-2"></i>Loan Overview</span>
@@ -141,8 +156,10 @@
                     </div>
                 </div>
             </div>
+			@endcan
 
             {{-- HerCycle --}}
+			@can('hercycle.index')
             <div class="db-card">
                 <div class="db-card-head db-card-head-rose">
                     <span><i class="fas fa-venus me-2"></i>HerCycle</span>
@@ -165,8 +182,10 @@
                     </div>
                 </div>
             </div>
+			@endcan
 
             {{-- Disk Storage --}}
+			@can('disk.show')
             <div class="db-card">
                 <div class="db-card-head">
                     <span><i class="fas fa-server me-2"></i>Disk Storage</span>
@@ -190,11 +209,12 @@
                     </div>
                 </div>
             </div>
+			@endcan
 
         </div>
     </div>
-
     {{-- ══ RUNNING EVENTS TABLE ══ --}}
+	@can('event.show')
     <div class="db-card">
         <div class="db-card-head db-card-head-event">
             <span><i class="fas fa-bolt me-2"></i>Running Events &amp; Expenses</span>
@@ -210,7 +230,9 @@
                             <th>Event Title</th>
                             <th>Start Date</th>
                             <th>End Date</th>
+							@can('event_expense.show')
                             <th class="text-end">Total Expense</th>
+							@endcan
                         </tr>
                     </thead>
                     <tbody>
@@ -220,9 +242,11 @@
                             <td class="fw-semibold">{{ $event['title'] }}</td>
                             <td class="small text-muted">{{ $event['start'] }}</td>
                             <td class="small text-muted">{{ $event['end'] ?? '—' }}</td>
+							@can('event_expense.show')
                             <td class="text-end">
                                 <span class="db-expense-chip">৳ {{ number_format($event['expense'], 2) }}</span>
                             </td>
+							@endcan
                         </tr>
                         @endforeach
                     </tbody>
@@ -236,6 +260,7 @@
             @endif
         </div>
     </div>
+	@endcan
 
 </div>
 @endsection
@@ -694,6 +719,16 @@
 	<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 	<script>
+		window.permissions = {
+			canEventShow: @json(can('event.show')),
+			canEventCreate: @json(can('event.create')),
+			canEventEdit: @json(can('event.edit')),
+			canEventDelete: @json(can('event.delete')),
+			
+		};
+	</script>
+
+	<script>
 	/* ── Counter up ── */
 	(function () {
 		document.querySelectorAll('.counter').forEach(el => {
@@ -745,9 +780,10 @@
 				? { left: 'prev', center: 'title', right: 'next' }
 				: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
 			editable: true, selectable: false, selectMirror: false, dayMaxEvents: true,
-			events: '/calendar/events',
+			events: window.permissions.canEventShow ? '/calendar/events' : [],
 			eventResizableFromStart: true, eventDurationEditable: true,
 			dateClick: function (info) {
+				if (!window.permissions.canEventCreate) return;
 				const now = Date.now();
 				if (info.dayEl._lastClick && now - info.dayEl._lastClick < 350) {
 					// double-click detected
@@ -805,6 +841,10 @@
 		calendar.render();
 
 		document.getElementById('add-event-btn').addEventListener('click', function () {
+			if (!window.permissions.canEventCreate) {
+				alert('You do not have permission to create events');
+				return;
+			}
 			const t = prompt('Event title:'); if (!t) return;
 			const d = prompt('Date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]); if (!d) return;
 			fetch('/calendar/events/store', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ title: t, start: d }) }).then(r => r.json()).then(ev => calendar.addEvent(ev));

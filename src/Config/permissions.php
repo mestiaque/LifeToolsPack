@@ -19,14 +19,14 @@ return [
     ],
     "loan" => [
         "title" => "Loan",
-        "actions" => "show,create,edit,delete,history,history_create,history_delete",
+        "actions" => "show,create,edit,delete,history,history_create,history_delete,payment_planner,user_history",
     ],
     "drive" => [
         "title" => "Drive",
-        "actions" => "view,folder.create,upload,delete,share",
+        "actions" => "view,folder_create,update_file_name,upload,delete,share,folder_delete",
     ],
     "disk" => [
-        "title" => "Drive",
+        "title" => "Disk",
         "actions" => "show.create,edit,delete",
     ],
     "daily-expense" => [
@@ -35,7 +35,7 @@ return [
     ],
     "gallery" => [
         "title" => "Gallery",
-        "actions" => "action",
+        "actions" => "show,create,privacy,delete",
     ],
     "message" => [
         "title" => "Message",
@@ -47,6 +47,15 @@ return [
     ],
     "hercycle" => [
         "title" => "HerCycle",
-        "actions" => "view,track,symptoms,predictions",
+        "actions" => "index,setup,storeProfile,updateProfile,storePeriod,updatePeriod,deletePeriod",
     ],
+    "event" => [
+        "title" => "Event",
+        "actions" => "show,create,edit,delete",
+    ],
+    "event_expense" => [
+        "title" => "Event Expense",
+        "actions" => "show,create,edit,delete,print",
+    ],
+    
 ];
