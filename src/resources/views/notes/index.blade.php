@@ -1,21 +1,3 @@
-<!-- Color Picker Modal -->
-<div id="color-modal" class="modal fade" tabindex="-1" aria-labelledby="color-modal-title" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content glass">
-            <div class="modal-header">
-                <h5 class="modal-title" id="color-modal-title">Choose Note Color</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="color-modal-swatches" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @extends('me::master')
 
 @section('title', trans('My Notes'))
@@ -66,6 +48,24 @@
                     <button type="submit" class="btn btn-sm btn-encodex-save" id="btn-save">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Color Picker Modal -->
+<div id="color-modal" class="modal fade" tabindex="-1" aria-labelledby="color-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h5 class="modal-title" id="color-modal-title">Choose Note Color</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="color-modal-swatches" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
         </div>
     </div>
 </div>
