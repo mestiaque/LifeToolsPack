@@ -1,23 +1,25 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use ME\Http\Middleware\LocaleMiddleware;
+use ME\EmCore\Http\Controllers\BirthdayController;
+use ME\EmCore\Http\Controllers\DailyExpenseController;
+use ME\EmCore\Http\Controllers\DashboardController;
 use ME\EmCore\Http\Controllers\DiskController;
-use ME\EmCore\Http\Controllers\LoanController;
-use ME\EmCore\Http\Controllers\RoleController;
-use ME\EmCore\Http\Controllers\UserController;
 use ME\EmCore\Http\Controllers\DriveController;
 use ME\EmCore\Http\Controllers\EventController;
 use ME\EmCore\Http\Controllers\EventExpenseController;
 use ME\EmCore\Http\Controllers\FrontController;
 use ME\EmCore\Http\Controllers\GalleryController;
-use ME\EmCore\Http\Controllers\MessageController;
-use ME\EmCore\Http\Controllers\SettingController;
-use ME\EmCore\Http\Controllers\BirthdayController;
-use ME\EmCore\Http\Controllers\LoanUserController;
-use ME\EmCore\Http\Controllers\DashboardController;
-use ME\EmCore\Http\Controllers\DailyExpenseController;
 use ME\EmCore\Http\Controllers\HerCycleController;
+use ME\EmCore\Http\Controllers\LoanController;
+use ME\EmCore\Http\Controllers\LoanUserController;
+use ME\EmCore\Http\Controllers\MessageController;
+use ME\EmCore\Http\Controllers\NoteController;
+use ME\EmCore\Http\Controllers\RoleController;
+use ME\EmCore\Http\Controllers\SettingController;
+use ME\EmCore\Http\Controllers\UserController;
+use ME\Http\Middleware\LocaleMiddleware;
+
 
 
 Route::middleware(['web'])->group(function () {
@@ -137,6 +139,12 @@ Route::middleware(['web'])->group(function () {
             Route::put('/hercycle/notifications/{id}', [HerCycleController::class, 'updateNotifications'])->name('hercycle.notifications.update');
             Route::get('/hercycle/month-data', [HerCycleController::class, 'getMonthData'])->name('hercycle.month-data');
             Route::post('/hercycle/send-notifications', [HerCycleController::class, 'sendNotifications'])->name('hercycle.sendNotifications');
+
+            Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
+            Route::get('/get-notes', [NoteController::class, 'getNotes']);
+            Route::post('/notes', [NoteController::class, 'store']);
+            Route::put('/notes/{note}', [NoteController::class, 'update']);
+            Route::delete('/notes/{note}', [NoteController::class, 'destroy']);
 
         });
 
