@@ -1,10 +1,4 @@
-        // Ensure SweetAlert2 is loaded
-        if (typeof Swal === 'undefined') {
-            var script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
-            script.onload = function() { window.Swal = Swal; };
-            document.head.appendChild(script);
-        }
+
 <script>
     $(function() {
         // ---- Config ---- //
