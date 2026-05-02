@@ -43,6 +43,7 @@
                         </div>
                     </div>
                 </div>
+                <input type="checkbox" name="is_pinned" id="note-pin" style="display:none;"/>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-sm btn-encodex-cancel" id="btn-cancel" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-sm btn-encodex-save" id="btn-save">Save</button>
