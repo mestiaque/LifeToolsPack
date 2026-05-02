@@ -38,6 +38,8 @@
         background: rgba(248,250,255,0.65);
         box-shadow: 0 1px 6px #d8e6f9;
         font-size: 1rem;
+        color: #396780;
+        outline: none
     }
 
     .notes-grid {

@@ -46,7 +46,7 @@
             const $sel = $('#color-filter'); $sel.empty();
             $sel.append(`<option value="">All Colors</option>`);
             COLORS.forEach(c=> {
-                $sel.append(`<option value="${c}">&#9632; ${c}</option>`);
+                $sel.append(`<option value="${c}" style="background:${c}">&#9632; ${c}</option>`);
             });
         }
 
