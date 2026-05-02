@@ -5,6 +5,7 @@ use ME\EmCore\Http\Controllers\BirthdayController;
 use ME\EmCore\Http\Controllers\DailyExpenseController;
 use ME\EmCore\Http\Controllers\DashboardController;
 use ME\EmCore\Http\Controllers\DiskController;
+use ME\EmCore\Http\Controllers\LinkController;
 use ME\EmCore\Http\Controllers\DriveController;
 use ME\EmCore\Http\Controllers\EventController;
 use ME\EmCore\Http\Controllers\EventExpenseController;
@@ -145,6 +146,8 @@ Route::middleware(['web'])->group(function () {
             Route::post('/notes', [NoteController::class, 'store']);
             Route::put('/notes/{note}', [NoteController::class, 'update']);
             Route::delete('/notes/{note}', [NoteController::class, 'destroy']);
+
+            Route::resource('links', LinkController::class)->except(['show', 'create', 'edit']);
 
         });
 

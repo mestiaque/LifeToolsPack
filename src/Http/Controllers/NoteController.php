@@ -8,6 +8,14 @@ use ME\Http\Controllers\Controller;
 
 class NoteController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('authorization:note.view')->only(['index']);
+        // $this->middleware('authorization:note.create')->only(['create', 'store']);
+        // $this->middleware('authorization:note.edit')->only(['edit', 'update']);
+        // $this->middleware('authorization:note.delete')->only('destroy');
+    }
+
     public function index()
     {
         return view('em_core::notes.index');

@@ -57,5 +57,13 @@ return [
         "title" => "Event Expense",
         "actions" => "show,create,edit,delete,print",
     ],
+    "note" => [
+        "title" => "Note",
+        "actions" => "index,store,update,delete",
+    ],
+    "link" => [
+        "title" => "Link",
+        "actions" => "index,store,update,delete",
+    ],
     
 ];
