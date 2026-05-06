@@ -194,6 +194,7 @@ class NotifyPersonController extends Controller
                 'due_amount' => (float) $loan->dueAmount(),
                 'type'       => $loan->type === 'given' ? 'Receivable' : 'Payable',
                 'date'       => $loan->date,
+                'note'       => $loan->note,
             ];
         })->values();
     }
@@ -208,16 +209,17 @@ class NotifyPersonController extends Controller
         $message .= '<h3 style="margin-bottom:10px;">Payable & Receivable Ledger</h3>';
 
         foreach ($loans as $loan) {
-            $bg = $loan['type'] === 'Receivable' ? '#73ff003b' : '#ff00003b';
+            $bg = $loan['type'] === 'Receivable' ? '#73ff0018' : '#ff000018';
             $message .= '
             <div style="border:1px solid #ddd; padding:10px; margin-bottom:10px; background-color:' . $bg . ';">
-                <strong>User:</strong> ' . $loan['user_name'] . '<br>
-                <strong>Phone:</strong> ' . $loan['phone'] . ' |
-                <strong>Email:</strong> ' . $loan['email'] . '<br>
-                <strong>Address:</strong> ' . $loan['address'] . '<br>
+                <strong>Name:</strong> ' . ($loan['user_name'] ?? 'N/A') . '<br>
+                <strong>Phone:</strong> ' . ($loan['phone'] ?? 'N/A') . ' |
+                <strong>Email:</strong> ' . ($loan['email'] ?? 'N/A') . '<br>
+                <strong>Address:</strong> ' . ($loan['address'] ?? 'N/A') . '<br>
                 <strong>Due:</strong> <b>' . number_format($loan['due_amount'], 2) . '</b><br>
-                <strong>Type:</strong> ' . $loan['type'] . ' |
-                <strong>Date:</strong> ' . $loan['date'] . '
+                <strong>Type:</strong> ' . ($loan['type'] ?? 'N/A') . ' |
+                <strong>Date:</strong> ' . ($loan['date'] ?? 'N/A') . '
+                <br><strong>Note:</strong> ' . ($loan['note'] ?? 'N/A') . '
             </div>';
         }
 
