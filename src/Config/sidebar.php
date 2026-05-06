@@ -126,6 +126,15 @@ return [
         'sl'         => 10,
     ],
     [
+        'title'      => 'Notify People',
+        'icon'       => 'fas fa-bell',
+        'icon_color' => 'icc-2',
+        'route'      => 'admin.notify-people.index',
+        'permit'     => 'notify_person.view',
+        'for_active' => 'admin.notify-people',
+        'sl'         => 11,
+    ],
+    [
         'permit'     => 'setting.edit',
         'title'      => 'Settings',
         'icon'       => 'fas fa-cog',

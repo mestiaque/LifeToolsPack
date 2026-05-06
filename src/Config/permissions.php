@@ -65,5 +65,9 @@ return [
         "title" => "Link",
         "actions" => "index,store,update,delete",
     ],
+    "notify_person" => [
+        "title" => "Notify Person",
+        "actions" => "view,create,edit,delete",
+    ],
     
 ];

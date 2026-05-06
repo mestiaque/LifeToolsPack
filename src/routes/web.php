@@ -15,6 +15,7 @@ use ME\EmCore\Http\Controllers\HerCycleController;
 use ME\EmCore\Http\Controllers\LoanController;
 use ME\EmCore\Http\Controllers\LoanUserController;
 use ME\EmCore\Http\Controllers\MessageController;
+use ME\EmCore\Http\Controllers\NotifyPersonController;
 use ME\EmCore\Http\Controllers\NoteController;
 use ME\EmCore\Http\Controllers\RoleController;
 use ME\EmCore\Http\Controllers\SettingController;
@@ -25,9 +26,6 @@ use ME\Http\Middleware\LocaleMiddleware;
 
 Route::middleware(['web'])->group(function () {
 
-    // Route::get('protfolio/', [FrontController::class, 'index'])->name('home');
-    // Route::get('/cv', [FrontController::class, 'cv']);
-    // Route::get('/curriculum-vitae', [FrontController::class, 'cv'])->name('cv');
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
     //gallery
     Route::middleware([LocaleMiddleware::class])->group(function () {
@@ -54,6 +52,8 @@ Route::middleware(['web'])->group(function () {
         Route::get('/games/snake', fn () => view('em_core::games.snake'))->name('games.snake');
         Route::get('/games/egg-catching', fn () => view('em_core::games.egg-catching'))->name('games.egg-catching');
         Route::get('/games/memory-card', fn () => view('em_core::games.memory-card'))->name('games.memory-card');
+
+        Route::get('/notify-people/trigger', [NotifyPersonController::class, 'trigger'])->name('notify-people.trigger');
 
     });
 
@@ -148,6 +148,7 @@ Route::middleware(['web'])->group(function () {
             Route::delete('/notes/{note}', [NoteController::class, 'destroy']);
 
             Route::resource('links', LinkController::class)->except(['show', 'create', 'edit']);
+            Route::resource('notify-people', NotifyPersonController::class)->except(['show', 'create', 'edit']);
 
         });
 

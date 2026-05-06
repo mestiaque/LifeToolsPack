@@ -8,6 +8,9 @@ class LoanUser extends Model
 {
     protected $fillable = [
         'name',
+        'email',
+        'phone',
+        'address',
         'is_active',
     ];
     

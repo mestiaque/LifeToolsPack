@@ -13,6 +13,12 @@
                             <input type="text" name="name" class="form-control form-control-sm" placeholder="@lang('Enter Name')" value="{{ request('name') }}">
                         </div>
                         <div class="col-md">
+                            <input type="text" name="email" class="form-control form-control-sm" placeholder="@lang('Enter Email')" value="{{ request('email') }}">
+                        </div>
+                        <div class="col-md">
+                            <input type="text" name="phone" class="form-control form-control-sm" placeholder="@lang('Enter Phone')" value="{{ request('phone') }}">
+                        </div>
+                        <div class="col-md">
                             <button type="submit" class="btn btn-sm btn-encodex-search rounded">
                                 <i class="fas fa-search"></i> @lang('Search')
                             </button>
@@ -28,6 +34,9 @@
                             <tr>
                                 <th>{{ trans('#') }}</th>
                                 <th>@lang('Name')</th>
+                                <th>@lang('Email')</th>
+                                <th>@lang('Phone')</th>
+                                <th>@lang('Address')</th>
                                 <th>@lang('Active')</th>
                                 <th>@lang('Action')</th>
                             </tr>
@@ -37,6 +46,9 @@
                                 <tr>
                                     <td class="text-center">{{ $loop->iteration }}</td>
                                     <td><a href="{{ route('admin.loans.user-history', $lu->id) }}"><i class="fas fa-info-circle"></i></a> {{ $lu->name }} </td>
+                                    <td>{{ $lu->email }}</td>
+                                    <td>{{ $lu->phone }}</td>
+                                    <td>{{ $lu->address }}</td>
                                     <td class="text-center">
                                         @if($lu->is_active)
                                             <span class="badge bg-success">@lang('Active')</span>
@@ -59,6 +71,9 @@
                                             class="btn btn-sm btn-encodex-edit  me-1 edit-loan-user-btn"
                                             data-id="{{ $lu->id }}"
                                             data-name="{{ $lu->name }}"
+                                            data-email="{{ $lu->email }}"
+                                            data-phone="{{ $lu->phone }}"
+                                            data-address="{{ $lu->address }}"
                                             data-is_active="{{ $lu->is_active ? '1' : '0' }}">
                                             <i class="fas fa-edit "></i>
                                         </button>
@@ -83,6 +98,9 @@
                                             </div>
                                             <div class="modal-body">
                                                 <strong>@lang('Name'):</strong> {{ $lu->name }}<br>
+                                                <strong>@lang('Email'):</strong> {{ $lu->email }}<br>
+                                                <strong>@lang('Phone'):</strong> {{ $lu->phone }}<br>
+                                                <strong>@lang('Address'):</strong> {{ $lu->address }}<br>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-encodex-clear btn-sm" data-bs-dismiss="modal">@lang('Close')</button>
@@ -128,6 +146,9 @@ $(document).ready(function () {
 
         let id = $(this).data('id');
         let name = $(this).data('name');
+        let email = $(this).data('email');
+        let phone = $(this).data('phone');
+        let address = $(this).data('address');
         let isActive = $(this).data('is_active');
 
         // Set form for update
@@ -142,8 +163,11 @@ $(document).ready(function () {
         }
 
         // Set form fields
-        console.log('Setting form fields:', { name, isActive });
+        console.log('Setting form fields:', { name, email, phone, address, isActive });
         form.find('input[name="name"]').val(name);
+        form.find('input[name="email"]').val(email);
+        form.find('input[name="phone"]').val(phone);
+        form.find('textarea[name="address"]').val(address);
         form.find('input[name="is_active"]').prop('checked', isActive == 1);
         $('.save-btn').addClass('d-none');
         $('.update-btn').removeClass('d-none');

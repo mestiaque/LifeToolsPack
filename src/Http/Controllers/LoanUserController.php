@@ -24,6 +24,14 @@ class LoanUserController extends Controller
             $query->where('name', 'LIKE', '%' . $request->name . '%');
         }
 
+        if ($request->email) {
+            $query->where('email', 'LIKE', '%' . $request->email . '%');
+        }
+
+        if ($request->phone) {
+            $query->where('phone', 'LIKE', '%' . $request->phone . '%');
+        }
+
         $loanUsers = $query->get();
 
         return view('em_core::loan_users.index', compact('loanUsers'));
@@ -33,9 +41,12 @@ class LoanUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:30',
+            'address' => 'nullable|string',
             'is_active' => 'required|boolean'
         ]);
-        LoanUser::create($request->only('name', 'is_active'));
+        LoanUser::create($request->only('name', 'email', 'phone', 'address', 'is_active'));
         return redirect()->route('admin.loan-users.index')->with('success', __('Loan user created successfully.'));
     }
 
@@ -44,9 +55,12 @@ class LoanUserController extends Controller
         $loanUser = LoanUser::findOrFail($id);
         $request->validate([
             'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:30',
+            'address' => 'nullable|string',
             'is_active' => 'required|boolean'
         ]);
-        $loanUser->update($request->only('name', 'is_active'));
+        $loanUser->update($request->only('name', 'email', 'phone', 'address', 'is_active'));
         return redirect()->route('admin.loan-users.index')->with('success', __('Loan user updated successfully.'));
     }
 
