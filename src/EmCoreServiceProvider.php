@@ -1,7 +1,9 @@
 <?php
 namespace ME\EmCore;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
+use ME\EmCore\Console\Commands\TriggerNotifyPeopleCommand;
 
 class EmCoreServiceProvider extends ServiceProvider
 {
@@ -18,6 +20,16 @@ class EmCoreServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/public' => public_path('/'),
         ], 'emcore-assets');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                TriggerNotifyPeopleCommand::class,
+            ]);
+        }
+
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+            $schedule->command('emcore:notify-people-trigger')->dailyAt('00:00');
+        });
     }
 
     public function register()

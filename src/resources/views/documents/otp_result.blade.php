@@ -8,7 +8,7 @@
         <div class="card shadow border-0 rounded-3">
             <div class="card-body text-center p-4">
                 @if(Str::startsWith($document->mime_type, 'image'))
-                    <img loading="lazy" src="{{ route('drive.preview', $document->id) }}" class="img-fluid mb-3 rounded border" style="max-height:75vh;object-fit:cover;" />
+                    <img loading="lazy" src="{{ route('drive.preview', $document->id, false) }}" class="img-fluid mb-3 rounded border" style="max-height:75vh;object-fit:cover;" />
                 @else
                     <i class="bi bi-file-earmark-text display-5 text-secondary"></i>
                     <div class="mb-3 fw-semibold">{{ $document->name }}</div>
@@ -30,7 +30,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             setTimeout(function () {
-                fetch("{{ route('drive.shared.heartbeat', ['id' => $document->id, 'token' => $shareToken]) }}", {
+                fetch("{{ route('drive.shared.heartbeat', ['id' => $document->id, 'token' => $shareToken], false) }}", {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'

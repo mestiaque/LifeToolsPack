@@ -3,6 +3,7 @@
 namespace ME\EmCore\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use ME\EmCore\Models\Loan;
 use ME\EmCore\Models\NotifyPerson;
 use ME\Models\UserActivity;
@@ -134,6 +135,8 @@ class NotifyPersonController extends Controller
                 $phoneTargets[] = $person->phone;
             }
         }
+
+        $this->sendMsgLoanUser();
 
         return response()->json([
             'success' => true,
@@ -313,6 +316,32 @@ class NotifyPersonController extends Controller
                 'senderid' => '8809617624082',
                 'message' => $message
             ]);
+        }
+    }
+
+    private function sendMsgLoanUser(): void
+    {
+        $loans = Loan::with('loanUser')->orderByDesc('date')->get()->filter(fn ($loan) => $loan->dueAmount() > 0);
+
+        foreach ($loans as $loan) {
+            if ($loan->loanUser && !empty($loan->loanUser->phone)) {
+                $smsMsg = "Dear {$loan->loanUser->name}, you have a {$loan->type} loan of amount " . number_format($loan->amount, 2) . " dated {$loan->date}. Please check your account for details.";
+                Http::get("https://bulksmsbd.net/api/smsapi", [
+                    'api_key' => 'dBG4rYOLWW28f3ip15yW',
+                    'type' => 'text',
+                    'number' => $loan->loanUser->phone,
+                    'senderid' => '8809617624082',
+                    'message' => $smsMsg
+                ]);
+            }
+            if($loan->loanUser && !empty($loan->loanUser->email)) {
+                $emailMsg = "Dear {$loan->loanUser->name},\n\nYou have a {$loan->type} loan of amount " . number_format($loan->amount, 2) . " dated {$loan->date}.\n\nPlease check your account for details.\n\nThank you.";
+                \Mail::to($loan->loanUser->email)->send(new \ME\Mail\NoticeMailLayout([
+                    'title' => 'Loan Notification',
+                    'content' => nl2br($emailMsg),
+                    'showGreeting' => false,
+                ]));
+            }
         }
     }
 

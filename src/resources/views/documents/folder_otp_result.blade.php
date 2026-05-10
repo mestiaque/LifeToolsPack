@@ -17,7 +17,7 @@
                                 <div class="card h-100 text-center border-0 shadow-sm rounded-3">
                                     <div class="card-body p-3">
                                         @if(Str::startsWith($doc->mime_type, 'image'))
-                                            <img loading="lazy" src="{{ route('admin.drive.preview', $doc->id) }}" class="img-fluid mb-2 rounded border" style="max-height:100px;object-fit:cover;" />
+                                            <img loading="lazy" src="{{ route('admin.drive.preview', $doc->id, false) }}" class="img-fluid mb-2 rounded border" style="max-height:100px;object-fit:cover;" />
                                         @else
                                             <i class="bi bi-file-earmark-text display-5 text-secondary"></i>
                                         @endif
