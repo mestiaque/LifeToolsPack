@@ -131,12 +131,15 @@ class DriveController extends Controller
             return back()->withErrors(['Total upload size cannot exceed 100MB.']);
         }
         foreach ($files as $file) {
-            $filename = Str::random(16) . '_' . $file->getClientOriginalName();
-            $path = "documents/{$folder->id}/{$filename}";
+            $extension = strtolower((string) $file->getClientOriginalExtension());
+            $uuid = (string) Str::uuid();
+            $storedName = $extension !== '' ? "{$uuid}.{$extension}" : $uuid;
+            $path = "documents/{$folder->id}/{$storedName}";
             Storage::put($path, file_get_contents($file));
             Document::create([
                 'folder_id' => $folder->id,
                 'name' => $file->getClientOriginalName(),
+                'stored_name' => $storedName,
                 'file_path' => $path,
                 'mime_type' => $file->getMimeType(),
                 'size' => $file->getSize(),
@@ -170,9 +173,11 @@ class DriveController extends Controller
         return back()->with('success', 'File name updated successfully.');
     }
 
-    public function preview($id)
+    public function preview($storedName)
     {
-        $document = Document::findOrFail($id);
+        $document = Document::where('stored_name', $storedName)
+            ->orWhere('name', $storedName)
+            ->firstOrFail();
         if (!Storage::exists($document->file_path)) {
             abort(404, 'File not found.');
         }
@@ -182,9 +187,11 @@ class DriveController extends Controller
         return response($content, 200)->header('Content-Type', $mime);
     }
 
-    public function download($id)
+    public function download($storedName)
     {
-        $document = Document::findOrFail($id);
+        $document = Document::where('stored_name', $storedName)
+            ->orWhere('name', $storedName)
+            ->firstOrFail();
         if (!Storage::exists($document->file_path)) {
             return back()->withErrors(['File does not exist.']);
         }

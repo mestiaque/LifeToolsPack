@@ -32,7 +32,7 @@
                     <div class="col-md-3 border-end bg-light d-flex align-items-center justify-content-center p-3" style="min-height: 140px;">
                         @if($visit->share_type === 'file' && $doc)
                             @if($isImage)
-                                <img src="{{ route('admin.drive.preview', $doc->id, false) }}" alt="{{ $doc->name }}" class="img-fluid rounded border" style="max-height:120px;object-fit:cover;">
+                                <img src="{{ route('admin.drive.preview', $doc->stored_name ?? $doc->name, false) }}" alt="{{ $doc->name }}" class="img-fluid rounded border" style="max-height:120px;object-fit:cover;">
                             @else
                                 <div class="text-center text-secondary">
                                     <i class="bi bi-file-earmark-text display-5"></i>

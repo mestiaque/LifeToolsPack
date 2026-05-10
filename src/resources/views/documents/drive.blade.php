@@ -506,7 +506,7 @@
                 <div class="col-lg-3 col-md-4 col-6 mb-4 drive-file-col" data-drive-file="{{ Str::lower($doc->name) }}">
                     <div
                         class="drive-file-card h-100 position-relative p-3 text-center {{ $fileExists ? 'js-file-open' : '' }}"
-                        @if($fileExists) data-file-url="{{ route('admin.drive.preview', $doc->id, false) }}" @endif
+                        @if($fileExists) data-file-url="{{ route('admin.drive.preview', $doc->stored_name ?? $doc->name, false) }}" @endif
                     >
                         <div class="position-absolute top-0 end-0 mt-2 me-2">
                             <div class="dropdown">
@@ -525,7 +525,7 @@
                                         </button>
                                     </li>
                                     <li>
-                                        <a href="{{ route('admin.drive.download', $doc->id) }}" class="dropdown-item">
+                                        <a href="{{ route('admin.drive.download', $doc->stored_name ?? $doc->name) }}" class="dropdown-item">
                                             <i class="bi bi-download"></i> Download
                                         </a>
                                     </li>
@@ -548,7 +548,7 @@
                                     <div>File missing</div>
                                 </div>
                             @elseif(Str::startsWith($doc->mime_type, 'image'))
-                                <img loading="lazy" src="{{ route('admin.drive.preview', $doc->id, false) }}" class="drive-file-thumb mb-2 border" />
+                                <img loading="lazy" src="{{ route('admin.drive.preview', $doc->stored_name ?? $doc->name) }}" class="drive-file-thumb mb-2 border" />
                             @elseif(Str::startsWith($doc->mime_type, 'application/pdf'))
                                 <i class="bi bi-file-earmark-pdf display-5 text-danger"></i>
                             @elseif(Str::endsWith($doc->mime_type, 'zip'))
@@ -560,9 +560,9 @@
                         <div class="drive-file-name" title="{{ $doc->name }}">{{ $doc->name }}</div>
                         {{-- @if($fileExists)
                             <div class="drive-file-actions mt-2">
-                                <a href="{{ route('admin.drive.download', $doc->id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Download"><i class="bi bi-download"></i></a>
+                                <a href="{{ route('admin.drive.download', $doc->stored_name ?? $doc->name) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Download"><i class="bi bi-download"></i></a>
                                 @if(Str::startsWith($doc->mime_type, 'application/pdf'))
-                                    <a href="{{ route('admin.drive.preview', $doc->id, false) }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Preview PDF"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ route('admin.drive.preview', $doc->stored_name ?? $doc->name, false) }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Preview PDF"><i class="bi bi-eye"></i></a>
                                 @endif
                             </div>
                         @endif --}}

@@ -37,8 +37,8 @@ Route::middleware(['web'])->group(function () {
         Route::post('/drive/shared/{id}/verify', [DriveController::class, 'verifyOtp'])->name('drive.shared.verify');
         Route::get('/drive/folder/shared/{id}', [DriveController::class, 'sharedFolderAccessForm'])->name('drive.folder.shared.form');
         Route::post('/drive/folder/shared/{id}/verify', [DriveController::class, 'verifyFolderOtp'])->name('drive.folder.shared.verify');
-        Route::get('/drive/preview/{id}', [DriveController::class, 'preview'])->name('drive.preview');
-        Route::get('/drive/download/{id}', [DriveController::class, 'download'])->name('drive.download');
+        Route::get('/drive/preview/{stored_name}', [DriveController::class, 'preview'])->name('drive.preview');
+        Route::get('/drive/download/{stored_name}', [DriveController::class, 'download'])->name('drive.download');
 
         Route::get('/img', [GalleryController::class, 'index']);
         Route::get('/mi', [GalleryController::class, 'index']);
@@ -92,8 +92,8 @@ Route::middleware(['web'])->group(function () {
             Route::delete('/drive/delete/{id}', [DriveController::class, 'delete'])->name('drive.delete');
             // Share & OTP routes for documents
             Route::post('/drive/share/{id}', [DriveController::class, 'share'])->name('drive.share');
-            Route::get('/drive/preview/{id}', [DriveController::class, 'preview'])->name('drive.preview');
-            Route::get('/drive/download/{id}', [DriveController::class, 'download'])->name('drive.download');
+            Route::get('/drive/preview/{stored_name}', [DriveController::class, 'preview'])->name('drive.preview');
+            Route::get('/drive/download/{stored_name}', [DriveController::class, 'download'])->name('drive.download');
             // Share & OTP routes for folders and subfolders
             Route::post('/drive/folder/share/{id}', [DriveController::class, 'shareFolder'])->name('drive.folder.share');
 

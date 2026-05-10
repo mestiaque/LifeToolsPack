@@ -17,12 +17,12 @@
                                 <div class="card h-100 text-center border-0 shadow-sm rounded-3">
                                     <div class="card-body p-3">
                                         @if(Str::startsWith($doc->mime_type, 'image'))
-                                            <img loading="lazy" src="{{ route('admin.drive.preview', $doc->id, false) }}" class="img-fluid mb-2 rounded border" style="max-height:100px;object-fit:cover;" />
+                                            <img loading="lazy" src="{{ route('admin.drive.preview', $doc->stored_name ?? $doc->name, false) }}" class="img-fluid mb-2 rounded border" style="max-height:100px;object-fit:cover;" />
                                         @else
                                             <i class="bi bi-file-earmark-text display-5 text-secondary"></i>
                                         @endif
                                         <div class="fw-semibold text-truncate mt-2" title="{{ $doc->name }}">{{ $doc->name }}</div>
-                                        <a href="{{ route('drive.download', $doc->id) }}" class="btn btn-sm btn-outline-primary mt-2 rounded-2">
+                                        <a href="{{ route('drive.download', $doc->stored_name ?? $doc->name) }}" class="btn btn-sm btn-outline-primary mt-2 rounded-2">
                                             <i class="bi bi-download"></i> Download
                                         </a>
                                     </div>

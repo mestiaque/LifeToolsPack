@@ -16,6 +16,7 @@ class Document extends Model
     protected $fillable = [
         'folder_id',
         'name',
+        'stored_name',
         'file_path',
         'mime_type',
         'size',

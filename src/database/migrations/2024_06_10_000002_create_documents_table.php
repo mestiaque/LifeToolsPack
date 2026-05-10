@@ -12,6 +12,7 @@ class CreateDocumentsTable extends Migration
             $table->id();
             $table->foreignId('folder_id')->constrained('folders')->onDelete('cascade');
             $table->string('name');
+            $table->string('stored_name');
             $table->string('file_path');
             $table->string('mime_type');
             $table->bigInteger('size');
