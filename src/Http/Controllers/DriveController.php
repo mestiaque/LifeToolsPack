@@ -184,7 +184,7 @@ class DriveController extends Controller
         $mime = $document->mime_type;
         $content = Storage::get($document->file_path);
 
-        return response($content, 200)->header('Content-Type', $mime);
+        return response($content, 200)->header('Content-Type', $mime    );
     }
 
     public function download($storedName)
