@@ -13,7 +13,7 @@
     <div class="col-lg-8 mb-4">
       <div class="card border-left-primary shadow h-100 w-100 py-2">
         <div class="card-body">
-          <form method="GET" action="{{ route('admin.loans.index') }}" class="mb-3">
+          <form method="GET" action="{{ route('admin.loans.index') }}" class="mb-3  glass-search-form">
             <div class="row">
               <div class="col-md-2">
                 <input type="text" name="name" class="form-control form-control-sm" placeholder="@lang('Enter Name')" value="{{ request('name') }}">
@@ -85,32 +85,34 @@
                     <td class="text-end">{{ toBanglaNumber($loan->totalRepayment(), 2) }}</td>
                     <td class="text-end">{{ toBanglaNumber($loan->dueAmount(), 2) }}</td>
                     <td class="text-center">{{ $loan->date }}</td>
-                    <td class="d-flex justify-content-center">
-                      <!-- Repayment Button -->
-                      <a href="{{ route('admin.loans.history', $loan->id) }}" class="btn btn-sm btn-encodex-payment   me-1" title="@lang('Repayment')">
-                        <i class="fas fa-money-bill  "></i>
-                      </a>
-                      <!-- Show Button -->
-                      <button type="button"
-                          class="btn btn-sm btn-encodex-show   me-1"
-                          data-bs-toggle="modal"
-                          data-bs-target="#showLoanModal{{ $loan->id }}"
-                          title="@lang('Show')">
-                        <i class="fas fa-eye  "></i>
-                      </button>
-                      <!-- Edit Button -->
-                      <a title="@lang('Edit')" class="btn btn-sm btn-encodex-edit   me-1"
-                          href="{{ route('admin.loans.edit', $loan->id) }}">
-                          <i class="fas fa-edit  "></i>
-                      </a>
-                      <!-- Delete Button -->
-                      <form action="{{ route('admin.loans.delete', $loan->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        <button title="@lang('Delete')" onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')"
-                            type="submit" class="btn btn-sm btn-encodex-delete   me-1">
-                            <i class="fas fa-trash  "></i>
+                    <td class="">
+                      <div class="d-flex justify-content-center">
+                        <!-- Repayment Button -->
+                        <a href="{{ route('admin.loans.history', $loan->id) }}" class="btn btn-sm btn-encodex-payment   me-1" title="@lang('Repayment')">
+                          <i class="fas fa-money-bill  "></i>
+                        </a>
+                        <!-- Show Button -->
+                        <button type="button"
+                            class="btn btn-sm btn-encodex-show   me-1"
+                            data-bs-toggle="modal"
+                            data-bs-target="#showLoanModal{{ $loan->id }}"
+                            title="@lang('Show')">
+                          <i class="fas fa-eye  "></i>
                         </button>
-                      </form>
+                        <!-- Edit Button -->
+                        <a title="@lang('Edit')" class="btn btn-sm btn-encodex-edit   me-1"
+                            href="{{ route('admin.loans.edit', $loan->id) }}">
+                            <i class="fas fa-edit  "></i>
+                        </a>
+                        <!-- Delete Button -->
+                        <form action="{{ route('admin.loans.delete', $loan->id) }}" method="POST" style="display:inline;">
+                          @csrf
+                          <button title="@lang('Delete')" onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')"
+                              type="submit" class="btn btn-sm btn-encodex-delete   me-1">
+                              <i class="fas fa-trash  "></i>
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 @endforeach
@@ -435,3 +437,5 @@
     }
   </style>
 @endpush
+
+

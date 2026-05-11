@@ -11,7 +11,7 @@
     <div class="col-lg-12 mb-4">
       <div class="card border-left-primary shadow h-100 w-100 py-2">
         <div class="card-body">
-          <form method="GET" action="{{ route('admin.events.index') }}" class="mb-3">
+          <form method="GET" action="{{ route('admin.events.index') }}" class="mb-3 glass-search-form">
             <div class="row">
               <div class="col-md">
                 <input type="text" name="title" class="form-control form-control-sm" placeholder="@lang('Enter Title')" value="{{ request('title') }}">
@@ -59,20 +59,22 @@
                         <span class="badge bg-secondary">@lang('No')</span>
                       @endif
                     </td>
-                    <td class="d-flex justify-content-center">
-                      <a href="{{ route('admin.events.expenses.index', $event->id) }}" class="btn btn-sm btn-encodex-payment me-1" title="@lang('Expenses')">
-                        <i class="fas fa-money-bill-wave"></i>
-                      </a>
-                      <button type="button" class="btn btn-sm btn-encodex-edit   me-1" data-bs-toggle="modal" data-bs-target="#eventModal{{ $event->id }}" title="@lang('Edit')">
-                        <i class="fas fa-edit  "></i>
-                      </button>
-                      <form action="{{ route('admin.events.delete', $event->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button title="@lang('Delete')" onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')" type="submit" class="btn btn-sm btn-encodex-delete   me-1">
-                          <i class="fas fa-trash  "></i>
+                    <td >
+                      <div class="d-flex justify-content-center">
+                        <a href="{{ route('admin.events.expenses.index', $event->id) }}" class="btn btn-sm btn-encodex-payment me-1" title="@lang('Expenses')">
+                          <i class="fas fa-money-bill-wave"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-encodex-edit   me-1" data-bs-toggle="modal" data-bs-target="#eventModal{{ $event->id }}" title="@lang('Edit')">
+                          <i class="fas fa-edit  "></i>
                         </button>
-                      </form>
+                        <form action="{{ route('admin.events.delete', $event->id) }}" method="POST" style="display:inline;">
+                          @csrf
+                          @method('DELETE')
+                          <button title="@lang('Delete')" onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')" type="submit" class="btn btn-sm btn-encodex-delete   me-1">
+                            <i class="fas fa-trash  "></i>
+                          </button>
+                        </form>
+                      </div>
                     </td>
                     
                   </tr>

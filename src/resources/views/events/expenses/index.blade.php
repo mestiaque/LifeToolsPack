@@ -24,7 +24,7 @@
                     </a>
                 </div>
                 <div class="card-body">
-                    <form method="GET" action="{{ route('admin.events.expenses.index', $event->id) }}" class="mb-3">
+                    <form method="GET" action="{{ route('admin.events.expenses.index', $event->id) }}" class="mb-3 glass-search-form">
                         <div class="row">
                         <div class="col-md">
                             <input type="text" name="title" class="form-control form-control-sm" placeholder="@lang('Enter Title')" value="{{ request('title') }}">

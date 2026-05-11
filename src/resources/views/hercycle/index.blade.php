@@ -1,18 +1,18 @@
 @extends('me::master')
 
-@section('title', 'HerCycle - Period Tracking')
+@section('title', 'HerCycle')
 
 @push('buttons')
     <button class="btn btn-encodex-create align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#periodModal">
-        <span>🩸</span> Log Period
+        <span>🩸</span> <span class="hide-mobile">Log Period</span>
     </button>
     <button class="btn btn-encodex-edit align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#profileModal">
-        <span>⚙️</span> Settings
+        <span>⚙️</span> <span class="hide-mobile">Settings</span>
     </button>
     <form action="{{ route('admin.hercycle.sendNotifications') }}" method="POST" style="display:inline;">
         @csrf
         <button type="submit" class="btn btn-encodex-print align-items-center gap-2">
-            <span>🔔</span> Notifiy
+            <span>🔔</span> <span class="hide-mobile">Notify</span>
         </button>
     </form>
 @endpush
@@ -98,6 +98,21 @@
   scrollbar-width: thin;
   scrollbar-color: #DB2777 #ffddfea6; /* thumb track */
 }
+
+.profile-image{
+    width: 85px; height: 85px; overflow: hidden;
+}
+.profile-name{
+    letter-spacing: 0.5px; font-size: 4.5rem;
+}
+@media (max-width: 576px) {
+    .profile-name {
+        font-size: 1.9rem;
+    }
+    .profile-image {
+        width: 60px; height: 60px;
+    }
+}
 </style>
 
 @endpush
@@ -111,11 +126,11 @@
 
         <div class="position-relative z-1">
             <div class="d-flex flex-wrap align-items-center mb-4 gap-4">
-                <div class=" rounded-circle shadow d-flex justify-content-center align-items-center border border-3 border-white p-1" style="width: 85px; height: 85px; overflow: hidden;">
+                <div class=" rounded-circle shadow d-flex justify-content-center align-items-center border border-3 border-white p-1 profile-image" style="">
                     <img src="{{ asset('assets/img/girlcartoon.png') }}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                 </div>
                 <div>
-                    <h1 class="text-her-pink fw-bolder mb-1" style="letter-spacing: 0.5px; font-size: 4.5rem;">{{ $profile->name }}</h1>
+                    <h1 class="text-her-pink fw-bolder mb-1 profile-name" style="">{{ $profile->name }}</h1>
                     {{-- <h5 class="text-secondary mb-0 fw-normal fs-5">Welcome back, <span class="text-her-purple fw-bold">{{ $profile->name }}</span>! ✨</h5> --}}
                 </div>
             </div>

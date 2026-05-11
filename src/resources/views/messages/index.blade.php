@@ -10,7 +10,7 @@
 @section('content')
   <div class="card border-left-primary shadow h-100 w-100 py-2">
     <div class="card-body">
-        <form method="GET" action="{{ route('admin.messages.index') }}" class="mb-3">
+        <form method="GET" action="{{ route('admin.messages.index') }}" class="mb-3 glass-search-form">
             <div class="row">
                 <div class="col-md">
                     <input type="text" name="name" class="form-control form-control-sm" placeholder="@lang('Enter Name')" value="{{ request('name') }}">

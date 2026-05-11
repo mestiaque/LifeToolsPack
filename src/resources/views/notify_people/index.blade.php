@@ -15,7 +15,7 @@
 <div class="container-fluids">
     <div class="card shadow mb-4 w-100">
         <div class="card-body">
-            <form method="GET" action="{{ route('admin.notify-people.index') }}" class="mb-3">
+            <form method="GET" action="{{ route('admin.notify-people.index') }}" class="mb-3 glass-search-form">
                 <div class="row">
                     <div class="col-md">
                         <input type="text" name="name" class="form-control form-control-sm" placeholder="@lang('Enter Name')" value="{{ request('name') }}">

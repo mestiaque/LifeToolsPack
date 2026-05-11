@@ -15,8 +15,8 @@
         <div class="card-body">
 
             {{-- SEARCH & DATE FILTER --}}
-            <form method="GET" action="{{ route('admin.daily-expenses.index') }}" class="mb-3">
-                <div class="row g-2">
+            <form method="GET" action="{{ route('admin.daily-expenses.index') }}" class="mb-3 glass-search-form ">
+                <div class="row">
                     <div class="col-md-3">
                         <input type="text" name="title"
                             class="form-control form-control-sm"

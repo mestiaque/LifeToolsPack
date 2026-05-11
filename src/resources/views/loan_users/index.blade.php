@@ -7,7 +7,7 @@
     <div class="col-lg-8 mb-4">
         <div class="card border-left-primary shadow h-100 w-100 py-2">
             <div class="card-body">
-                <form method="GET" action="{{ route('admin.loan-users.index') }}" class="mb-3">
+                <form method="GET" action="{{ route('admin.loan-users.index') }}" class="mb-3 glass-search-form">
                     <div class="row">
                         <div class="col-md">
                             <input type="text" name="name" class="form-control form-control-sm" placeholder="@lang('Enter Name')" value="{{ request('name') }}">
@@ -56,36 +56,39 @@
                                             <span class="badge bg-secondary">@lang('Inactive')</span>
                                         @endif
                                     </td>
-                                    <td class="d-flex justify-content-center">
-                                        <!-- Show Button -->
-                                        <button type="button"
-                                            class="btn btn-sm btn-encodex-show   me-1 d-none"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#showLoanUserModal{{ $lu->id }}"
-                                            title="@lang('Show')">
-                                            <i class="fas fa-eye  "></i>
-                                        </button>
-                                        <!-- Edit Button -->
-                                        <button
-                                            title="@lang('Edit')"
-                                            class="btn btn-sm btn-encodex-edit  me-1 edit-loan-user-btn"
-                                            data-id="{{ $lu->id }}"
-                                            data-name="{{ $lu->name }}"
-                                            data-email="{{ $lu->email }}"
-                                            data-phone="{{ $lu->phone }}"
-                                            data-address="{{ $lu->address }}"
-                                            data-is_active="{{ $lu->is_active ? '1' : '0' }}">
-                                            <i class="fas fa-edit "></i>
-                                        </button>
-                                        <!-- Delete Button -->
-                                        <form action="{{ route('admin.loan-users.destroy', $lu->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button title="@lang('Delete')" onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')"
-                                                type="submit" class="btn btn-sm btn-encodex-delete me-1">
-                                                <i class="fas fa-trash"></i>
+                                    <td >
+                                        <div class="d-flex justify-content-center">
+
+                                            <!-- Show Button -->
+                                            <button type="button"
+                                                class="btn btn-sm btn-encodex-show   me-1 d-none"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#showLoanUserModal{{ $lu->id }}"
+                                                title="@lang('Show')">
+                                                <i class="fas fa-eye  "></i>
                                             </button>
-                                        </form>
+                                            <!-- Edit Button -->
+                                            <button
+                                                title="@lang('Edit')"
+                                                class="btn btn-sm btn-encodex-edit  me-1 edit-loan-user-btn"
+                                                data-id="{{ $lu->id }}"
+                                                data-name="{{ $lu->name }}"
+                                                data-email="{{ $lu->email }}"
+                                                data-phone="{{ $lu->phone }}"
+                                                data-address="{{ $lu->address }}"
+                                                data-is_active="{{ $lu->is_active ? '1' : '0' }}">
+                                                <i class="fas fa-edit "></i>
+                                            </button>
+                                            <!-- Delete Button -->
+                                            <form action="{{ route('admin.loan-users.destroy', $lu->id) }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button title="@lang('Delete')" onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')"
+                                                    type="submit" class="btn btn-sm btn-encodex-delete me-1">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 <!-- Modal for Show Loan User -->

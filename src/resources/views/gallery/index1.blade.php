@@ -15,7 +15,7 @@
 
 @section('content')
 <div class="container">
-    <form method="GET" action="{{ route('admin.gallery.index') }}" class="mb-3">
+    <form method="GET" action="{{ route('admin.gallery.index') }}" class="mb-3 glass-search-form">
         <div class="row justify-content-end">
             <div class="col-auto">
                 <select name="is_public" class="form-select form-select-sm" onchange="this.form.submit()">
