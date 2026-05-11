@@ -309,11 +309,11 @@ class NotifyPersonController extends Controller
     private function sendSMSNotification(NotifyPerson $person, string $message): void
     {
         if (!empty($person->phone)) {
-            Http::get("https://bulksmsbd.net/api/smsapi", [
-                'api_key' => 'dBG4rYOLWW28f3ip15yW',
+            Http::get(env('SMS_API_URL', ''), [
+                'api_key' => env('SMS_API_KEY', ''),
                 'type' => 'text',
                 'number' => $person->phone,
-                'senderid' => '8809617624082',
+                'senderid' => env('SMS_SENDER_ID', ''),
                 'message' => $message
             ]);
         }
