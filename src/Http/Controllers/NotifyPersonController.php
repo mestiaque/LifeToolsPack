@@ -90,7 +90,8 @@ class NotifyPersonController extends Controller
 
     public function trigger(Request $request)
     {
-        $lastLogIn = UserActivity::where('activity_type', 'login')
+        $lastLogIn = UserActivityArr::whereNotNull('user_id')
+            ->where('status', 'success')
             ->orderByDesc('id')
             ->first();
 
@@ -352,7 +353,7 @@ class NotifyPersonController extends Controller
             $historyRows = '';
 
             foreach ($userLoans as $loan) {
-                $typeLabel = $loan->type === 'taken' ? 'নেওয়া' : 'দেওয়া';
+                $typeLabel = $loan->type === 'taken' ? 'গ্রহণকৃত' : 'প্রাপ্য';
 
                 $historyRows .= '<tr>'
                     . '<td>' . e($loan->date) . '</td>'
@@ -393,14 +394,15 @@ class NotifyPersonController extends Controller
                     . '<p style="margin-top:12px;"><strong>মোট পরিশোধযোগ্য:</strong> ' . number_format($takenDue, 2) . ' টাকা</p>'
                     . '<p><strong>মোট প্রাপ্য:</strong> ' . number_format($givenDue, 2) . ' টাকা</p>'
                     . '<p><strong>' . e($netMessage) . '</strong></p>'
-                    . '<p style="margin-top:14px;">আমি আর বেঁচে নেই। আমার ভুল-ত্রুটি ক্ষমা করে দেবেন, আমি আন্তরিকভাবে ক্ষমাপ্রার্থী।</p>'
-                    . '<p>আমার অনুপস্থিতিতে আপনার পাওনা/দেনার বিষয়ে যোগাযোগের জন্য নিচের ব্যক্তিদের সাথে যোগাযোগ করুন:</p>'
+                    . '<p style="margin-top:14px;">যদি আপনি এই বার্তাটি পেয়ে থাকেন, তবে সম্ভবত আমি মৃত্যুবরণ করেছি অথবা এমন অবস্থায় আছি যেখানে আপনার সঙ্গে যোগাযোগ করা আমার পক্ষে সম্ভব নয়।</p>'
+                    . '<p>আমার সঙ্গে লেনদেনের ক্ষেত্রে কোনো পাওনা বা দেনা থেকে থাকলে, অনুগ্রহ করে নিচে উল্লেখিত ব্যক্তিদের সঙ্গে যোগাযোগ করবেন।</p>'
+                    . '<p>আমার দ্বারা কোনো অনিচ্ছাকৃত ভুল বা অসুবিধা হয়ে থাকলে আন্তরিকভাবে ক্ষমাপ্রার্থী।</p>'
                     . $contactHtml
                     . '<p>ধন্যবাদ।</p>'
                     . '</div>';
 
                 \Mail::to($loanUser->email)->send(new \ME\Mail\NoticeMailLayout([
-                    'title' => 'ঋণ লেনদেনের নোটিশ',
+                    'title' => 'দেনা-পাওনার হিসাব',
                     'content' => $emailMsg,
                     'showGreeting' => false,
                 ]));
@@ -450,19 +452,12 @@ class NotifyPersonController extends Controller
     {
         $contactPeople = [
             [
-                'name' => 'Noor Alahi Khan',
-                'relation' => 'Father',
-                'phone' => '01XXXXXXXXX',
+                'name' => 'নূর-এলাহী খান',
+                'relation' => 'পিতা',
+                'phone' => '01748-922022',
                 'email' => 'person1@example.com',
-                'address' => 'ঠিকানা ১',
-            ],
-            [
-                'name' => 'ব্যক্তির নাম ২',
-                'relation' => 'সম্পর্ক ২',
-                'phone' => '01XXXXXXXXX',
-                'email' => 'person2@example.com',
-                'address' => 'ঠিকানা ২',
-            ],
+                'address' => 'গ্রামঃ বাঁশিলা (কাচারি বাজার), ডাকঃ পাটুল, উপজেলাঃ নলডাঙ্গা, জেলাঃ নাটোর',
+            ]
         ];
 
         $cards = '';
@@ -472,7 +467,7 @@ class NotifyPersonController extends Controller
                 . '<p style="margin:0 0 6px 0;"><strong>ব্যক্তির নাম:</strong> ' . e($person['name'] ?? 'প্রযোজ্য নয়') . '</p>'
                 . '<p style="margin:0 0 6px 0;"><strong>সম্পর্ক:</strong> ' . e($person['relation'] ?? 'প্রযোজ্য নয়') . '</p>'
                 . '<p style="margin:0 0 6px 0;"><strong>ফোন:</strong> ' . e($person['phone'] ?? 'প্রযোজ্য নয়') . '</p>'
-                . '<p style="margin:0 0 6px 0;"><strong>ইমেইল:</strong> ' . e($person['email'] ?? 'প্রযোজ্য নয়') . '</p>'
+                // . '<p style="margin:0 0 6px 0;"><strong>ইমেইল:</strong> ' . e($person['email'] ?? 'প্রযোজ্য নয়') . '</p>'
                 . '<p style="margin:0;"><strong>ঠিকানা:</strong> ' . e($person['address'] ?? 'প্রযোজ্য নয়') . '</p>'
                 . '</div>';
         }

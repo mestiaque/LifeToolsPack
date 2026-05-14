@@ -28,7 +28,7 @@ Route::middleware(['web'])->group(function () {
 
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
     //gallery
-    Route::middleware([LocaleMiddleware::class])->group(function () {
+    Route::middleware([LocaleMiddleware::class, 'activityLog'])->group(function () {
         Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
         Route::post('/gallery/upload', [GalleryController::class, 'upload'])->name('gallery.upload');
         Route::get('/gallery/preview/{id}', [GalleryController::class, 'preview'])->name('gallery.preview');
@@ -58,7 +58,7 @@ Route::middleware(['web'])->group(function () {
     });
 
 
-    Route::middleware(['auth', LocaleMiddleware::class])->group(function () {
+    Route::middleware(['auth', LocaleMiddleware::class, 'activityLog'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::get('/admin', [DashboardController::class, 'index']);
         Route::group([ 'prefix' => 'admin', 'as' => 'admin.'], function () {
