@@ -3,7 +3,7 @@
 @section('title', 'Gallery')
 
 @push('buttons')
-    <form method="GET" action="{{ route('admin.gallery.index') }}" class="mb-0 ">
+    <form method="GET" action="{{ route('admin.gallery.index') }}" class="mb-0">
         <select name="is_public" class="form-select form-select- px-2 py-1 shadow-sm" style="width: 6rem;border: 1px solid #0f9bd6; line-height: 1.2;" onchange="this.form.submit()">
             <option value="" {{ request('is_public') === null ? 'selected' : '' }}>All</option>
             <option value="1" {{ request('is_public') == '1' ? 'selected' : '' }}>Public</option>
