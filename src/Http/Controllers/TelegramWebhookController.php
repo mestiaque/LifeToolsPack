@@ -6,25 +6,25 @@ use Illuminate\Http\Request;
 use ME\EmCore\Models\DailyExpense;
 use Illuminate\Support\Facades\Log;
 use ME\Http\Controllers\Controller;
-use ME\EmCore\Services\TelegramBotService;
+use ME\Services\TelegramBotService;
 
 class TelegramWebhookController extends Controller
 {
     public function handle(Request $request, $secret)
     {
-        if ($secret !== config('telegram.webhook_secret')) {
+        if ($secret !== env('TELEGRAM_WEBHOOK_SECRET')) {
             abort(403, 'Invalid secret');
         }
 
         $data = $request->all();
         $chatId = data_get($data, 'message.chat.id');
 
-        if ($chatId != config('telegram.chat_id')) {
+        if ($chatId != env('TELEGRAM_CHAT_ID')) {
             abort(403, 'Invalid chat');
         }
 
         // Log or process the message securely
-        Log::info('Telegram webhook received', $data);
+        // Log::info('Telegram webhook received', $data);
 
         // Handle /aloan command
         $message = data_get($data, 'message.text');
