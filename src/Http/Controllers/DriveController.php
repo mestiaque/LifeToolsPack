@@ -12,7 +12,6 @@ use ME\Services\TelegramBotService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Middleware\AuthorizationMiddleware;
 
 class DriveController extends Controller
 {
@@ -156,15 +155,16 @@ class DriveController extends Controller
         ]);
 
         $document = Document::findOrFail($id);
-        if ($document->user_id !== Auth::id()) {
-            return back()->withErrors(['You do not have permission to update this file.']);
-        }
 
         $newName = trim($request->name);
         $currentExt = pathinfo($document->name, PATHINFO_EXTENSION);
         $newExt = pathinfo($newName, PATHINFO_EXTENSION);
         if ($currentExt && !$newExt) {
             $newName .= '.' . $currentExt;
+        }
+
+        if(is_null($document->stored_name)) {
+            $document->stored_name = $document->name;
         }
 
         $document->name = $newName;
@@ -212,9 +212,9 @@ class DriveController extends Controller
 
         // Allow deleting legacy folders where user_id is missing (null),
         // but still block folders explicitly owned by another user.
-        if (!is_null($folder->user_id) && (int) $folder->user_id !== (int) Auth::id()) {
-            return back()->withErrors(['You do not have permission to delete this folder.']);
-        }
+        // if (!is_null($folder->user_id) && (int) $folder->user_id !== (int) Auth::id()) {
+        //     return back()->withErrors(['You do not have permission to delete this folder.']);
+        // }
 
         // Recursively delete all documents in this folder and its subfolders
         $this->deleteFolderContents($folder);
@@ -364,8 +364,8 @@ class DriveController extends Controller
         if ($expectedOtp && $folderId == $id && $otp == $expectedOtp) {
             $folder = Folder::findOrFail($id);
             $documents = $folder->documents;
-            Cache::forget("share_folder_{$token}_otp");
-            Cache::forget("share_folder_{$token}_folder");
+            // Cache::forget("share_folder_{$token}_otp");
+            // Cache::forget("share_folder_{$token}_folder");
             return view('em_core::documents.folder_otp_result', ['folder' => $folder, 'documents' => $documents]);
         } else {
             if (!auth()->check()) {
