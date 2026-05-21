@@ -6,7 +6,7 @@ use ME\Models\Setting;
 use ME\EmCore\Models\Message;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
-use ME\EmCore\Services\TelegramBotService;
+use ME\Services\TelegramBotService;
 use App\Http\Middleware\AuthorizationMiddleware;
 
 class MessageController extends Controller

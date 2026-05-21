@@ -43,27 +43,59 @@
     }
 
     .notes-grid {
-        column-count: 4;
-        column-gap: 1.4rem;
-        /* Responsive: adjust columns on small screens */
-        /* You can use media queries for more control */
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        grid-auto-rows: 8px;
+        grid-auto-flow: dense;
+        gap: 1.3rem;
+        align-items: start;
+    }
+
+    .notes-grid.is-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: clamp(240px, 52vh, 560px);
+        padding: 1rem;
+    }
+
+    .notes-empty-state {
+        text-align: center;
+        padding: 1rem 1.4rem;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.35);
+        box-shadow: 0 10px 26px rgba(153, 184, 218, 0.18);
+        backdrop-filter: blur(4px);
+        color: #3d5d7f;
+    }
+
+    .notes-empty-state .empty-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #35597f;
+        margin-bottom: 0.3rem;
+    }
+
+    .notes-empty-state .empty-subtitle {
+        font-size: 0.92rem;
+        color: #6d88a7;
     }
 
     @media (max-width: 900px) {
         .notes-grid {
-            column-count: 2;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
     @media (max-width: 600px) {
         .notes-grid {
-            column-count: 1;
+            grid-template-columns: 1fr;
         }
     }
 
     .note-card {
-        display: inline-block;
+        display: block;
         width: 100%;
-        margin-bottom: 1.4rem;
+        margin-bottom: 0;
         /* Remove min-height if you want cards to shrink to content */
         min-height: 0;
     }

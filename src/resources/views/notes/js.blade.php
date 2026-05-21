@@ -111,9 +111,18 @@
         function renderNotesGrid() {
             const $grid = $('#notes-grid'); $grid.empty();
             if (!notes.length) {
-                $grid.append(`<div class="w-100" style="text-align:center;opacity:.86;">No notes found.</div>`);
+                $grid.addClass('is-empty');
+                $grid.append(`
+                    <div class="notes-empty-state" role="status" aria-live="polite">
+                        <div class="empty-title">No notes found</div>
+                        <div class="empty-subtitle">Try clearing search or selecting another color.</div>
+                    </div>
+                `);
                 return;
             }
+
+            $grid.removeClass('is-empty');
+
             // Build note cards
             for(const note of notes) {
                 const $card = $(`
@@ -138,6 +147,26 @@
                 );
                 $grid.append($card);
             }
+
+            requestAnimationFrame(applyMasonryLayout);
+        }
+
+        function applyMasonryLayout() {
+            const grid = document.getElementById('notes-grid');
+            if (!grid) return;
+
+            const styles = window.getComputedStyle(grid);
+            const rowHeight = parseFloat(styles.getPropertyValue('grid-auto-rows'));
+            const rowGap = parseFloat(styles.getPropertyValue('row-gap'));
+            if (!rowHeight) return;
+
+            const cards = grid.querySelectorAll('.note-card');
+            cards.forEach((card) => {
+                card.style.gridRowEnd = 'auto';
+                const cardHeight = card.getBoundingClientRect().height;
+                const rowSpan = Math.max(1, Math.ceil((cardHeight + rowGap) / (rowHeight + rowGap)));
+                card.style.gridRowEnd = `span ${rowSpan}`;
+            });
         }
 
         function escapeHtml(str) {
@@ -306,6 +335,10 @@
 
         // --- Startup: Initial Load --- //
         loadNotes({});
+
+        $(window).on('resize', debounce(function () {
+            applyMasonryLayout();
+        }, 100));
 
         // Allow pressing Escape to close modals (Bootstrap handles Escape for Bootstrap modals)
         // If you want to close custom modals, keep this:
