@@ -7,11 +7,14 @@ use ME\EmCore\Models\LoanUser;
 use ME\EmCore\Models\Repayment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use ME\Http\Controllers\Controller;
 use App\Http\Middleware\AuthorizationMiddleware;
 
 class LoanController extends Controller
 {
+    private const AUTO_INSTALLMENT_REPAYMENT_NOTE = '[AUTO_INSTALLMENT_REPAYMENT]';
+
     public function __construct()
     {
         // Skip middleware for the Telegram methods
@@ -288,19 +291,79 @@ class LoanController extends Controller
             'loan_user_id' => 'required|integer|min:1',
         ]);
         $installmentCount = (int) $request->installment;
-        $completedInstallments = collect($request->input('done_installments', []))
+        $doneInstallments = collect($request->input('done_installments', []))
             ->map(fn ($value) => (int) $value)
             ->filter(fn ($value) => $value >= 1 && $value <= $installmentCount)
             ->unique()
-            ->count();
+            ->values();
+
+        $completedInstallments = $doneInstallments->count();
 
         $payload = $request->only(['amount', 'type', 'date', 'installment', 'note', 'loan_user_id']);
         $payload['completed_installments'] = $completedInstallments;
         $payload = array_merge($payload, $this->buildInstallmentSchedulePayload($request));
-        $loan->update($payload);
+
+        DB::transaction(function () use ($loan, $payload, $doneInstallments) {
+            $loan->update($payload);
+            $this->syncAutoInstallmentRepayment($loan, $payload, $doneInstallments->all());
+        });
 
 
         return redirect()->route('admin.loans.index')->with('success', __('Loan updated successfully.'));
+    }
+
+    private function syncAutoInstallmentRepayment(Loan $loan, array $payload, array $doneInstallments): void
+    {
+        $installmentAmounts = is_array($payload['installment_amounts'] ?? null) ? $payload['installment_amounts'] : [];
+        $autoInstallmentAmount = 0.0;
+
+        foreach ($doneInstallments as $installmentNo) {
+            $idx = ((int) $installmentNo) - 1;
+            $amount = $installmentAmounts[$idx] ?? 0;
+            if (is_numeric($amount)) {
+                $autoInstallmentAmount += (float) $amount;
+            }
+        }
+
+        $autoInstallmentAmount = round($autoInstallmentAmount, 2);
+
+        $manualRepaymentTotal = (float) Repayment::where('loan_id', $loan->id)
+            ->where(function ($query) {
+                $query->whereNull('note')
+                    ->orWhere('note', '!=', self::AUTO_INSTALLMENT_REPAYMENT_NOTE);
+            })
+            ->sum('amount');
+
+        $loanAmount = (float) ($payload['amount'] ?? $loan->amount ?? 0);
+        $maxAutoInstallmentAmount = max($loanAmount - $manualRepaymentTotal, 0);
+        $finalAutoAmount = round(min($autoInstallmentAmount, $maxAutoInstallmentAmount), 2);
+
+        $autoRepayment = Repayment::where('loan_id', $loan->id)
+            ->where('note', self::AUTO_INSTALLMENT_REPAYMENT_NOTE)
+            ->first();
+
+        if ($finalAutoAmount <= 0) {
+            if ($autoRepayment) {
+                $autoRepayment->delete();
+            }
+
+            return;
+        }
+
+        $autoPayload = [
+            'loan_user_id' => $payload['loan_user_id'] ?? $loan->loan_user_id,
+            'amount' => $finalAutoAmount,
+            'date' => Carbon::today()->format('Y-m-d'),
+            'note' => self::AUTO_INSTALLMENT_REPAYMENT_NOTE,
+        ];
+
+        if ($autoRepayment) {
+            $autoRepayment->update($autoPayload);
+            return;
+        }
+
+        $autoPayload['loan_id'] = $loan->id;
+        Repayment::create($autoPayload);
     }
 
     public function deleteLoan($id)
