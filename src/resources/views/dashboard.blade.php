@@ -4,7 +4,7 @@
 @section('content')
 <div class="db-root">
     {{-- ══ WELCOME HERO ══ --}}
-    <div class="db-hero">
+    <div class="db-hero shadow-x1">
         <div class="db-hero-left">
             <span class="db-date-chip">
                 <i class="fas fa-calendar-day me-1"></i>
@@ -263,6 +263,8 @@
 	@endcan
 
 </div>
+@include('me::components.loader.aquarium')
+
 @endsection
 
 @push('css')
@@ -724,7 +726,7 @@
 			canEventCreate: @json(can('event.create')),
 			canEventEdit: @json(can('event.edit')),
 			canEventDelete: @json(can('event.delete')),
-			
+
 		};
 	</script>
 

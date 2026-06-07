@@ -91,6 +91,14 @@
                                             </tr>
                                         @endforeach
                                     </tbody>
+                                    <tfoot>
+                                        <tr style="background:#f1f6ff;font-weight:600;">
+                                            <td colspan="4" class="text-right">@lang('Total')</td>
+                                            <td class="{{ $monthRows[0]['direction'] === 'payable' ? 'pm-amount-pay' : 'pm-amount-recv' }} fw-bold">
+                                                {{ toBanglaNumber(array_sum(array_column($monthRows, 'amount')), 2) }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             @else
                                 <p class="pm-empty pm-empty-in-group">@lang('No pending installment in this month.')</p>
