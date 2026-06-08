@@ -9,200 +9,201 @@
 @endpush
 
 @section('content')
-<div class="clp-page">
-    <div class="clp-hero mb-3">
-        <div class="clp-summary-grid">
-            <div class="clp-filter-wrap">
-                <label for="clpUserFilter" class="clp-filter-label">@lang('Filter by User')</label>
-                <select id="clpUserFilter" class="form-control form-control-sm form-select clp-filter-select " data-control="select2" data-placeholder="@lang('Select user to filter')">
-                    <option value="">@lang('All Users')</option>
-                    @foreach ($dueUsers as $dueUser)
-                        <option value="{{ $dueUser['id'] }}">{{ $dueUser['name'] }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="clp-summary-card">
-                <span>@lang('Total Due')</span>
-                <strong>{{ toBanglaNumber($totalDue, 2) }}</strong>
-            </div>
-            <div class="clp-summary-card is-info">
-                <span>@lang('Planned')</span>
-                <strong>{{ toBanglaNumber($totalPlanned, 2) }}</strong>
-            </div>
-            <div class="clp-summary-card {{ $totalUnplanned > 0 ? 'is-warn' : 'is-ok' }}">
-                <span>@lang('Unplanned')</span>
-                <strong>{{ toBanglaNumber($totalUnplanned, 2) }}</strong>
+    <div class="clp-page">
+        <div class="clp-hero mb-3">
+            <div class="clp-summary-grid">
+                <div class="clp-filter-wrap">
+                    <label for="clpUserFilter" class="clp-filter-label">@lang('Filter by User')</label>
+                    <select id="clpUserFilter" class="form-control form-control-sm form-select clp-filter-select " data-control="select2" data-placeholder="@lang('Select user to filter')">
+                        <option value="">@lang('All Users')</option>
+                        @foreach ($dueUsers as $dueUser)
+                            <option value="{{ $dueUser['id'] }}">{{ $dueUser['name'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="clp-summary-card">
+                    <span>@lang('Total Due')</span>
+                    <strong>{{ toBanglaNumber($totalDue, 2) }}</strong>
+                </div>
+                <div class="clp-summary-card is-info">
+                    <span>@lang('Planned')</span>
+                    <strong>{{ toBanglaNumber($totalPlanned, 2) }}</strong>
+                </div>
+                <div class="clp-summary-card {{ $totalUnplanned > 0 ? 'is-warn' : 'is-ok' }}">
+                    <span>@lang('Unplanned')</span>
+                    <strong>{{ toBanglaNumber($totalUnplanned, 2) }}</strong>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="clp-layout mb-4">
-    <aside class="clp-side">
-        <div class="card clp-side-card shadow-sm mb-3">
-            <div class="card-body p-3">
-                <h6 class="clp-side-title mb-2">@lang('Planning Progress')</h6>
-                <div class="clp-progress-main mb-2">
-                    <div class="clp-progress-track">
-                        <div class="clp-progress-fill" style="width: {{ $overallProgressPercent }}%;"></div>
-                    </div>
-                    <div class="clp-progress-meta mt-1">
-                        <strong>{{ toBanglaNumber($overallProgressPercent, 1) }}%</strong>
-                        <span>{{ toBanglaNumber($totalPlanned, 2) }} / {{ toBanglaNumber($totalDue, 2) }}</span>
-                    </div>
-                </div>
-
-                <div class="clp-user-progress-list">
-                    @forelse ($userProgress as $progress)
-                        <div class="clp-user-progress-item" data-loan-user-id="{{ $progress['id'] }}">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="clp-user-name">{{ $progress['name'] }}</span>
-                                <span class="clp-user-pct">{{ toBanglaNumber($progress['progress_percent'], 1) }}%</span>
+        <div class="clp-layout mb-4">
+            <aside class="clp-side">
+                <div class="card clp-side-card shadow-sm mb-3">
+                    <div class="card-body p-3">
+                        <h6 class="clp-side-title mb-2">@lang('Planning Progress')</h6>
+                        <div class="clp-progress-main mb-2">
+                            <div class="clp-progress-track">
+                                <div class="clp-progress-fill" style="width: {{ $overallProgressPercent }}%;"></div>
                             </div>
-                            <div class="clp-user-track">
-                                <div class="clp-user-fill" style="width: {{ $progress['progress_percent'] }}%;"></div>
+                            <div class="clp-progress-meta mt-1">
+                                <strong>{{ toBanglaNumber($overallProgressPercent, 1) }}%</strong>
+                                <span>{{ toBanglaNumber($totalPlanned, 2) }} / {{ toBanglaNumber($totalDue, 2) }}</span>
                             </div>
-                            <small class="clp-user-meta">@lang('Remaining'): {{ toBanglaNumber($progress['remaining'], 2) }}</small>
                         </div>
-                    @empty
-                        <p class="text-muted small mb-0">@lang('No due user found.')</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
 
-        <div class="card clp-side-card shadow-sm">
-            <div class="card-body p-3">
-                <h6 class="clp-side-title mb-2">@lang('Month-wise Payment Map')</h6>
-                <div class="clp-map-list">
-                    @forelse ($monthMap as $month)
-                        <div class="clp-map-block">
-                            <div class="clp-map-head">
-                                <span>{{ $month['month_label'] }}</span>
-                                <strong>{{ toBanglaNumber($month['month_total'], 2) }}</strong>
-                            </div>
-                            @foreach ($month['items'] as $item)
-                                <div class="clp-map-item" data-loan-user-id="{{ $item['loan_user_id'] }}">
-                                    <span>{{ $item['loan_user_name'] }}</span>
-                                    <strong>{{ toBanglaNumber($item['planned_amount'], 2) }}</strong>
+                        <div class="clp-user-progress-list">
+                            @forelse ($userProgress as $progress)
+                                <div class="clp-user-progress-item" data-loan-user-id="{{ $progress['id'] }}">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="clp-user-name">{{ $progress['name'] }}</span>
+                                        <span class="clp-user-pct">{{ toBanglaNumber($progress['progress_percent'], 1) }}%</span>
+                                    </div>
+                                    <div class="clp-user-track">
+                                        <div class="clp-user-fill" style="width: {{ $progress['progress_percent'] }}%;"></div>
+                                    </div>
+                                    <small class="clp-user-meta">@lang('Remaining'): {{ toBanglaNumber($progress['remaining'], 2) }}</small>
                                 </div>
-                            @endforeach
+                            @empty
+                                <p class="text-muted small mb-0">@lang('No due user found.')</p>
+                            @endforelse
                         </div>
-                    @empty
-                        <p class="text-muted small mb-0">@lang('No plan rows yet.')</p>
-                    @endforelse
+                    </div>
                 </div>
-            </div>
-        </div>
-    </aside>
 
-    <section class="clp-main">
-    <div class="card clp-card shadow-sm">
-    <div class="card-body p-2 p-md-3">
-
-
-        <div class="table-responsive clp-table-shell">
-            <form id="add-custom-plan-form" action="{{ route('admin.loans.custom-payment-planner.store') }}" method="POST" class="d-none" novalidate>
-                @csrf
-            </form>
-
-            <table class="table clp-tableX table-encodex table-sm align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th style="min-width: 160px;">@lang('Month & Year')</th>
-                        <th style="min-width: 260px;">@lang('Creditor')</th>
-                        <th style="min-width: 180px;" class="text-end">@lang('Payment Amount')</th>
-                        <th style="min-width: 340px;">@lang('Current Status / Comment')</th>
-                        <th style="width: 130px;" class="text-center">@lang('Action')</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="clp-add-row">
-                        <td>
-                            <input form="add-custom-plan-form" type="month" name="planned_month" class="form-control form-control-sm" value="{{ old('planned_month', now()->format('Y-m')) }}" required>
-                        </td>
-                        <td>
-                            <select form="add-custom-plan-form" name="loan_user_id" class="form-control form-control-sm form-select form-select-sm" required data-control="select2">
-                                <option value="">@lang('Select due user')</option>
-                                @foreach ($dueUsers as $dueUser)
-                                    <option value="{{ $dueUser['id'] }}" {{ (string) old('loan_user_id') === (string) $dueUser['id'] ? 'selected' : '' }}>
-                                        {{ $dueUser['name'] }} ({{ __('Due') }}: {{ toBanglaNumber($dueUser['due_amount'], 2) }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td>
-                            <input form="add-custom-plan-form" type="number" min="0.01" step="0.01" name="planned_amount" class="form-control form-control-sm text-end" value="{{ old('planned_amount') }}" required>
-                        </td>
-                        <td>
-                            <input form="add-custom-plan-form" type="text" name="note" class="form-control form-control-sm" value="{{ old('note') }}" placeholder="@lang('Optional note')">
-                        </td>
-                        <td class="text-center">
-                            <button form="add-custom-plan-form" type="submit" class="btn btn-sm clp-btn clp-btn-add btn-encodex-create" title="@lang('Add Row')">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    @forelse ($planRows as $row)
-                        <form id="update-custom-plan-{{ $row['id'] }}" action="{{ route('admin.loans.custom-payment-planner.update', $row['id']) }}" method="POST" class="d-none" novalidate>
-                            @csrf
-                        </form>
-
-                        <tr class="clp-plan-row" data-loan-user-id="{{ $row['loan_user_id'] }}">
-                            <td>
-                                <input form="update-custom-plan-{{ $row['id'] }}" type="month" name="planned_month" class="form-control form-control-sm" value="{{ $row['month_key'] }}" required>
-                                {{-- <small class="text-muted">{{ $row['month_label'] }}</small> --}}
-                            </td>
-                            <td>
-                                <select form="update-custom-plan-{{ $row['id'] }}" name="loan_user_id" class="form-control form-control-sm form-select form-select-sm" required data-control="select2" data-placeholder="@lang('Select due user')">
-                                    @foreach ($dueUsers as $dueUser)
-                                        <option value="{{ $dueUser['id'] }}" {{ (int) $row['loan_user_id'] === (int) $dueUser['id'] ? 'selected' : '' }}>
-                                            {{ $dueUser['name'] }} ({{ __('Due') }}: {{ toBanglaNumber($dueUser['due_amount'], 2) }})
-                                        </option>
+                <div class="card clp-side-card shadow-sm">
+                    <div class="card-body p-3">
+                        <h6 class="clp-side-title mb-2">@lang('Month-wise Payment Map')</h6>
+                        <div class="clp-map-list">
+                            @forelse ($monthMap as $month)
+                                <div class="clp-map-block">
+                                    <div class="clp-map-head">
+                                        <span>{{ $month['month_label'] }}</span>
+                                        <strong>{{ toBanglaNumber($month['month_total'], 2) }}</strong>
+                                    </div>
+                                    @foreach ($month['items'] as $item)
+                                        <div class="clp-map-item" data-loan-user-id="{{ $item['loan_user_id'] }}">
+                                            <span>{{ $item['loan_user_name'] }}</span>
+                                            <strong>{{ toBanglaNumber($item['planned_amount'], 2) }}</strong>
+                                        </div>
                                     @endforeach
-                                    @if (!$dueUsers->contains(fn ($dueUser) => (int) $dueUser['id'] === (int) $row['loan_user_id']))
-                                        <option value="{{ $row['loan_user_id'] }}" selected>
-                                            {{ $row['loan_user_name'] }} ({{ __('Due') }}: {{ toBanglaNumber($row['loan_user_due'], 2) }})
-                                        </option>
-                                    @endif
-                                </select>
-                            </td>
-                            <td>
-                                <input form="update-custom-plan-{{ $row['id'] }}" type="number" min="0.01" step="0.01" name="planned_amount" class="form-control form-control-sm text-end" value="{{ number_format($row['planned_amount'], 2, '.', '') }}" required>
-                            </td>
-                            <td>
-                                {{-- @if ($row['is_complete'])
-                                    <span class="clp-status-chip is-complete mb-1 d-inline-block">{{ $row['loan_user_name'] }} @lang('loan complete in your plan')</span>
-                                @else
-                                    <span class="clp-status-chip is-running mb-1 d-inline-block">{{ $row['loan_user_name'] }} @lang('running (remaining in plan:') {{ toBanglaNumber($row['remaining_after'], 2) }})</span>
-                                @endif --}}
-                                <input form="update-custom-plan-{{ $row['id'] }}" type="text" name="note" class="form-control form-control-sm" value="{{ $row['note'] }}" placeholder="@lang('Optional note')">
-                            </td>
-                            <td class="text-center clp-actions">
-                                <button form="update-custom-plan-{{ $row['id'] }}" type="submit" class="btn btn-sm clp-btn clp-btn-save btn-encodex-save" title="@lang('Update')">
-                                    <i class="fas fa-save"></i>
-                                </button>
-                                <form action="{{ route('admin.loans.custom-payment-planner.delete', $row['id']) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm clp-btn clp-btn-delete btn-encodex-delete" onclick="return confirm('{{ __('Are you sure to delete this row?') }}')" title="@lang('Delete')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-3 clp-empty">@lang('No custom plan row found. Add first row from the top.')</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </div>
+                            @empty
+                                <p class="text-muted small mb-0">@lang('No plan rows yet.')</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="clp-main">
+                <div class="card clp-card shadow-sm">
+                    <div class="card-body p-2 p-md-3">
+
+
+                        <div class="table-responsive clp-table-shell">
+                            <form id="add-custom-plan-form" action="{{ route('admin.loans.custom-payment-planner.store') }}" method="POST" class="d-none" novalidate>
+                                @csrf
+                            </form>
+
+                            <table class="table clp-tableX table-encodex table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="min-width: 160px;">@lang('Month & Year')</th>
+                                        <th style="min-width: 260px;">@lang('Creditor')</th>
+                                        <th style="min-width: 180px;" class="text-end">@lang('Payment Amount')</th>
+                                        <th style="min-width: 340px;">@lang('Current Status / Comment')</th>
+                                        <th style="width: 130px;" class="text-center">@lang('Action')</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="clp-add-row">
+                                        <td>
+                                            <input form="add-custom-plan-form" type="month" name="planned_month" class="form-control form-control-sm" value="{{ old('planned_month', now()->format('Y-m')) }}" required>
+                                        </td>
+                                        <td>
+                                            <select form="add-custom-plan-form" name="loan_user_id" class="form-control form-control-sm form-select form-select-sm" required data-control="select2">
+                                                <option value="">@lang('Select due user')</option>
+                                                @foreach ($dueUsers as $dueUser)
+                                                    <option value="{{ $dueUser['id'] }}" {{ (string) old('loan_user_id') === (string) $dueUser['id'] ? 'selected' : '' }}>
+                                                        {{ $dueUser['name'] }} ({{ __('Due') }}: {{ toBanglaNumber($dueUser['due_amount'], 2) }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input form="add-custom-plan-form" type="number" min="0.01" step="0.01" name="planned_amount" class="form-control form-control-sm text-end" value="{{ old('planned_amount') }}" required>
+                                        </td>
+                                        <td>
+                                            <input form="add-custom-plan-form" type="text" name="note" class="form-control form-control-sm" value="{{ old('note') }}" placeholder="@lang('Optional note')">
+                                        </td>
+                                        <td class="text-center">
+                                            <button form="add-custom-plan-form" type="submit" class="btn btn-sm clp-btn clp-btn-add btn-encodex-create" title="@lang('Add Row')">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    @forelse ($planRows as $row)
+                                        <form id="update-custom-plan-{{ $row['id'] }}" action="{{ route('admin.loans.custom-payment-planner.update', $row['id']) }}" method="POST" class="d-none" novalidate>
+                                            @csrf
+                                        </form>
+
+                                        <tr class="clp-plan-row" data-loan-user-id="{{ $row['loan_user_id'] }}">
+                                            <td>
+                                                <input form="update-custom-plan-{{ $row['id'] }}" type="month" name="planned_month" class="form-control form-control-sm" value="{{ $row['month_key'] }}" required>
+                                                {{-- <small class="text-muted">{{ $row['month_label'] }}</small> --}}
+                                            </td>
+                                            <td>
+                                                <select form="update-custom-plan-{{ $row['id'] }}" name="loan_user_id" class="form-control form-control-sm form-select form-select-sm" required data-control="select2" data-placeholder="@lang('Select due user')">
+                                                    @foreach ($dueUsers as $dueUser)
+                                                        <option value="{{ $dueUser['id'] }}" {{ (int) $row['loan_user_id'] === (int) $dueUser['id'] ? 'selected' : '' }}>
+                                                            {{ $dueUser['name'] }} ({{ __('Due') }}: {{ toBanglaNumber($dueUser['due_amount'], 2) }})
+                                                        </option>
+                                                    @endforeach
+                                                    @if (!$dueUsers->contains(fn ($dueUser) => (int) $dueUser['id'] === (int) $row['loan_user_id']))
+                                                        <option value="{{ $row['loan_user_id'] }}" selected>
+                                                            {{ $row['loan_user_name'] }} ({{ __('Due') }}: {{ toBanglaNumber($row['loan_user_due'], 2) }})
+                                                        </option>
+                                                    @endif
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input form="update-custom-plan-{{ $row['id'] }}" type="number" min="0.01" step="0.01" name="planned_amount" class="form-control form-control-sm text-end" value="{{ number_format($row['planned_amount'], 2, '.', '') }}" required>
+                                            </td>
+                                            <td>
+                                                {{-- @if ($row['is_complete'])
+                                                    <span class="clp-status-chip is-complete mb-1 d-inline-block">{{ $row['loan_user_name'] }} @lang('loan complete in your plan')</span>
+                                                @else
+                                                    <span class="clp-status-chip is-running mb-1 d-inline-block">{{ $row['loan_user_name'] }} @lang('running (remaining in plan:') {{ toBanglaNumber($row['remaining_after'], 2) }})</span>
+                                                @endif --}}
+                                                <input form="update-custom-plan-{{ $row['id'] }}" type="text" name="note" class="form-control form-control-sm" value="{{ $row['note'] }}" placeholder="@lang('Optional note')">
+                                            </td>
+                                            <td class="text-center clp-actions">
+                                                <button form="update-custom-plan-{{ $row['id'] }}" type="submit" class="btn btn-sm clp-btn clp-btn-save btn-encodex-save" title="@lang('Update')">
+                                                    <i class="fas fa-save"></i>
+                                                </button>
+                                                <form action="{{ route('admin.loans.custom-payment-planner.delete', $row['id']) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm clp-btn clp-btn-delete btn-encodex-delete" onclick="return confirm('{{ __('Are you sure to delete this row?') }}')" title="@lang('Delete')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-3 clp-empty">@lang('No custom plan row found. Add first row from the top.')</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
-</div>
-    </section>
-</div>
-</div>
+    @include('me::components.calculator')
 @endsection
 
 @push('js')
