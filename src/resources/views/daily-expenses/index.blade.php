@@ -200,150 +200,152 @@
 
     @foreach($expenses as $expense)
 
-    {{-- Edit --}}
-    <div class="modal fade" id="editExpense{{ $expense->id }}">
-        <div class=" modal-dialog  glass-card modal-lg">
-            <form method="POST"
-                action="{{ route('admin.daily-expenses.update', $expense->id) }}"
-                class="modal-content">
-                @csrf
-                @method('PUT')
+        {{-- Edit --}}
+        <div class="modal fade" id="editExpense{{ $expense->id }}">
+            <div class=" modal-dialog  glass-card modal-lg">
+                <form method="POST"
+                    action="{{ route('admin.daily-expenses.update', $expense->id) }}"
+                    class="modal-content">
+                    @csrf
+                    @method('PUT')
 
-                <div class="modal-header">
-                    <h5>{{ __('Edit Expense') }}</h5>
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body row g-3">
-                    <div class="col-md-12">
-                        <label>{{ __('Title') }}</label>
-                        <input type="text" name="title" class="form-control"
-                            value="{{ $expense->title }}">
+                    <div class="modal-header">
+                        <h5>{{ __('Edit Expense') }}</h5>
+                        <button class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
-                    <div class="col-md-6">
-                        <label>{{ __('Amount') }}</label>
-                        <input type="number" step="0.01" name="amount" class="form-control"
-                            value="{{ $expense->amount }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label>{{ __('Created Date') }}</label>
-                        <input type="date" name="created_at" class="form-control"
-                            value="{{ $expense->created_at->format('Y-m-d') }}">
-                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-md-12">
+                            <label>{{ __('Title') }}</label>
+                            <input type="text" name="title" class="form-control"
+                                value="{{ $expense->title }}">
+                        </div>
 
-                    <div class="col-12">
-                        <label>{{ __('Description') }}</label>
-                        <textarea name="description"
-                                class="form-control">{{ $expense->description }}</textarea>
-                    </div>
-                </div>
+                        <div class="col-md-6">
+                            <label>{{ __('Amount') }}</label>
+                            <input type="number" step="0.01" name="amount" class="form-control"
+                                value="{{ $expense->amount }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label>{{ __('Created Date') }}</label>
+                            <input type="date" name="created_at" class="form-control"
+                                value="{{ $expense->created_at->format('Y-m-d') }}">
+                        </div>
 
-                <div class="modal-footer">
-                    <button class="btn btn-encodex-cancel" data-bs-dismiss="modal">@lang('Close')</button>
-                    <button class="btn btn-encodex-save">@lang('Update Expense')</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {{-- Show --}}
-
-    <div class="modal fade" id="showExpense{{ $expense->id }}" tabindex="-1"
-        aria-labelledby="showExpenseModalLabel{{ $expense->id }}" aria-hidden="true">
-
-        <div class=" modal-dialog  glass-card modal-lg ">
-            <div class="modal-content shadow-lg rounded-3">
-
-                <!-- Header -->
-                <div class="modal-header">
-                    <h5 class="modal-title" id="showExpenseModalLabel{{ $expense->id }}">
-                        <i class="bi bi-receipt-cutoff me-2"></i> @lang('Expense Details')
-                    </h5>
-
-                    <button type="button" class="btn-close"
-                            data-bs-dismiss="modal"></button>
-                </div>
-
-                <!-- Body -->
-                <div class="modal-body">
-
-                    <div class="container-fluid">
-                        <div class="row g-3">
-
-                            <!-- Title -->
-                            <div class="col-md-6">
-                                <div class="border rounded p-3">
-                                    <small class="text-muted">@lang('Title')</small>
-                                    <h6 class="fw-bold mb-0">
-                                        {{ $expense->title }}
-                                    </h6>
-                                </div>
-                            </div>
-
-                            <!-- Amount -->
-                            <div class="col-md-6">
-                                <div class="border rounded p-3">
-                                    <small class="text-muted">@lang('Amount')</small>
-                                    <h6 class="fw-bold text-danger mb-0">
-                                        {{ $expense->amount }}
-                                    </h6>
-                                </div>
-                            </div>
-
-                            <!-- Category (Optional) -->
-                            @if(isset($expense->category))
-                            <div class="col-md-6">
-                                <div class="border rounded p-3">
-                                    <small class="text-muted">@lang('Category')</small>
-                                    <h6 class="fw-bold mb-0">
-                                        {{ $expense->category->name ?? 'N/A' }}
-                                    </h6>
-                                </div>
-                            </div>
-                            @endif
-
-                            <!-- Date -->
-                            <div class="col-md-6">
-                                <div class="border rounded p-3">
-                                    <small class="text-muted">@lang('Date')</small>
-                                    <h6 class="fw-bold mb-0">
-                                        {{ formatDate($expense->created_at) }}
-                                    </h6>
-                                </div>
-                            </div>
-
-                            <!-- Description -->
-                            <div class="col-12">
-                                <div class="border rounded p-3">
-                                    <small class="text-muted">@lang('Description')</small>
-                                    <h6 class="fw-normal mb-0">
-                                        {{ $expense->description ?? 'N/A' }}
-                                    </h6>
-                                </div>
-                            </div>
-
+                        <div class="col-12">
+                            <label>{{ __('Description') }}</label>
+                            <textarea name="description"
+                                    class="form-control">{{ $expense->description }}</textarea>
                         </div>
                     </div>
 
-                </div>
-
-                <!-- Footer -->
-                <div class="modal-footer">
-                    <button type="button"
-                            class="btn btn-encodex-cancel btn-sm"
-                            data-bs-dismiss="modal">
-
-                        <i class="bi bi-x-circle me-1"></i> @lang('Close')
-
-                    </button>
-                </div>
-
+                    <div class="modal-footer">
+                        <button class="btn btn-encodex-cancel" data-bs-dismiss="modal">@lang('Close')</button>
+                        <button class="btn btn-encodex-save">@lang('Update Expense')</button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
+
+        {{-- Show --}}
+
+        <div class="modal fade" id="showExpense{{ $expense->id }}" tabindex="-1"
+            aria-labelledby="showExpenseModalLabel{{ $expense->id }}" aria-hidden="true">
+
+            <div class=" modal-dialog  glass-card modal-lg ">
+                <div class="modal-content shadow-lg rounded-3">
+
+                    <!-- Header -->
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="showExpenseModalLabel{{ $expense->id }}">
+                            <i class="bi bi-receipt-cutoff me-2"></i> @lang('Expense Details')
+                        </h5>
+
+                        <button type="button" class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="modal-body">
+
+                        <div class="container-fluid">
+                            <div class="row g-3">
+
+                                <!-- Title -->
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3">
+                                        <small class="text-muted">@lang('Title')</small>
+                                        <h6 class="fw-bold mb-0">
+                                            {{ $expense->title }}
+                                        </h6>
+                                    </div>
+                                </div>
+
+                                <!-- Amount -->
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3">
+                                        <small class="text-muted">@lang('Amount')</small>
+                                        <h6 class="fw-bold text-danger mb-0">
+                                            {{ $expense->amount }}
+                                        </h6>
+                                    </div>
+                                </div>
+
+                                <!-- Category (Optional) -->
+                                @if(isset($expense->category))
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3">
+                                        <small class="text-muted">@lang('Category')</small>
+                                        <h6 class="fw-bold mb-0">
+                                            {{ $expense->category->name ?? 'N/A' }}
+                                        </h6>
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- Date -->
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3">
+                                        <small class="text-muted">@lang('Date')</small>
+                                        <h6 class="fw-bold mb-0">
+                                            {{ formatDate($expense->created_at) }}
+                                        </h6>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="col-12">
+                                    <div class="border rounded p-3">
+                                        <small class="text-muted">@lang('Description')</small>
+                                        <h6 class="fw-normal mb-0">
+                                            {{ $expense->description ?? 'N/A' }}
+                                        </h6>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-encodex-cancel btn-sm"
+                                data-bs-dismiss="modal">
+
+                            <i class="bi bi-x-circle me-1"></i> @lang('Close')
+
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
 
 
     @endforeach
+
+    @include('me::components.calculator')
 @endsection
 
