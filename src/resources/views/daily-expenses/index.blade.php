@@ -318,7 +318,8 @@
                                     <div class="border rounded p-3">
                                         <small class="text-muted">@lang('Description')</small>
                                         <h6 class="fw-normal mb-0">
-                                            {{ $expense->description ?? 'N/A' }}
+                                            {{-- {{ $expense->description ?? 'N/A' }} --}}
+                                            {!! nl2br(e($expense->description ?? '--')) !!}
                                         </h6>
                                     </div>
                                 </div>
