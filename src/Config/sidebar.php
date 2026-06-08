@@ -39,6 +39,14 @@ return [
                 'icon_color' => 'icc-3',
                 'for_active' => 'admin.loans.payment-planner',
             ],
+            [
+                'icon'       => 'fas fa-table',
+                'title'      => 'C. P. Planner',
+                'route'      => 'admin.loans.custom-payment-planner',
+                'permit'     => 'loan.custom_payment_planner',
+                'icon_color' => 'icc-3',
+                'for_active' => 'admin.loans.custom-payment-planner',
+            ],
         ]
     ],
 

@@ -100,6 +100,11 @@ Route::middleware(['web'])->group(function () {
             // Loan routes
             Route::get('/loans', [LoanController::class, 'index'])->name('loans.index');
             Route::get('/loans/payment-planner', [LoanController::class, 'paymentPlanner'])->name('loans.payment-planner');
+            Route::get('/loans/custom-payment-planner', [LoanController::class, 'customPaymentPlanner'])->name('loans.custom-payment-planner');
+            Route::post('/loans/custom-payment-planner/store', [LoanController::class, 'storeCustomPaymentPlan'])->name('loans.custom-payment-planner.store');
+            Route::post('/loans/custom-payment-planner/update/{id}', [LoanController::class, 'updateCustomPaymentPlan'])->name('loans.custom-payment-planner.update');
+            Route::post('/loans/custom-payment-planner/delete/{id}', [LoanController::class, 'deleteCustomPaymentPlan'])->name('loans.custom-payment-planner.delete');
+            Route::post('/loans/custom-payment-planner/complete/{loanUserId}', [LoanController::class, 'completeCustomPaymentPlan'])->name('loans.custom-payment-planner.complete');
             Route::get('/loans/history/{user}', [LoanController::class, 'history'])->name('loans.history');
             Route::get('/loans/user-history/{user}', [LoanController::class, 'userHistory'])->name('loans.user-history');
 

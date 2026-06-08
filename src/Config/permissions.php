@@ -19,7 +19,7 @@ return [
     ],
     "loan" => [
         "title" => "Loan",
-        "actions" => "show,create,edit,delete,history,history_create,history_delete,payment_planner,user_history",
+        "actions" => "show,create,edit,delete,history,history_create,history_delete,payment_planner,custom_payment_planner,user_history",
     ],
     "drive" => [
         "title" => "Drive",

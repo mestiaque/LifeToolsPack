@@ -18,5 +18,10 @@ class LoanUser extends Model
     {
         return $this->hasMany(Loan::class, 'loan_user_id');
     }
+
+    public function customPaymentPlans()
+    {
+        return $this->hasMany(CustomLoanPaymentPlan::class, 'loan_user_id');
+    }
 }
 

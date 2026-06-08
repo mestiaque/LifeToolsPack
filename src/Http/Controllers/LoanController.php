@@ -2,12 +2,15 @@
 
 namespace ME\EmCore\Http\Controllers;
 
+use ME\EmCore\Models\CustomLoanPaymentPlan;
 use ME\EmCore\Models\Loan;
 use ME\EmCore\Models\LoanUser;
 use ME\EmCore\Models\Repayment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Collection;
 use ME\Http\Controllers\Controller;
 use App\Http\Middleware\AuthorizationMiddleware;
 
@@ -31,6 +34,13 @@ class LoanController extends Controller
         $this->middleware('authorization:loan.history_delete')->only(['destroyRepayment']);
         $this->middleware('authorization:loan.user_history')->only(['userHistory']);
         $this->middleware('authorization:loan.payment_planner')->only(['paymentPlanner']);
+        $this->middleware('authorization:loan.custom_payment_planner')->only([
+            'customPaymentPlanner',
+            'storeCustomPaymentPlan',
+            'updateCustomPaymentPlan',
+            'deleteCustomPaymentPlan',
+            'completeCustomPaymentPlan',
+        ]);
     }
     // List all loans with their loan users
     public function index(Request $request)
@@ -228,6 +238,218 @@ class LoanController extends Controller
             'schedule' => $schedule,
             'months' => array_values($months),
         ]);
+    }
+
+    public function customPaymentPlanner()
+    {
+        $dueUsers = $this->getCustomPlannerDueUsers();
+        $dueAmountByUser = $dueUsers->mapWithKeys(function (array $userItem) {
+            return [(int) $userItem['id'] => (float) $userItem['due_amount']];
+        });
+
+        $plans = CustomLoanPaymentPlan::with('loanUser')
+            ->orderBy('planned_month')
+            ->orderBy('id')
+            ->get();
+
+        $runningPlannedByUser = [];
+        $coverageByUser = [];
+        $userCompletionReached = [];
+
+        $planRows = $plans->map(function (CustomLoanPaymentPlan $plan) use (&$runningPlannedByUser, &$coverageByUser, &$userCompletionReached, $dueAmountByUser) {
+            $loanUserId = (int) $plan->loan_user_id;
+            $loanUserName = optional($plan->loanUser)->name ?? __('Unknown');
+            $loanUserDue = round((float) ($dueAmountByUser[$loanUserId] ?? 0), 2);
+            $plannedAmount = round((float) $plan->planned_amount, 2);
+
+            $runningPlannedByUser[$loanUserId] = ($runningPlannedByUser[$loanUserId] ?? 0) + $plannedAmount;
+            $remainingAfter = round(max($loanUserDue - $runningPlannedByUser[$loanUserId], 0), 2);
+
+            $previousCoverage = (float) ($coverageByUser[$loanUserId] ?? 0);
+            $newCoverage = round(min($loanUserDue, $runningPlannedByUser[$loanUserId]), 2);
+            $coverageByUser[$loanUserId] = $newCoverage;
+            $effectiveCoverageForRow = round(max($newCoverage - $previousCoverage, 0), 2);
+
+            $plannedMonth = Carbon::parse($plan->planned_month);
+            $isComplete = $remainingAfter <= 0.00001;
+            $isCompletionRow = $isComplete && !($userCompletionReached[$loanUserId] ?? false);
+            if ($isComplete) {
+                $userCompletionReached[$loanUserId] = true;
+            }
+
+            return [
+                'id' => (int) $plan->id,
+                'loan_user_id' => $loanUserId,
+                'loan_user_name' => $loanUserName,
+                'loan_user_due' => $loanUserDue,
+                'month_key' => $plannedMonth->format('Y-m'),
+                'month_label' => $plannedMonth->format('F Y'),
+                'planned_amount' => $plannedAmount,
+                'effective_coverage' => $effectiveCoverageForRow,
+                'remaining_after' => $remainingAfter,
+                'is_complete' => $isComplete,
+                'is_completion_row' => $isCompletionRow,
+                'note' => (string) ($plan->note ?? ''),
+            ];
+        })->values();
+
+        $totalDue = round((float) $dueUsers->sum('due_amount'), 2);
+        $totalPlannedCoverage = round((float) array_sum($coverageByUser), 2);
+        $totalUnplanned = round(max($totalDue - $totalPlannedCoverage, 0), 2);
+        $overallProgressPercent = $totalDue > 0
+            ? round(min(($totalPlannedCoverage / $totalDue) * 100, 100), 1)
+            : 0.0;
+
+        $userPlannedById = $planRows
+            ->groupBy('loan_user_id')
+            ->map(function (Collection $rows) {
+                return round((float) $rows->sum('planned_amount'), 2);
+            });
+
+        $userProgress = $dueUsers->map(function (array $dueUser) use ($userPlannedById) {
+            $userId = (int) $dueUser['id'];
+            $dueAmount = round((float) $dueUser['due_amount'], 2);
+            $plannedRaw = round((float) ($userPlannedById[$userId] ?? 0), 2);
+            $plannedCoverage = round(min($plannedRaw, $dueAmount), 2);
+            $progressPercent = $dueAmount > 0
+                ? round(min(($plannedCoverage / $dueAmount) * 100, 100), 1)
+                : 0.0;
+
+            return [
+                'id' => $userId,
+                'name' => $dueUser['name'],
+                'due_amount' => $dueAmount,
+                'planned_raw' => $plannedRaw,
+                'planned_coverage' => $plannedCoverage,
+                'remaining' => round(max($dueAmount - $plannedCoverage, 0), 2),
+                'progress_percent' => $progressPercent,
+            ];
+        })->values();
+
+        $monthMap = $planRows
+            ->groupBy('month_key')
+            ->map(function (Collection $rows, string $monthKey) {
+                $items = $rows
+                    ->groupBy('loan_user_id')
+                    ->map(function (Collection $userRows) {
+                        $firstRow = $userRows->first();
+
+                        return [
+                            'loan_user_id' => (int) $firstRow['loan_user_id'],
+                            'loan_user_name' => $firstRow['loan_user_name'],
+                            'planned_amount' => round((float) $userRows->sum('planned_amount'), 2),
+                        ];
+                    })
+                    ->values();
+
+                return [
+                    'month_key' => $monthKey,
+                    'month_label' => Carbon::createFromFormat('Y-m', $monthKey)->format('F Y'),
+                    'month_total' => round((float) $items->sum('planned_amount'), 2),
+                    'items' => $items,
+                ];
+            })
+            ->values();
+
+        return view('em_core::loans.custom-payment-planner', [
+            'dueUsers' => $dueUsers,
+            'planRows' => $planRows,
+            'totalDue' => $totalDue,
+            'totalPlanned' => $totalPlannedCoverage,
+            'totalUnplanned' => $totalUnplanned,
+            'overallProgressPercent' => $overallProgressPercent,
+            'userProgress' => $userProgress,
+            'monthMap' => $monthMap,
+        ]);
+    }
+
+    public function storeCustomPaymentPlan(Request $request)
+    {
+        $payload = $request->validate([
+            'loan_user_id' => 'required|integer|exists:loan_users,id',
+            'planned_month' => 'required|date_format:Y-m',
+            'planned_amount' => 'required|numeric|min:0.01',
+            'note' => 'nullable|string|max:255',
+        ]);
+
+        if (!$this->isCustomPlannerUserEligible((int) $payload['loan_user_id'])) {
+            return redirect()->back()->withErrors([
+                'loan_user_id' => __('Please select an active due user for custom planning.'),
+            ])->withInput();
+        }
+
+        $selectedLoanUserId = (int) $payload['loan_user_id'];
+
+        $createPayload = [
+            'loan_user_id' => $selectedLoanUserId,
+            'planned_month' => $payload['planned_month'] . '-01',
+            'planned_amount' => round((float) $payload['planned_amount'], 2),
+            'note' => $payload['note'] ?? null,
+        ];
+
+        if ($this->customPlannerHasLegacyLoanIdColumn()) {
+            $createPayload['loan_id'] = $this->resolveLegacyLoanIdForPlannerUser($selectedLoanUserId);
+        }
+
+        CustomLoanPaymentPlan::create($createPayload);
+
+        return redirect()->route('admin.loans.custom-payment-planner')
+            ->with('success', __('Custom payment plan row added successfully.'));
+    }
+
+    public function updateCustomPaymentPlan(Request $request, $id)
+    {
+        $plan = CustomLoanPaymentPlan::findOrFail($id);
+
+        $payload = $request->validate([
+            'loan_user_id' => 'required|integer|exists:loan_users,id',
+            'planned_month' => 'required|date_format:Y-m',
+            'planned_amount' => 'required|numeric|min:0.01',
+            'note' => 'nullable|string|max:255',
+        ]);
+
+        $selectedLoanUserId = (int) $payload['loan_user_id'];
+        $isExistingLoanUser = (int) $plan->loan_user_id === $selectedLoanUserId;
+
+        if (!$isExistingLoanUser && !$this->isCustomPlannerUserEligible($selectedLoanUserId)) {
+            return redirect()->back()->withErrors([
+                'loan_user_id' => __('Please select an active due user for custom planning.'),
+            ])->withInput();
+        }
+
+        $updatePayload = [
+            'loan_user_id' => $selectedLoanUserId,
+            'planned_month' => $payload['planned_month'] . '-01',
+            'planned_amount' => round((float) $payload['planned_amount'], 2),
+            'note' => $payload['note'] ?? null,
+        ];
+
+        if ($this->customPlannerHasLegacyLoanIdColumn()) {
+            $updatePayload['loan_id'] = $this->resolveLegacyLoanIdForPlannerUser($selectedLoanUserId) ?? $plan->getAttribute('loan_id');
+        }
+
+        $plan->update($updatePayload);
+
+        return redirect()->route('admin.loans.custom-payment-planner')
+            ->with('success', __('Custom payment plan row updated successfully.'));
+    }
+
+    public function deleteCustomPaymentPlan($id)
+    {
+        CustomLoanPaymentPlan::findOrFail($id)->delete();
+
+        return redirect()->route('admin.loans.custom-payment-planner')
+            ->with('success', __('Custom payment plan row deleted successfully.'));
+    }
+
+    public function completeCustomPaymentPlan($loanUserId)
+    {
+        $selectedLoanUserId = (int) $loanUserId;
+
+        CustomLoanPaymentPlan::where('loan_user_id', $selectedLoanUserId)->delete();
+
+        return redirect()->route('admin.loans.custom-payment-planner')
+            ->with('success', __('Plan completed and removed from planner.'));
     }
 
     // Create loan form (show loan users for selection)
@@ -580,5 +802,72 @@ class LoanController extends Controller
             'installment_expected_dates' => $finalDates,
             'installment_amounts' => $finalAmounts,
         ];
+    }
+
+    private function getCustomPlannerDueUsers(): Collection
+    {
+        $dueLoans = Loan::with('loanUser', 'repayments')
+            ->where('type', 'taken')
+            ->whereHas('loanUser', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->get()
+            ->filter(function (Loan $loan) {
+                return (float) $loan->dueAmount() > 0;
+            })
+            ->values();
+
+        return $dueLoans
+            ->groupBy('loan_user_id')
+            ->map(function (Collection $loans, $loanUserId) {
+                $firstLoan = $loans->first();
+
+                return [
+                    'id' => (int) $loanUserId,
+                    'name' => optional($firstLoan->loanUser)->name ?? '-',
+                    'due_amount' => round((float) $loans->sum(function (Loan $loan) {
+                        return (float) $loan->dueAmount();
+                    }), 2),
+                ];
+            })
+            ->values();
+    }
+
+    private function isCustomPlannerUserEligible(int $loanUserId): bool
+    {
+        return $this->getCustomPlannerDueUsers()
+            ->contains(function (array $dueUser) use ($loanUserId) {
+                return (int) $dueUser['id'] === $loanUserId;
+            });
+    }
+
+    private function customPlannerHasLegacyLoanIdColumn(): bool
+    {
+        static $hasLegacyLoanIdColumn = null;
+
+        if ($hasLegacyLoanIdColumn === null) {
+            $hasLegacyLoanIdColumn = Schema::hasTable('custom_loan_payment_plans')
+                && Schema::hasColumn('custom_loan_payment_plans', 'loan_id');
+        }
+
+        return $hasLegacyLoanIdColumn;
+    }
+
+    private function resolveLegacyLoanIdForPlannerUser(int $loanUserId): ?int
+    {
+        $dueTakenLoanId = Loan::where('loan_user_id', $loanUserId)
+            ->where('type', 'taken')
+            ->orderBy('id')
+            ->value('id');
+
+        if ($dueTakenLoanId) {
+            return (int) $dueTakenLoanId;
+        }
+
+        $anyLoanId = Loan::where('loan_user_id', $loanUserId)
+            ->orderBy('id')
+            ->value('id');
+
+        return $anyLoanId ? (int) $anyLoanId : null;
     }
 }
