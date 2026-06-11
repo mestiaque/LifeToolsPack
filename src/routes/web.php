@@ -70,6 +70,9 @@ Route::middleware(['web'])->group(function () {
             Route::resource('roles', RoleController::class);
             Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
 
+            Route::post('daily-expenses/cash', [DailyExpenseController::class, 'storeCash'])->name('daily-expenses.cash.store');
+            Route::put('daily-expenses/cash/{id}', [DailyExpenseController::class, 'updateCash'])->name('daily-expenses.cash.update');
+            Route::delete('daily-expenses/cash/{id}', [DailyExpenseController::class, 'destroyCash'])->name('daily-expenses.cash.destroy');
             Route::resource('daily-expenses', DailyExpenseController::class);
             Route::resource('disks', DiskController::class);
             Route::resource('messages', MessageController::class)->except(['show']);

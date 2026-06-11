@@ -3,8 +3,11 @@
 @section('title', __('Daily Expenses'))
 
 @push('buttons')
+    <button class="btn btn-sm btn-encodex-payment" data-bs-toggle="modal" data-bs-target="#cashEntryModal">
+        <i class="fas fa-wallet"></i> <span class="hide-mobile">{{ __('Cash Entries') }}</span>
+    </button>
     <button class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
-        <i class="fas fa-plus"></i> {{ __('Add Expense') }}
+        <i class="fas fa-plus"></i> <span class="hide-mobile">{{ __('Add Expense') }}</span>
     </button>
 @endpush
 
@@ -13,6 +16,59 @@
 
     <div class="card shadow mb-4 w-100">
         <div class="card-body">
+            <div class="daily-cash-overview mb-3">
+                <div class="daily-cash-cards row g-3">
+                    <div class="col-4">
+                        <div class="border rounded p-3 h-100 daily-cash-summary-card">
+                            <small class="text-muted daily-cash-summary-label">@lang('Cash In')</small>
+                            <h5 class="fw-bold mb-0 daily-cash-summary-amount">৳ {{ number_format($totalCash, 2) }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-3 h-100 daily-cash-summary-card">
+                            <small class="text-muted daily-cash-summary-label">@lang('Expense')</small>
+                            <h5 class="fw-bold text-danger mb-0 daily-cash-summary-amount">৳ {{ number_format($monthlyExpenseTotal, 2) }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-3 h-100 daily-cash-summary-card">
+                            <small class="text-muted daily-cash-summary-label">@lang('Balance')</small>
+                            <h5 class="fw-bold {{ $cashRemaining < 0 ? 'text-danger' : 'text-success' }} mb-0 daily-cash-summary-amount">
+                                ৳ {{ number_format($cashRemaining, 2) }}
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="daily-cash-progress-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">@lang('Expense against cash')</small>
+                        <small class="fw-bold">{{ number_format($cashUsagePercent, 2) }}%</small>
+                    </div>
+                    <div class="progress daily-cash-progress">
+                        <div class="progress-bar daily-cash-progress-expense"
+                            role="progressbar"
+                            style="width: {{ $cashUsagePercent }}%;"
+                            aria-valuenow="{{ $cashUsagePercent }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                        </div>
+                        @if($totalCash > 0 && $cashUsagePercent < 100)
+                            <div class="progress-bar daily-cash-progress-cash"
+                                role="progressbar"
+                                style="width: {{ 100 - $cashUsagePercent }}%;"
+                                aria-valuenow="{{ 100 - $cashUsagePercent }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                            </div>
+                        @endif
+                    </div>
+                    @if($totalCash <= 0)
+                        <small class="text-muted">@lang('Add this month cash to see spending progress.')</small>
+                    @elseif($cashRemaining < 0)
+                        <small class="text-danger">@lang('Expense is higher than cash.')</small>
+                    @endif
+                </div>
+            </div>
 
             {{-- SEARCH & DATE FILTER --}}
             <form method="GET" action="{{ route('admin.daily-expenses.index') }}" class="mb-3 glass-search-form ">
@@ -72,7 +128,7 @@
                         @forelse($groupedExpenses as $date => $dayExpenses)
                             {{-- DATE HEADER --}}
                             <tr class="table-secondary">
-                                <td colspan="6" class="text-start fw-bold">
+                                <td colspan="5" class="text-start fw-bold">
                                     {{ \Carbon\Carbon::parse($date)->format('d F, Y') }}
                                 </td>
                             </tr>
@@ -197,6 +253,126 @@
             </form>
         </div>
     </div>
+
+    <div class="modal fade" id="cashEntryModal" tabindex="-1" aria-labelledby="cashEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog glass-card modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cashEntryModalLabel">
+                        <i class="fas fa-wallet me-1"></i> @lang('This Month Cash Entries')
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form method="POST" action="{{ route('admin.daily-expenses.cash.store') }}" class="row g-2 align-items-end mb-3">
+                        @csrf
+                        <div class="col-md-6">
+                            <label class="form-label">@lang('Title')</label>
+                            <input type="text" name="title" class="form-control" placeholder="@lang('Cash source')" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">@lang('Amount')</label>
+                            <input type="number" step="0.01" min="0" name="amount" class="form-control" required>
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button class="btn btn-encodex-save">
+                                <i class="fas fa-plus"></i> @lang('Add')
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered table-hover table-striped table-encodex text-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@lang('Title')</th>
+                                    <th>@lang('Amount')</th>
+                                    <th>@lang('Actions')</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($cashEntries as $cashEntry)
+                                    <tr>
+                                        <td>{{ $cashEntry->title }}</td>
+                                        <td>৳ {{ number_format($cashEntry->amount, 2) }}</td>
+                                        <td>
+                                            <div class="d-inline-flex gap-1">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-encodex-edit"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editCashEntry{{ $cashEntry->id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+
+                                                <form action="{{ route('admin.daily-expenses.cash.destroy', $cashEntry->id) }}"
+                                                    method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="btn btn-sm btn-encodex-delete"
+                                                        onclick="return confirm('@lang('Are you sure?')')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3">@lang('No cash entries found')</td>
+                                    </tr>
+                                @endforelse
+
+                                @if($totalCash > 0)
+                                    <tr class="fw-bold table-success">
+                                        <td class="text-end">@lang('Total Cash')</td>
+                                        <td>৳ {{ number_format($totalCash, 2) }}</td>
+                                        <td></td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-encodex-cancel" data-bs-dismiss="modal">@lang('Close')</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @foreach($cashEntries as $cashEntry)
+        <div class="modal fade" id="editCashEntry{{ $cashEntry->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog glass-card">
+                <form method="POST" action="{{ route('admin.daily-expenses.cash.update', $cashEntry->id) }}" class="modal-content">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">@lang('Edit Cash Entry')</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body row g-3">
+                        <div class="col-12">
+                            <label class="form-label">@lang('Title')</label>
+                            <input type="text" name="title" class="form-control" value="{{ $cashEntry->title }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">@lang('Amount')</label>
+                            <input type="number" step="0.01" min="0" name="amount" class="form-control" value="{{ $cashEntry->amount }}" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-encodex-cancel" data-bs-dismiss="modal">@lang('Close')</button>
+                        <button class="btn btn-encodex-save">@lang('Update Cash')</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endforeach
 
     @foreach($expenses as $expense)
 
@@ -350,3 +526,120 @@
     @include('me::components.calculator')
 @endsection
 
+@push('css')
+<style>
+    .daily-cash-progress {
+        position: relative;
+        height: 22px;
+        overflow: hidden;
+        border-radius: 999px;
+        padding: 3px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.12));
+        border: 1px solid rgba(255, 255, 255, 0.48);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.65),
+            inset 0 -8px 18px rgba(15, 23, 42, 0.12),
+            0 10px 24px rgba(15, 23, 42, 0.14);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    .daily-cash-progress::before {
+        content: "";
+        position: absolute;
+        inset: 4px 8px auto 8px;
+        height: 7px;
+        border-radius: inherit;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.08));
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .daily-cash-progress .progress-bar {
+        position: relative;
+        border-radius: 999px;
+        background-size: 160% 160%;
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.42),
+            inset 0 -10px 16px rgba(15, 23, 42, 0.16);
+    }
+
+    .daily-cash-progress-expense {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0) 45%),
+            linear-gradient(135deg, rgba(255, 93, 93, 0.92), rgba(196, 30, 58, 0.88));
+    }
+
+    .daily-cash-progress-cash {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 45%),
+            linear-gradient(135deg, rgba(72, 221, 154, 0.9), rgba(17, 145, 93, 0.86));
+    }
+
+    .daily-cash-summary-card {
+        min-width: 0;
+    }
+
+    .daily-cash-progress-panel {
+        margin-top: 1rem;
+    }
+
+    .daily-cash-summary-label {
+        display: block;
+       
+    }
+
+    .daily-cash-summary-amount {
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    @media (min-width: 768px) {
+        .daily-cash-overview {
+            display: flex;
+            align-items: stretch;
+            gap: 16px;
+        }
+
+        .daily-cash-cards {
+            flex: 0 0 calc(50% - 8px);
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .daily-cash-cards > [class*="col-"] {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .daily-cash-progress-panel {
+            flex: 0 0 calc(50% - 8px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+            margin-top: 0;
+        }
+
+        .daily-cash-summary-card {
+            padding: 14px 16px !important;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .daily-cash-summary-card {
+            padding: 8px 6px !important;
+            border-radius: 6px !important;
+        }
+
+        .daily-cash-summary-label {
+            font-size: 10px;
+            /* min-height: 25px; */
+        }
+
+        .daily-cash-summary-amount {
+            font-size: 14px;
+        }
+    }
+</style>
+@endpush

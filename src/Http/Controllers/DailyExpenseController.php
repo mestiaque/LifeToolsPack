@@ -4,6 +4,7 @@ namespace ME\EmCore\Http\Controllers;
 
 use Carbon\Carbon;
 use ME\Models\Setting;
+use ME\EmCore\Models\DailyCashEntry;
 use ME\EmCore\Models\DailyExpense;
 use Illuminate\Http\Request;
 use ME\Http\Controllers\Controller;
@@ -17,6 +18,9 @@ class DailyExpenseController extends Controller
         $this->middleware('authorization:daily-expense.create')->only(['store']);
         $this->middleware('authorization:daily-expense.edit')->only(['update']);
         $this->middleware('authorization:daily-expense.delete')->only(['destroy']);
+        $this->middleware('authorization:daily-expense.create')->only(['storeCash']);
+        $this->middleware('authorization:daily-expense.edit')->only(['updateCash']);
+        $this->middleware('authorization:daily-expense.delete')->only(['destroyCash']);
     }
 
     public function index(Request $request)
@@ -63,6 +67,20 @@ class DailyExpenseController extends Controller
         // GRAND TOTAL
         // -----------------------------
         $totalAmount = $expenses->sum('amount');
+        $cashEntries = DailyCashEntry::whereBetween('created_at', [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+            ])
+            ->orderByDesc('created_at')
+            ->get();
+        $monthlyExpenseTotal = DailyExpense::whereBetween('created_at', [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+            ])
+            ->sum('amount');
+        $totalCash = $cashEntries->sum('amount');
+        $cashUsagePercent = $totalCash > 0 ? min(100, round(($monthlyExpenseTotal / $totalCash) * 100, 2)) : 0;
+        $cashRemaining = $totalCash - $monthlyExpenseTotal;
 
         // -----------------------------
         // DATE-WISE GROUPING
@@ -78,7 +96,12 @@ class DailyExpenseController extends Controller
             'totalAmount',
             'settings',
             'from',
-            'to'
+            'to',
+            'cashEntries',
+            'monthlyExpenseTotal',
+            'totalCash',
+            'cashUsagePercent',
+            'cashRemaining'
         ));
     }
 
@@ -132,5 +155,51 @@ class DailyExpenseController extends Controller
         return redirect()
             ->route('admin.daily-expenses.index')
             ->with('success', __('Expense deleted successfully.'));
+    }
+
+    public function storeCash(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        DailyCashEntry::create([
+            'title' => $request->title,
+            'amount' => $request->amount,
+            'created_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.daily-expenses.index')
+            ->with('success', __('Cash entry added successfully.'));
+    }
+
+    public function updateCash(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $cashEntry = DailyCashEntry::findOrFail($id);
+        $cashEntry->update([
+            'title' => $request->title,
+            'amount' => $request->amount,
+        ]);
+
+        return redirect()
+            ->route('admin.daily-expenses.index')
+            ->with('success', __('Cash entry updated successfully.'));
+    }
+
+    public function destroyCash($id)
+    {
+        $cashEntry = DailyCashEntry::findOrFail($id);
+        $cashEntry->delete();
+
+        return redirect()
+            ->route('admin.daily-expenses.index')
+            ->with('success', __('Cash entry deleted successfully.'));
     }
 }
