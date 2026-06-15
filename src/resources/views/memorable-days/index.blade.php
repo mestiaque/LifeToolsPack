@@ -18,15 +18,19 @@
 <meta name="md-delete-base" content="{{ url('/admin/memorable-days') }}">
 
 {{-- ── TOP CONTROLS ── --}}
-<div class="md-controls">
-  <div class="md-search-wrap">
-    <i class="fas fa-search md-search-icon"></i>
-    <input id="md-search" type="text" class="md-search" placeholder="@lang('Search by title, category or tag…')">
+<form action="#" class="glass-search-form">
+  <div class="row">
+    <div class="md-controls glass-">
+      <div class="md-search-wrap">
+        <i class="fas fa-search md-search-icon"></i>
+        <input id="md-search" type="text" class="md-search text-dark" placeholder="@lang('Search by title, category or tag…')">
+      </div>
+      <div class="md-filter-chips" id="md-chips">
+        <button class="md-chip active" data-cat="">@lang('All')</button>
+      </div>
+    </div>
   </div>
-  <div class="md-filter-chips" id="md-chips">
-    <button class="md-chip active" data-cat="">@lang('All')</button>
-  </div>
-</div>
+</form>
 
 {{-- ── CARD GRID ── --}}
 <div id="md-grid" class="md-grid"></div>
@@ -122,7 +126,7 @@
           <div class="mt-3">
             <label class="md-label">@lang('Tags') <small class="text-muted">(@lang('press Enter to add'))</small></label>
             <div class="md-tag-input-wrap" id="md-tag-wrap">
-              <input type="text" id="md-tag-input" placeholder="@lang('add a tag…')">
+              <input type="text" id="md-tag-input" class="text-dark" placeholder="@lang('add a tag…')">
             </div>
             <input type="hidden" id="md-tags" name="tags">
           </div>

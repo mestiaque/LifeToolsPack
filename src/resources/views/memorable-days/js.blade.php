@@ -425,7 +425,7 @@
     const pills = tagsList.map((t, i) =>
       `<span class="md-tag-pill">${esc(t)}<button type="button" data-i="${i}">✕</button></span>`
     );
-    tagWrap.innerHTML = pills.join('') + `<input type="text" id="md-tag-input" placeholder="add a tag…">`;
+    tagWrap.innerHTML = pills.join('') + `<input type="text" id="md-tag-input" class="text-dark" placeholder="add a tag…">`;
     tagWrap.querySelector('input').addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ',') && e.target.value.trim()) {
         e.preventDefault();
