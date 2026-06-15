@@ -89,13 +89,22 @@ return [
         'sl'         => 6,
     ],
     [
+        'title'      => 'Memorable Days',
+        'icon'       => 'fas fa-book',
+        'icon_color' => 'icc-51',
+        'route'      => 'admin.memorable-days.index',
+        'permit'     => 'memorable_day.show',
+        'for_active' => 'admin.memorable-days',
+        'sl'         => 7,
+    ],
+    [
         'title'      => 'Messages',
         'icon'       => 'fas fa-envelope',
         'icon_color' => 'icc-55',
         'route'      => 'admin.messages.index',
         'permit'     => 'message.show',
         'for_active' => 'admin.messages',
-        'sl'         => 7,
+        'sl'         => 8,
     ],
     [
         'title'      => 'Events',

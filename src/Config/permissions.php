@@ -69,5 +69,9 @@ return [
         "title" => "Notify Person",
         "actions" => "view,create,edit,delete",
     ],
-    
+    "memorable_day" => [
+        "title" => "Memorable Days",
+        "actions" => "show,create,edit,delete",
+    ],
+
 ];

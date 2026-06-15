@@ -8,6 +8,7 @@ use ME\EmCore\Http\Controllers\DiskController;
 use ME\EmCore\Http\Controllers\LinkController;
 use ME\EmCore\Http\Controllers\DriveController;
 use ME\EmCore\Http\Controllers\EventController;
+use ME\EmCore\Http\Controllers\MemorableDayController;
 use ME\EmCore\Http\Controllers\EventExpenseController;
 use ME\EmCore\Http\Controllers\FrontController;
 use ME\EmCore\Http\Controllers\GalleryController;
@@ -156,6 +157,12 @@ Route::middleware(['web'])->group(function () {
             Route::delete('/notes/{note}', [NoteController::class, 'destroy']);
 
             Route::resource('links', LinkController::class)->except(['show', 'create', 'edit']);
+
+            Route::get('/memorable-days', [MemorableDayController::class, 'index'])->name('memorable-days.index');
+            Route::get('/memorable-days/list', [MemorableDayController::class, 'list'])->name('memorable-days.list');
+            Route::post('/memorable-days', [MemorableDayController::class, 'store'])->name('memorable-days.store');
+            Route::post('/memorable-days/{memorableDay}', [MemorableDayController::class, 'update'])->name('memorable-days.update');
+            Route::delete('/memorable-days/{memorableDay}', [MemorableDayController::class, 'destroy'])->name('memorable-days.destroy');
             Route::resource('notify-people', NotifyPersonController::class)->except(['show', 'create', 'edit']);
 
         });
