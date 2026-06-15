@@ -27,47 +27,50 @@
     travel      : { emoji: '✈️', grad: 'linear-gradient(135deg,#43e97b,#38f9d7)' },
     achievement : { emoji: '🏆', grad: 'linear-gradient(135deg,#f6d365,#fda085)' },
     health      : { emoji: '💪', grad: 'linear-gradient(135deg,#84fab0,#8fd3f4)' },
+    grief       : { emoji: '🕯️', grad: 'linear-gradient(135deg,#4a4a6a,#9b8fa6)' },
     other       : { emoji: '⭐', grad: 'linear-gradient(135deg,#667eea,#764ba2)' },
     ''          : { emoji: '✨', grad: 'linear-gradient(135deg,#667eea,#764ba2)' },
   };
 
   function catCfg(cat) { return CAT[cat] ?? CAT['']; }
 
-  /* ── Proximity helper ── */
-  function proximity(dateStr) {
+  /* ── Next annual occurrence (month/day only, year-independent) ──
+     Returns the nearest future date with the same month & day.
+     If this year's occurrence has already passed, returns next year's. */
+  function getNextOccurrence(dateStr) {
     const today = new Date(); today.setHours(0,0,0,0);
-    const d     = parseLocalDate(dateStr);
-    if (!d || isNaN(d)) return { label: '—', cls: 'prox-past' };
-    d.setHours(0,0,0,0);
-    const diff  = Math.round((d - today) / 86400000);
-    if (diff === 0) return { label: '🎉 Today!',      cls: 'prox-today' };
-    if (diff === 1) return { label: '⏰ Tomorrow',    cls: 'prox-soon' };
-    if (diff > 1 && diff <= 7)  return { label: `⏰ In ${diff} days`,  cls: 'prox-soon' };
-    if (diff > 7 && diff <= 30) return { label: `📅 In ${Math.round(diff/7)}w`,  cls: 'prox-upcoming' };
-    if (diff > 30) {
-      const m = Math.round(diff/30);
-      return { label: `📅 In ${m} mo`, cls: 'prox-future' };
-    }
-    if (diff === -1) return { label: '📖 Yesterday', cls: 'prox-past' };
-    const abs = Math.abs(diff);
-    if (abs < 30)  return { label: `📖 ${abs}d ago`,  cls: 'prox-past' };
-    if (abs < 365) return { label: `📖 ${Math.round(abs/30)}mo ago`, cls: 'prox-past' };
-    return { label: `📖 ${Math.round(abs/365)}yr ago`, cls: 'prox-past' };
+    const d = parseLocalDate(dateStr);
+    if (!d || isNaN(d)) return null;
+
+    const thisYear = new Date(today.getFullYear(), d.getMonth(), d.getDate());
+    return thisYear >= today
+      ? thisYear
+      : new Date(today.getFullYear() + 1, d.getMonth(), d.getDate());
   }
 
-  /* ── Sort: upcoming first (nearest), then past (most recent) ── */
-  function sortByProximity(days) {
+  /* ── Proximity: "কতদিন পরে এই event আবার আসবে" ── */
+  function proximity(dateStr) {
     const today = new Date(); today.setHours(0,0,0,0);
+    const next  = getNextOccurrence(dateStr);
+    if (!next) return { label: '—', cls: 'prox-past' };
+
+    const diff = Math.round((next - today) / 86400000);
+
+    if (diff === 0) return { label: '🎉 Today!',        cls: 'prox-today' };
+    if (diff === 1) return { label: '⏰ Tomorrow',       cls: 'prox-soon' };
+    if (diff <= 7)  return { label: `⏰ In ${diff} days`, cls: 'prox-soon' };
+    if (diff <= 30) return { label: `📅 In ${Math.round(diff/7)}w`, cls: 'prox-upcoming' };
+    const months = Math.round(diff / 30);
+    if (months < 12) return { label: `📅 In ${months} mo`, cls: 'prox-future' };
+    return { label: '📅 In ~1 yr', cls: 'prox-future' };
+  }
+
+  /* ── Sort by next annual occurrence (nearest first) ── */
+  function sortByProximity(days) {
     return [...days].sort((a, b) => {
-      const da = parseLocalDate(a.event_date) || new Date(0);
-      const db = parseLocalDate(b.event_date) || new Date(0);
-      da.setHours(0,0,0,0); db.setHours(0,0,0,0);
-      const da_ = (da - today) / 86400000;
-      const db_ = (db - today) / 86400000;
-      if (da_ >= 0 && db_ <  0) return -1;
-      if (da_ <  0 && db_ >= 0) return  1;
-      if (da_ >= 0 && db_ >= 0) return da_ - db_;
-      return Math.abs(da_) - Math.abs(db_);
+      const na = getNextOccurrence(a.event_date) || new Date(9999, 0, 1);
+      const nb = getNextOccurrence(b.event_date) || new Date(9999, 0, 1);
+      return na - nb;
     });
   }
 

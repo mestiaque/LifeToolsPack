@@ -90,6 +90,7 @@
                 <option value="travel">✈️ @lang('Travel')</option>
                 <option value="achievement">🏆 @lang('Achievement')</option>
                 <option value="health">💪 @lang('Health')</option>
+                <option value="grief">🕯️ @lang('Grief')</option>
                 <option value="other">⭐ @lang('Other')</option>
               </select>
             </div>
