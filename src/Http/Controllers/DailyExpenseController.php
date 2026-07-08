@@ -117,10 +117,10 @@ class DailyExpenseController extends Controller
             'created_at'  => 'nullable|string',
         ]);
 
-        DailyExpense::create($request->all());
+        DailyExpense::create($request->except('redirect_to'));
 
         return redirect()
-            ->route('admin.daily-expenses.index')
+            ->to($request->input('redirect_to') ?: route('admin.daily-expenses.index'))
             ->with('success', __('Expense added successfully.'));
     }
 

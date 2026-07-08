@@ -33,6 +33,10 @@ return [
         "title" => "Daily Expense",
         "actions" => "show.create,edit,delete",
     ],
+    "paycycle" => [
+        "title" => "PayCycle",
+        "actions" => "show,create,edit,delete",
+    ],
     "gallery" => [
         "title" => "Gallery",
         "actions" => "show,create,privacy,delete",

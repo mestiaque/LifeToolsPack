@@ -18,6 +18,7 @@ use ME\EmCore\Http\Controllers\LoanUserController;
 use ME\EmCore\Http\Controllers\MessageController;
 use ME\EmCore\Http\Controllers\NotifyPersonController;
 use ME\EmCore\Http\Controllers\NoteController;
+use ME\EmCore\Http\Controllers\PayCycleController;
 use ME\EmCore\Http\Controllers\RoleController;
 use ME\EmCore\Http\Controllers\SettingController;
 use ME\EmCore\Http\Controllers\UserController;
@@ -75,6 +76,12 @@ Route::middleware(['web'])->group(function () {
             Route::put('daily-expenses/cash/{id}', [DailyExpenseController::class, 'updateCash'])->name('daily-expenses.cash.update');
             Route::delete('daily-expenses/cash/{id}', [DailyExpenseController::class, 'destroyCash'])->name('daily-expenses.cash.destroy');
             Route::resource('daily-expenses', DailyExpenseController::class);
+
+            // PayCycle routes
+            Route::get('/paycycle', [PayCycleController::class, 'index'])->name('paycycle.index');
+            Route::post('/paycycle', [PayCycleController::class, 'store'])->name('paycycle.store');
+            Route::put('/paycycle/{id}', [PayCycleController::class, 'update'])->name('paycycle.update');
+            Route::delete('/paycycle/{id}', [PayCycleController::class, 'destroy'])->name('paycycle.destroy');
             Route::resource('disks', DiskController::class);
             Route::resource('messages', MessageController::class)->except(['show']);
             Route::post('messages/{message}/read', [MessageController::class, 'read'])->name('messages.read');

@@ -4,7 +4,7 @@
 
 @push('buttons')
   <a href="{{ route('admin.loans.index') }}" class="btn btn-sm btn-encodex-list">
-      <i class="fas fa-list"></i> @lang('Back to Loans')
+      <i class="fas fa-list"></i> <span class="hide-mobile">@lang('Back to Loans')</span>
   </a>
 @endpush
 
@@ -14,7 +14,7 @@
 <div class="row mb-4">
     <div class="col-md-12">
         <div class="card shadow border-left-primary">
-            <div class="card-header bg-encodex-secondary text-white p-3">
+            <div class="card-header bg-encodex-secondary text-white p-2">
                 <h5 class="mb-0">{{ $loanUser->name ?? '-' }} - @lang('Loan Statement')</h5>
             </div>
             <div class="card-body">
@@ -93,11 +93,84 @@
     </div>
 </div>
 
+<!-- Installment Schedules -->
+@php
+    $loansWithSchedule = $loans->filter(fn ($loan) => max((int) ($loan->installment ?? 1), 1) > 1);
+@endphp
+@if($loansWithSchedule->count() > 0)
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-encodex-secondary text-white p-2">
+                    <h5 class="mb-0">@lang('Installment Schedules')</h5>
+                </div>
+                <div class="card-body">
+                    @foreach($loansWithSchedule as $loan)
+                        @php
+                            $installmentCount = max((int) ($loan->installment ?? 1), 1);
+                            $completedInstallments = min(max((int) ($loan->completed_installments ?? 0), 0), $installmentCount);
+                            $baseDate = \Carbon\Carbon::parse($loan->date);
+                            $installmentAmount = $loan->amount / $installmentCount;
+                            $savedDates = is_array($loan->installment_expected_dates) ? $loan->installment_expected_dates : [];
+                            $savedAmounts = is_array($loan->installment_amounts) ? $loan->installment_amounts : [];
+                            $today = \Carbon\Carbon::today();
+                        @endphp
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">
+                                {{ $loan->date }} &middot;
+                                @if($loan->type == 'given')
+                                    <span class="badge bg-success">@lang('Given')</span>
+                                @else
+                                    <span class="badge bg-danger">@lang('Taken')</span>
+                                @endif
+                                &middot; {{ toBanglaNumber($loan->amount, 2) }}
+                                @if($loan->note) &middot; {{ $loan->note }} @endif
+                            </small>
+                            <a href="{{ route('admin.loans.history', $loan->id) }}" class="btn btn-sm btn-encodex-show">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                        <div class="border rounded p-3 mb-4">
+                            <div class="installment-line-wrap">
+                                <div class="installment-line-track"></div>
+                                <div class="installment-line-points" style="grid-template-columns: repeat({{ $installmentCount }}, minmax(70px, 1fr));">
+                                    @for ($i = 1; $i <= $installmentCount; $i++)
+                                        @php
+                                            $expectedDate = !empty($savedDates[$i - 1])
+                                                ? \Carbon\Carbon::parse($savedDates[$i - 1])
+                                                : $baseDate->copy()->addMonths($i);
+                                            $amountForItem = is_numeric($savedAmounts[$i - 1] ?? null)
+                                                ? (float) $savedAmounts[$i - 1]
+                                                : $installmentAmount;
+                                            if ($i <= $completedInstallments) {
+                                                $statusClass = 'done';
+                                            } elseif ($expectedDate->lt($today)) {
+                                                $statusClass = 'expired';
+                                            } else {
+                                                $statusClass = 'pending';
+                                            }
+                                        @endphp
+                                        <div class="installment-line-item text-center">
+                                            <div class="installment-line-amount">{{ toBanglaNumber($amountForItem, 2) }}</div>
+                                            <div class="installment-line-dot installment-line-dot-{{ $statusClass }}" title="{{ ucfirst($statusClass) }}"></div>
+                                            <div class="installment-line-date">{{ $expectedDate->format('Y-m-d') }}</div>
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 <!-- Transaction Statement -->
 <div class="row">
     <div class="col-md-12">
         <div class="card shadow">
-            <div class="card-header bg-encodex-secondary text-white p-3 d-flex justify-content-between align-items-center">
+            <div class="card-header bg-encodex-secondary text-white p-2 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">@lang('Transaction History')</h5>
             </div>
             <div class="card-body">
@@ -265,6 +338,8 @@
     </div>
 </div>
 
+
+
 @push('css')
   <style>
     .bg-success-light {
@@ -272,6 +347,64 @@
     }
     .bg-danger-light {
       background: rgba(244, 67, 54, 0.1) !important;
+    }
+
+    .installment-line-wrap {
+        --dot-size: 16px;
+        --amount-space: 22px;
+        position: relative;
+        padding: 8px;
+    }
+    .installment-line-track {
+        position: absolute;
+        top: calc(8px + var(--amount-space) + (var(--dot-size) / 2));
+        left: 14px;
+        right: 14px;
+        height: 2px;
+        background: #d1d5db;
+        z-index: 1;
+    }
+    .installment-line-points {
+        display: grid;
+        gap: 0;
+        position: relative;
+        z-index: 2;
+    }
+    .installment-line-item {
+        min-width: 0;
+        position: relative;
+        padding-top: var(--amount-space);
+    }
+    .installment-line-amount {
+        font-size: 12px;
+        font-weight: 600;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+    .installment-line-dot {
+        width: var(--dot-size);
+        height: var(--dot-size);
+        border-radius: 50%;
+        margin: 0 auto;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 1px rgba(31, 41, 55, 0.45), 0 0 0 4px rgba(255, 255, 255, 0.85);
+    }
+    .installment-line-dot-done {
+        background: #22c55e;
+    }
+    .installment-line-dot-pending {
+        background: #eab308;
+    }
+    .installment-line-dot-expired {
+        background: #ef4444;
+    }
+    .installment-line-date {
+        font-size: 11px;
+        margin-top: 8px;
+        white-space: nowrap;
     }
   </style>
 @endpush

@@ -481,7 +481,9 @@ class LoanController extends Controller
         $payload = array_merge($payload, $this->buildInstallmentSchedulePayload($request));
         $loan = Loan::create($payload);
 
-        return redirect()->route('admin.loans.index')->with('success', __('Loan created successfully.'));
+        return redirect()
+            ->to($request->input('redirect_to') ?: route('admin.loans.index'))
+            ->with('success', __('Loan created successfully.'));
     }
 
     // Edit loan form

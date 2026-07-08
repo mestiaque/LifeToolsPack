@@ -62,6 +62,15 @@ return [
 
 
     [
+        'title'      => 'PayCycle',
+        'icon'       => 'fas fa-wallet',
+        'icon_color' => 'icc-11',
+        'route'      => 'admin.paycycle.index',
+        'permit'     => 'paycycle.show',
+        'for_active' => 'admin.paycycle',
+        'sl'         => 4,
+    ],
+    [
         'title'      => 'Drive',
         'icon'       => 'fas fa-hdd',
         'icon_color' => 'icc-21',
