@@ -10,80 +10,82 @@
 
 @section('content')
 
+@php
+    $isReceivable = $netBalance > 0;
+    $totalPrincipalAll = $totalGivenAmount + $totalTakenAmount;
+    $totalRepaidAll = $totalGivenRepayment + $totalTakenRepayment;
+    $totalDueAll = $totalGivenDue + $totalTakenDue;
+    $repaidPercent = $totalPrincipalAll > 0 ? round(($totalRepaidAll / $totalPrincipalAll) * 100, 1) : 0;
+    $duePercent = $totalPrincipalAll > 0 ? round(100 - $repaidPercent, 1) : 0;
+@endphp
+
 <!-- User Summary Section -->
-<div class="row mb-4">
+<div class="row mb-3">
     <div class="col-md-12">
         <div class="card shadow border-left-primary">
-            <div class="card-header bg-encodex-secondary text-white p-2">
-                <h5 class="mb-0">{{ $loanUser->name ?? '-' }} - @lang('Loan Statement')</h5>
+            <div class="card-header bg-encodex-secondary text-white p-2 d-flex justify-content-between align-items-center flex-wrap gap-1">
+                <h6 class="mb-0">{{ $loanUser->name ?? '-' }} - @lang('Loan Statement')</h6>
+                @if($netBalance == 0)
+                    <span class="badge bg-light text-dark">@lang('Settled')</span>
+                @elseif($isReceivable)
+                    <span class="badge bg-success">@lang('Receivable'): {{ toBanglaNumber(abs($netBalance), 2) }}</span>
+                @else
+                    <span class="badge bg-danger">@lang('Payable'): {{ toBanglaNumber(abs($netBalance), 2) }}</span>
+                @endif
             </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <!-- Total Given -->
-                    <div class="col-md-2">
-                        <div class="border rounded p-3">
-                            <small class="text-muted d-block">@lang('Total Given')</small>
-                            <h6 class="fw-bold mb-0">{{ toBanglaNumber($totalGivenAmount, 2) }}</h6>
+            <div class="card-body py-2">
+                <div class="row g-2 align-items-center">
+                    <div class="col-lg-8">
+                        <div class="row g-2 text-center">
+                            <div class="col-4 col-lg-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted d-block loan-stat-label">@lang('Given')</small>
+                                    <div class="fw-bold small">{{ toBanglaNumber($totalGivenAmount, 2) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-lg-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted d-block loan-stat-label">@lang('Given Repaid')</small>
+                                    <div class="fw-bold small">{{ toBanglaNumber($totalGivenRepayment, 2) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-lg-2">
+                                <div class="border rounded p-2 bg-success-light">
+                                    <small class="text-muted d-block loan-stat-label">@lang('Given Due')</small>
+                                    <div class="fw-bold small text-success">{{ toBanglaNumber($totalGivenDue, 2) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-lg-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted d-block loan-stat-label">@lang('Taken')</small>
+                                    <div class="fw-bold small">{{ toBanglaNumber($totalTakenAmount, 2) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-lg-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted d-block loan-stat-label">@lang('Taken Repaid')</small>
+                                    <div class="fw-bold small">{{ toBanglaNumber($totalTakenRepayment, 2) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-lg-2">
+                                <div class="border rounded p-2 bg-danger-light">
+                                    <small class="text-muted d-block loan-stat-label">@lang('Taken Due')</small>
+                                    <div class="fw-bold small text-danger">{{ toBanglaNumber($totalTakenDue, 2) }}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Total Given Repayment -->
-                    <div class="col-md-2">
-                        <div class="border rounded p-3">
-                            <small class="text-muted d-block">@lang('Given Repayment')</small>
-                            <h6 class="fw-bold mb-0">{{ toBanglaNumber($totalGivenRepayment, 2) }}</h6>
-                        </div>
-                    </div>
-
-                    <!-- Given Due -->
-                    <div class="col-md-2">
-                        <div class="border rounded p-3 bg-success-light">
-                            <small class="text-muted d-block">@lang('Given Due')</small>
-                            <h6 class="fw-bold text-success mb-0">{{ toBanglaNumber($totalGivenDue, 2) }}</h6>
-                        </div>
-                    </div>
-
-                    <!-- Total Taken -->
-                    <div class="col-md-2">
-                        <div class="border rounded p-3">
-                            <small class="text-muted d-block">@lang('Total Taken')</small>
-                            <h6 class="fw-bold mb-0">{{ toBanglaNumber($totalTakenAmount, 2) }}</h6>
-                        </div>
-                    </div>
-
-                    <!-- Total Taken Repayment -->
-                    <div class="col-md-2">
-                        <div class="border rounded p-3">
-                            <small class="text-muted d-block">@lang('Taken Repayment')</small>
-                            <h6 class="fw-bold mb-0">{{ toBanglaNumber($totalTakenRepayment, 2) }}</h6>
-                        </div>
-                    </div>
-
-                    <!-- Taken Due -->
-                    <div class="col-md-2">
-                        <div class="border rounded p-3 bg-danger-light">
-                            <small class="text-muted d-block">@lang('Taken Due')</small>
-                            <h6 class="fw-bold text-danger mb-0">{{ toBanglaNumber($totalTakenDue, 2) }}</h6>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Net Balance -->
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <div class="border-top pt-3">
-                            <div class="text-center">
-                                <h6 class="text-muted">@lang('Net Balance')</h6>
-                                @php
-                                    $isReceivable = $netBalance > 0;
-                                @endphp
-                                @if($netBalance == 0)
-                                    <h4 class="fw-bold"><span class="badge bg-secondary">@lang('Settled')</span></h4>
-                                @elseif($isReceivable)
-                                    <h4 class="fw-bold"><span class="badge bg-success">@lang('Receivable'): {{ toBanglaNumber(abs($netBalance), 2) }}</span></h4>
-                                @else
-                                    <h4 class="fw-bold"><span class="badge bg-danger">@lang('Payable'): {{ toBanglaNumber(abs($netBalance), 2) }}</span></h4>
-                                @endif
+                    <div class="col-lg-4">
+                        <div class="d-flex align-items-center justify-content-center gap-3">
+                            <div class="loan-donut" style="--repaid: {{ $repaidPercent }};">
+                                <div class="loan-donut-center">
+                                    <span class="fw-bold">{{ $repaidPercent }}%</span>
+                                    <small class="text-muted loan-stat-label">@lang('Repaid')</small>
+                                </div>
+                            </div>
+                            <div class="small">
+                                <div><span class="loan-legend-dot" style="background:#22c55e;"></span> @lang('Repaid'): {{ $repaidPercent }}%</div>
+                                <div><span class="loan-legend-dot" style="background:#ef4444;"></span> @lang('Due'): {{ $duePercent }}%</div>
                             </div>
                         </div>
                     </div>
@@ -117,14 +119,14 @@
                         @endphp
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <small class="text-muted">
-                                {{ $loan->date }} &middot;
+                                {{ $loan->date }} &blk34;
                                 @if($loan->type == 'given')
                                     <span class="badge bg-success">@lang('Given')</span>
                                 @else
                                     <span class="badge bg-danger">@lang('Taken')</span>
                                 @endif
-                                &middot; {{ toBanglaNumber($loan->amount, 2) }}
-                                @if($loan->note) &middot; {{ $loan->note }} @endif
+                                &blk34; {{ toBanglaNumber($loan->amount, 2) }}
+                                @if($loan->note) &blk34; {{ $loan->note }} @endif
                             </small>
                             <a href="{{ route('admin.loans.history', $loan->id) }}" class="btn btn-sm btn-encodex-show">
                                 <i class="fas fa-eye"></i>
@@ -347,6 +349,38 @@
     }
     .bg-danger-light {
       background: rgba(244, 67, 54, 0.1) !important;
+    }
+
+    .loan-stat-label {
+        font-size: 10px;
+    }
+
+    .loan-donut {
+        --size: 84px;
+        width: var(--size);
+        height: var(--size);
+        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+        background: conic-gradient(#22c55e calc(var(--repaid) * 1%), #ef4444 0);
+    }
+    .loan-donut-center {
+        position: absolute;
+        inset: 10px;
+        background: #fff;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.1;
+    }
+    .loan-legend-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
     }
 
     .installment-line-wrap {
