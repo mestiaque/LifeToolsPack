@@ -12,4 +12,5 @@
         </form>
     </div>
 </div>
+@include('me::components.calculator')
 @endsection

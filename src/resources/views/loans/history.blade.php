@@ -191,7 +191,7 @@
         </div>
     </div>
 </div>
-
+@include('me::components.calculator')
 @push('css')
 <style>
     .installment-line-wrap {
@@ -321,4 +321,5 @@
     });
 </script>
 @endpush
+
 @endsection

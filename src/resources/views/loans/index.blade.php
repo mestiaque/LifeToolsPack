@@ -367,6 +367,7 @@
         </div>
     </div>
   @endforeach
+  @include('me::components.calculator')
 @endsection
 
 

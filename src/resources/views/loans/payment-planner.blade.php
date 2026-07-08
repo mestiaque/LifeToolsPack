@@ -138,6 +138,7 @@
         @endforeach
     </div>
 </div>
+@include('me::components.calculator')
 @endsection
 
 @push('css')

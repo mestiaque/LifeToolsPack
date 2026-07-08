@@ -442,5 +442,5 @@
     }
   </style>
 @endpush
-
+@include('me::components.calculator')
 @endsection
