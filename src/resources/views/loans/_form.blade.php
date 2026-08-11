@@ -132,7 +132,7 @@
 </div>
 <div class="form-group row">
     <div class="col-sm-9 offset-sm-3 text-end">
-        <a href="{{ route('admin.loans.index') }}" class="btn btn-encodex-cancel btn-sm py-2 me-2">@lang('Cancel')</a>
+        <a href="{{ $redirectTo ?? route('admin.loans.index') }}" class="btn btn-encodex-cancel btn-sm py-2 me-2">@lang('Cancel')</a>
         <button type="submit" class="btn btn-encodex-save btn-sm">
             {{ isset($loan) ? __('Update Loan') : __('Create Loan') }}
         </button>

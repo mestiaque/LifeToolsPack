@@ -16,7 +16,7 @@ use App\Http\Middleware\AuthorizationMiddleware;
 
 class LoanController extends Controller
 {
-    private const AUTO_INSTALLMENT_REPAYMENT_NOTE = '[AUTO_INSTALLMENT_REPAYMENT]';
+    private const AUTO_INSTALLMENT_NOTE_PREFIX = '[AUTO_INSTALLMENT_REPAYMENT';
 
     public function __construct()
     {
@@ -533,61 +533,80 @@ class LoanController extends Controller
         });
 
 
-        return redirect()->route('admin.loans.index')->with('success', __('Loan updated successfully.'));
+        return redirect()
+            ->to($request->input('redirect_to') ?: route('admin.loans.index'))
+            ->with('success', __('Loan updated successfully.'));
     }
 
+    // Creates one repayment row per checked installment (dated on its expected date),
+    // instead of a single row summing every checked installment together.
     private function syncAutoInstallmentRepayment(Loan $loan, array $payload, array $doneInstallments): void
     {
         $installmentAmounts = is_array($payload['installment_amounts'] ?? null) ? $payload['installment_amounts'] : [];
-        $autoInstallmentAmount = 0.0;
-
-        foreach ($doneInstallments as $installmentNo) {
-            $idx = ((int) $installmentNo) - 1;
-            $amount = $installmentAmounts[$idx] ?? 0;
-            if (is_numeric($amount)) {
-                $autoInstallmentAmount += (float) $amount;
-            }
-        }
-
-        $autoInstallmentAmount = round($autoInstallmentAmount, 2);
+        $installmentDates = is_array($payload['installment_expected_dates'] ?? null) ? $payload['installment_expected_dates'] : [];
 
         $manualRepaymentTotal = (float) Repayment::where('loan_id', $loan->id)
             ->where(function ($query) {
                 $query->whereNull('note')
-                    ->orWhere('note', '!=', self::AUTO_INSTALLMENT_REPAYMENT_NOTE);
+                    ->orWhere('note', 'not like', self::AUTO_INSTALLMENT_NOTE_PREFIX . '%');
             })
             ->sum('amount');
 
         $loanAmount = (float) ($payload['amount'] ?? $loan->amount ?? 0);
-        $maxAutoInstallmentAmount = max($loanAmount - $manualRepaymentTotal, 0);
-        $finalAutoAmount = round(min($autoInstallmentAmount, $maxAutoInstallmentAmount), 2);
+        $remainingForAuto = max($loanAmount - $manualRepaymentTotal, 0);
 
-        $autoRepayment = Repayment::where('loan_id', $loan->id)
-            ->where('note', self::AUTO_INSTALLMENT_REPAYMENT_NOTE)
-            ->first();
+        $existingAutoRepayments = Repayment::where('loan_id', $loan->id)
+            ->where('note', 'like', self::AUTO_INSTALLMENT_NOTE_PREFIX . '%')
+            ->get()
+            ->keyBy(fn ($repayment) => $this->extractInstallmentNoFromNote($repayment->note));
 
-        if ($finalAutoAmount <= 0) {
-            if ($autoRepayment) {
-                $autoRepayment->delete();
+        sort($doneInstallments);
+
+        $runningTotal = 0.0;
+        $keepInstallmentNos = [];
+
+        foreach ($doneInstallments as $installmentNo) {
+            $idx = ((int) $installmentNo) - 1;
+            $rawAmount = $installmentAmounts[$idx] ?? 0;
+            $amount = is_numeric($rawAmount) ? (float) $rawAmount : 0;
+            $amount = round(min($amount, max($remainingForAuto - $runningTotal, 0)), 2);
+
+            if ($amount <= 0) {
+                continue;
             }
 
-            return;
+            $runningTotal += $amount;
+            $keepInstallmentNos[] = $installmentNo;
+
+            $repaymentPayload = [
+                'loan_user_id' => $payload['loan_user_id'] ?? $loan->loan_user_id,
+                'amount' => $amount,
+                'date' => $installmentDates[$idx] ?? Carbon::today()->format('Y-m-d'),
+                'note' => self::AUTO_INSTALLMENT_NOTE_PREFIX . ":{$installmentNo}]",
+            ];
+
+            if ($existingAutoRepayments->has($installmentNo)) {
+                $existingAutoRepayments->get($installmentNo)->update($repaymentPayload);
+            } else {
+                $repaymentPayload['loan_id'] = $loan->id;
+                Repayment::create($repaymentPayload);
+            }
         }
 
-        $autoPayload = [
-            'loan_user_id' => $payload['loan_user_id'] ?? $loan->loan_user_id,
-            'amount' => $finalAutoAmount,
-            'date' => Carbon::today()->format('Y-m-d'),
-            'note' => self::AUTO_INSTALLMENT_REPAYMENT_NOTE,
-        ];
+        foreach ($existingAutoRepayments as $installmentNo => $repayment) {
+            if (!in_array($installmentNo, $keepInstallmentNos, true)) {
+                $repayment->delete();
+            }
+        }
+    }
 
-        if ($autoRepayment) {
-            $autoRepayment->update($autoPayload);
-            return;
+    private function extractInstallmentNoFromNote(?string $note): ?int
+    {
+        if ($note && preg_match('/\[AUTO_INSTALLMENT_REPAYMENT:(\d+)\]/', $note, $matches)) {
+            return (int) $matches[1];
         }
 
-        $autoPayload['loan_id'] = $loan->id;
-        Repayment::create($autoPayload);
+        return null;
     }
 
     public function deleteLoan($id)

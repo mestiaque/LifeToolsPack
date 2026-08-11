@@ -4,7 +4,7 @@
 
 @push('buttons')
 {{-- <a href="{{ route('admin.loans.payment-planner') }}" class="btn btn-sm btn-encodex-list">@lang('Payment Planner')</a> --}}
-  <a href="{{ route('admin.loans.create') }}" class="btn btn-sm btn-encodex-create">@lang('Add Loan')</a>
+  <a href="{{ route('admin.loans.create') }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="btn btn-sm btn-encodex-create">@lang('Add Loan')</a>
 @endpush
 
 @section('content')
@@ -101,7 +101,7 @@
                         </button>
                         <!-- Edit Button -->
                         <a title="@lang('Edit')" class="btn btn-sm btn-encodex-edit   me-1"
-                            href="{{ route('admin.loans.edit', $loan->id) }}">
+                            href="{{ route('admin.loans.edit', $loan->id) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}">
                             <i class="fas fa-edit  "></i>
                         </a>
                         <!-- Delete Button -->
