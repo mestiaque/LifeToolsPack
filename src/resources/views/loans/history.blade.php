@@ -3,6 +3,10 @@
 @section('title', __('Loan History') . ' - ' . ($loan->loanUser->name ?? '-'))
 
 @push('buttons')
+  <a href="{{ route('admin.loans.edit', $loan->id) }}"
+     class="btn btn-sm btn-encodex-edit">
+      <i class="fas fa-edit"></i> @lang('Edit')
+  </a>
   <a href="{{ route('admin.loans.index') }}"
      class="btn btn-sm btn-encodex-list">
       <i class="fas fa-list"></i> @lang('Loan List')

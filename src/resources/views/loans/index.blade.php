@@ -63,9 +63,10 @@
                   <th>@lang('Person')</th>
                   <th>@lang('Type')</th>
                   <th>@lang('Amount')</th>
-                  <th>@lang('Total Repayment')</th>
+                  <th>@lang('Payment')</th>
                   <th>@lang('Due')</th>
                   <th>@lang('Date')</th>
+                  <th>@lang('Note')</th>
                   <th>@lang('Action')</th>
                 </tr>
               </thead>
@@ -85,6 +86,7 @@
                     <td class="text-end">{{ toBanglaNumber($loan->totalRepayment(), 2) }}</td>
                     <td class="text-end">{{ toBanglaNumber($loan->dueAmount(), 2) }}</td>
                     <td class="text-center">{{ $loan->date }}</td>
+                    <td class="text-center">{{ $loan->note }}</td>
                     <td class="">
                       <div class="d-flex justify-content-center">
                         <!-- Repayment Button -->

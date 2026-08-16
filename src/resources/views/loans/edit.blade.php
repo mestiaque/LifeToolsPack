@@ -2,6 +2,13 @@
 
 @section('title', trans('Edit Loan'))
 
+@push('buttons')
+  <a href="{{ route('admin.loans.history', $loan->id) }}"
+     class="btn btn-sm btn-encodex-payment">
+      <i class="fas fa-edit"></i> @lang('History')
+  </a>
+@endpush
+
 @section('content')
 @php
     $redirectTo = route('admin.loans.index') . (request()->getQueryString() ? '?' . request()->getQueryString() : '');
