@@ -152,6 +152,15 @@ return [
         'sl'         => 10,
     ],
     [
+        'title'      => 'Monthly Summary',
+        'icon'       => 'fas fa-chart-pie',
+        'icon_color' => 'icc-11',
+        'route'      => 'admin.monthly-financial-summaries.index',
+        'permit'     => 'monthly_financial_summary.show',
+        'for_active' => 'admin.monthly-financial-summaries',
+        'sl'         => 5,
+    ],
+    [
         'title'      => 'Notify People',
         'icon'       => 'fas fa-bell',
         'icon_color' => 'icc-2',

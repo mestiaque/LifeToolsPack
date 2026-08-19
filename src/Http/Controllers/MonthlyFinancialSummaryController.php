@@ -1,0 +1,110 @@
+<?php
+
+namespace ME\EmCore\Http\Controllers;
+
+use Carbon\Carbon;
+use ME\EmCore\Models\MonthlyFinancialSummary;
+use Illuminate\Http\Request;
+use ME\Http\Controllers\Controller;
+use App\Http\Middleware\AuthorizationMiddleware;
+
+class MonthlyFinancialSummaryController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('authorization:monthly_financial_summary.show')->only(['index']);
+        $this->middleware('authorization:monthly_financial_summary.create')->only(['store']);
+        $this->middleware('authorization:monthly_financial_summary.edit')->only(['update']);
+        $this->middleware('authorization:monthly_financial_summary.delete')->only(['destroy']);
+    }
+
+    public function index(Request $request)
+    {
+        
+        $query = MonthlyFinancialSummary::query();
+
+        if ($request->filled('month')) {
+            $query->where('month_label', $request->month);
+        } else {
+            $query->where('month_label', '>=', now()->format('Y-m'));
+        }
+
+        if ($request->filled('title')) {
+            $query->where('title', 'like', '%' . $request->title . '%');
+        }
+
+        $entries = $query->orderByDesc('month_label')
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get();
+
+        $typeLabels = [
+            'loan_payment' => __('Loan Payment'),
+            'expense' => __('Expense'),
+        ];
+
+        $groupedEntries = $entries
+            ->groupBy(fn ($item) => $item->month_label . '|' . $item->type)
+            ->map(function ($items) use ($typeLabels) {
+                $first = $items->first();
+                $monthDisplay = Carbon::createFromFormat('Y-m', $first->month_label)->format('M y');
+                $typeLabel = $typeLabels[$first->type] ?? ucfirst(str_replace('_', ' ', $first->type));
+
+                return [
+                    'month_label' => $first->month_label,
+                    'type' => $first->type,
+                    'card_title' =>  $monthDisplay,
+                    'items' => $items,
+                    'total' => $items->sum('amount'),
+                ];
+            })
+            ->sortBy('month_label')
+            ->values();
+
+        return view('em_core::monthly-financial-summaries.index', compact('groupedEntries'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'month_label' => 'required|date_format:Y-m',
+            'type' => 'required|string|max:50',
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric',
+            'date' => 'nullable|date',
+            'note' => 'nullable|string',
+        ]);
+
+        MonthlyFinancialSummary::create($request->all());
+
+        return redirect()->route('admin.monthly-financial-summaries.index')
+            ->with('success', __('Entry added successfully.'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $entry = MonthlyFinancialSummary::findOrFail($id);
+
+        $request->validate([
+            'month_label' => 'required|date_format:Y-m',
+            'type' => 'required|string|max:50',
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric',
+            'date' => 'nullable|date',
+            'note' => 'nullable|string',
+        ]);
+
+        $entry->update($request->all());
+
+        return redirect()->route('admin.monthly-financial-summaries.index')
+            ->with('success', __('Entry updated successfully.'));
+    }
+
+    public function destroy($id)
+    {
+        MonthlyFinancialSummary::findOrFail($id)->delete();
+
+        return redirect()->route('admin.monthly-financial-summaries.index')
+            ->with('success', __('Entry deleted successfully.'));
+    }
+}

@@ -77,5 +77,9 @@ return [
         "title" => "Memorable Days",
         "actions" => "show,create,edit,delete",
     ],
+    "monthly_financial_summary" => [
+        "title" => "Monthly Financial Summary",
+        "actions" => "show,create,edit,delete",
+    ],
 
 ];

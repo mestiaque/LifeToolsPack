@@ -16,6 +16,7 @@ use ME\EmCore\Http\Controllers\HerCycleController;
 use ME\EmCore\Http\Controllers\LoanController;
 use ME\EmCore\Http\Controllers\LoanUserController;
 use ME\EmCore\Http\Controllers\MessageController;
+use ME\EmCore\Http\Controllers\MonthlyFinancialSummaryController;
 use ME\EmCore\Http\Controllers\NotifyPersonController;
 use ME\EmCore\Http\Controllers\NoteController;
 use ME\EmCore\Http\Controllers\PayCycleController;
@@ -164,6 +165,9 @@ Route::middleware(['web'])->group(function () {
             Route::delete('/notes/{note}', [NoteController::class, 'destroy']);
 
             Route::resource('links', LinkController::class)->except(['show', 'create', 'edit']);
+
+            Route::resource('monthly-financial-summaries', MonthlyFinancialSummaryController::class)
+                ->except(['show', 'create', 'edit']);
 
             Route::get('/memorable-days', [MemorableDayController::class, 'index'])->name('memorable-days.index');
             Route::get('/memorable-days/list', [MemorableDayController::class, 'list'])->name('memorable-days.list');
