@@ -46,7 +46,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($group['items'] as $item)
+                                    @foreach ($group['items']->sortBy('title') as $item)
                                         <tr>
                                             <td class="text-start">{{ $item->title }}</td>
                                             <td class="text-end">{{ toBanglaNumber($item->amount, 2) }}</td>
