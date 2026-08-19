@@ -79,9 +79,9 @@
                                     @endforeach
                                     @for ($i = $group['items']->count(); $i < 10; $i++)
                                         <tr>
-                                            <td>--</td>
-                                            <td>--</td>
-                                            <td>--</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>-</td>
                                         </tr>
                                     @endfor
                                 </tbody>
