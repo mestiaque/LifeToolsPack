@@ -80,9 +80,8 @@
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td></td>
                                         <td>Total</td>
-                                        <td>{{ toBanglaNumber($group['total'], 2) }}</td>
+                                        <td class="text-end p-1"><strong>{{ toBanglaNumber($group['total'], 2) }}</strong></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -102,7 +101,7 @@
     </div>
 
 </div>
-
+@include('me::components.calculator')
 {{-- --------------------------------------------------------- --}}
 {{-- CREATE MODAL --}}
 {{-- --------------------------------------------------------- --}}
