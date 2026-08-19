@@ -5,6 +5,7 @@ namespace ME\EmCore\Http\Controllers;
 use Carbon\Carbon;
 use ME\EmCore\Models\MonthlyFinancialSummary;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use ME\Http\Controllers\Controller;
 use App\Http\Middleware\AuthorizationMiddleware;
 
@@ -69,16 +70,49 @@ class MonthlyFinancialSummaryController extends Controller
         $request->validate([
             'month_label' => 'required|date_format:Y-m',
             'type' => 'required|string|max:50',
-            'title' => 'required|string|max:255',
-            'amount' => 'required|numeric',
+            'titles' => 'required|array|min:1',
+            'titles.*' => 'required|string|max:255',
+            'amounts' => 'required|array|min:1',
+            'amounts.*' => 'required|numeric',
+            'months_counts' => 'required|array|min:1',
+            'months_counts.*' => 'required|integer|min:1',
             'date' => 'nullable|date',
             'note' => 'nullable|string',
         ]);
 
-        MonthlyFinancialSummary::create($request->all());
+        $baseMonth = Carbon::createFromFormat('Y-m', $request->month_label)->startOfMonth();
+        $baseDate = $request->filled('date') ? Carbon::parse($request->date) : null;
+        $titles = $request->input('titles', []);
+        $amounts = $request->input('amounts', []);
+        $monthsCounts = $request->input('months_counts', []);
+
+        DB::transaction(function () use ($baseMonth, $baseDate, $titles, $amounts, $monthsCounts, $request) {
+            foreach ($titles as $idx => $title) {
+                $amount = $amounts[$idx] ?? null;
+                $monthsCount = (int) ($monthsCounts[$idx] ?? 1);
+
+                if ($title === '' || $amount === null || $amount === '' || $monthsCount < 1) {
+                    continue;
+                }
+
+                for ($i = 0; $i < $monthsCount; $i++) {
+                    $monthLabel = $baseMonth->copy()->addMonths($i)->format('Y-m');
+                    $entryDate = $baseDate ? $baseDate->copy()->addMonths($i)->format('Y-m-d') : null;
+
+                    MonthlyFinancialSummary::create([
+                        'month_label' => $monthLabel,
+                        'type' => $request->type,
+                        'title' => $title,
+                        'amount' => $amount,
+                        'date' => $entryDate,
+                        'note' => $request->note,
+                    ]);
+                }
+            }
+        });
 
         return redirect()->route('admin.monthly-financial-summaries.index')
-            ->with('success', __('Entry added successfully.'));
+            ->with('success', __('Entries added successfully.'));
     }
 
     public function update(Request $request, $id)

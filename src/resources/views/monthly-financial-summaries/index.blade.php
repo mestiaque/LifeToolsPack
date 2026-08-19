@@ -118,7 +118,7 @@
             <div class="modal-body">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">{{ __('Month') }}</label>
+                        <label class="form-label">{{ __('Start Month') }}</label>
                         <input type="month" name="month_label" class="form-control form-control-sm"
                             value="{{ old('month_label', now()->format('Y-m')) }}" required>
                     </div>
@@ -129,19 +129,33 @@
                             <option value="expense">{{ __('Expense') }}</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">{{ __('Title') }}</label>
-                        <input type="text" name="title" class="form-control form-control-sm" required>
+                    <div class="col-12">
+                        <label class="form-label mb-1">{{ __('Items') }}</label>
+                        <small class="form-text text-muted d-block mb-1">@lang('Each item can repeat for its own number of consecutive months, starting from Start Month.')</small>
+                        <div id="createItemsWrapper">
+                            <div class="row g-2 mb-2 create-item-row">
+                                <div class="col-5">
+                                    <input type="text" name="titles[]" class="form-control form-control-sm" placeholder="@lang('Title')" required>
+                                </div>
+                                <div class="col-3">
+                                    <input type="number" step="0.01" name="amounts[]" class="form-control form-control-sm" placeholder="@lang('Amount')" required>
+                                </div>
+                                <div class="col-2">
+                                    <input type="number" min="1" step="1" name="months_counts[]" class="form-control form-control-sm" placeholder="@lang('Months')" value="1" required>
+                                </div>
+                                <div class="col-2 d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-encodex-save js-add-item"><i class="fas fa-plus"></i></button>
+                                    <button type="button" class="btn btn-sm btn-encodex-delete js-remove-item"><i class="fas fa-minus"></i></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">{{ __('Amount') }}</label>
-                        <input type="number" step="0.01" name="amount" class="form-control form-control-sm" required>
-                    </div>
+
                     <div class="col-md-6">
                         <label class="form-label">{{ __('Date') }}</label>
                         <input type="date" name="date" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}">
                     </div>
-                    <div class="col-6">
+                    <div class="col-md-6">
                         <label class="form-label">{{ __('Note') }}</label>
                         <textarea name="note" class="form-control form-control-sm" rows="1"></textarea>
                     </div>
@@ -225,5 +239,50 @@
             document.getElementById('edit_note').value = btn.dataset.note;
         });
     });
+
+    (function () {
+        const wrapper = document.getElementById('createItemsWrapper');
+        if (!wrapper) {
+            return;
+        }
+
+        function rowTemplate() {
+            const row = document.createElement('div');
+            row.className = 'row g-2 mb-2 create-item-row';
+            row.innerHTML = `
+                <div class="col-5">
+                    <input type="text" name="titles[]" class="form-control form-control-sm" placeholder="@lang('Title')" required>
+                </div>
+                <div class="col-3">
+                    <input type="number" step="0.01" name="amounts[]" class="form-control form-control-sm" placeholder="@lang('Amount')" required>
+                </div>
+                <div class="col-2">
+                    <input type="number" min="1" step="1" name="months_counts[]" class="form-control form-control-sm" placeholder="@lang('Months')" value="1" required>
+                </div>
+                <div class="col-2 d-flex gap-1">
+                    <button type="button" class="btn btn-sm btn-encodex-save js-add-item"><i class="fas fa-plus"></i></button>
+                    <button type="button" class="btn btn-sm btn-encodex-delete js-remove-item"><i class="fas fa-minus"></i></button>
+                </div>
+            `;
+            return row;
+        }
+
+        wrapper.addEventListener('click', function (e) {
+            const addBtn = e.target.closest('.js-add-item');
+            const removeBtn = e.target.closest('.js-remove-item');
+
+            if (addBtn) {
+                wrapper.appendChild(rowTemplate());
+                return;
+            }
+
+            if (removeBtn) {
+                const rows = wrapper.querySelectorAll('.create-item-row');
+                if (rows.length > 1) {
+                    removeBtn.closest('.create-item-row').remove();
+                }
+            }
+        });
+    })();
 </script>
 @endpush
