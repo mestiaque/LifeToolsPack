@@ -40,29 +40,46 @@ class MonthlyFinancialSummaryController extends Controller
             ->get();
 
         $typeLabels = [
+            'fund' => __('Fund'),
             'loan_payment' => __('Loan Payment'),
             'expense' => __('Expense'),
         ];
+        $typeOrder = ['fund' => 1, 'loan_payment' => 2, 'expense' => 3];
 
-        $groupedEntries = $entries
-            ->groupBy(fn ($item) => $item->month_label . '|' . $item->type)
-            ->map(function ($items) use ($typeLabels) {
-                $first = $items->first();
-                $monthDisplay = Carbon::createFromFormat('Y-m', $first->month_label)->format('M y');
-                $typeLabel = $typeLabels[$first->type] ?? ucfirst(str_replace('_', ' ', $first->type));
+        $monthsData = $entries
+            ->groupBy('month_label')
+            ->map(function ($monthItems, $monthLabel) use ($typeLabels, $typeOrder) {
+                $cards = $monthItems
+                    ->groupBy('type')
+                    ->map(function ($items, $type) use ($typeLabels) {
+                        return [
+                            'type' => $type,
+                            'card_title' => $typeLabels[$type] ?? ucfirst(str_replace('_', ' ', $type)),
+                            'items' => $items,
+                            'total' => $items->sum('amount'),
+                        ];
+                    })
+                    ->sortBy(fn ($card) => $typeOrder[$card['type']] ?? 99)
+                    ->values();
+
+                $fundTotal = (float) $monthItems->where('type', 'fund')->sum('amount');
+                $loanTotal = (float) $monthItems->where('type', 'loan_payment')->sum('amount');
+                $expenseTotal = (float) $monthItems->where('type', 'expense')->sum('amount');
 
                 return [
-                    'month_label' => $first->month_label,
-                    'type' => $first->type,
-                    'card_title' =>  $monthDisplay,
-                    'items' => $items,
-                    'total' => $items->sum('amount'),
+                    'month_label' => $monthLabel,
+                    'month_display' => Carbon::createFromFormat('Y-m', $monthLabel)->format('M y'),
+                    'cards' => $cards,
+                    'fund_total' => $fundTotal,
+                    'loan_total' => $loanTotal,
+                    'expense_total' => $expenseTotal,
+                    'net' => round($fundTotal - ($loanTotal + $expenseTotal), 2),
                 ];
             })
             ->sortBy('month_label')
             ->values();
 
-        return view('em_core::monthly-financial-summaries.index', compact('groupedEntries'));
+        return view('em_core::monthly-financial-summaries.index', compact('monthsData'));
     }
 
     public function store(Request $request)

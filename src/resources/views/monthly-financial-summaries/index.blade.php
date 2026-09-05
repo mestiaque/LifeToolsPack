@@ -31,69 +31,90 @@
                 </form>
             </div>
         </div>
-        @forelse ($groupedEntries as $group)
-            <div class="col-lg-3 mb-4">
-                <div class="card shadow h-100 w-100">
+        @php
+            $typeBadgeClass = [
+                'fund' => 'bg-primary',
+                'loan_payment' => 'bg-danger',
+                'expense' => 'bg-info',
+            ];
+            $typeBgStyle = [
+                'fund' => 'rgba(13, 110, 253, 0.06)',
+                'loan_payment' => 'rgba(220, 53, 69, 0.06)',
+                'expense' => 'rgba(13, 202, 240, 0.06)',
+            ];
+        @endphp
+        @forelse ($monthsData as $month)
+            @foreach ($month['cards'] as $group)
+                <div class="col-lg-3 mb-4">
+                    <div class="card shadow h-100 w-100">
 
-                    <div class="card-body p-0" style="background: {{ $group['type'] == 'expense' ? 'greenx' : 'redx' }}">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered table-hover table-striped table-encodex mb-0 text-center">
-                                <thead class="text-center">
-                                    <tr>
-                                        <th>@lang('Title')</th>
-                                        <th>@lang('Amount')</th>
-                                        <th><span class="badge {{ $group['type'] == 'expense' ? 'bg-info' : 'bg-danger' }} text-white badge-encodex">{{ $group['card_title'] }}</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($group['items']->sortBy('title') as $item)
+                        <div class="card-body p-0" style="background: {{ $typeBgStyle[$group['type']] ?? '' }}">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered table-hover table-striped table-encodex mb-0 text-center">
+                                    <thead class="text-center">
                                         <tr>
-                                            <td class="text-start">{{ $item->title }}</td>
-                                            <td class="text-end">{{ toBanglaNumber($item->amount, 2) }}</td>
-                                            <td class="text-center">
-                                                <div class="d-inline-flex align-items-center gap-1">
-                                                    <button type="button" class="btn btn-sm btn-encodex-edit js-edit-entry"
-                                                        data-id="{{ $item->id }}"
-                                                        data-month="{{ $item->month_label }}"
-                                                        data-type="{{ $item->type }}"
-                                                        data-title="{{ $item->title }}"
-                                                        data-amount="{{ $item->amount }}"
-                                                        data-date="{{ optional($item->date)->format('Y-m-d') }}"
-                                                        data-note="{{ $item->note }}"
-                                                        data-action="{{ route('admin.monthly-financial-summaries.update', $item->id) }}"
-                                                        data-bs-toggle="modal" data-bs-target="#editEntryModal">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-
-                                                    <form action="{{ route('admin.monthly-financial-summaries.destroy', $item->id) }}" method="POST" class="d-inline m-0">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-encodex-delete"
-                                                            onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')">
-                                                            <i class="fas fa-trash"></i>
+                                            <th>@lang('Title')</th>
+                                            <th>@lang('Amount')</th>
+                                            <th><span class="badge {{ $typeBadgeClass[$group['type']] ?? 'bg-secondary' }} text-white badge-encodex">{{ $group['card_title'] }} - {{ $month['month_display'] }}</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($group['items']->sortBy('title') as $item)
+                                            <tr>
+                                                <td class="text-start">{{ $item->title }}</td>
+                                                <td class="text-end">{{ toBanglaNumber($item->amount, 2) }}</td>
+                                                <td class="text-center">
+                                                    <div class="d-inline-flex align-items-center gap-1">
+                                                        <button type="button" class="btn btn-sm btn-encodex-edit js-edit-entry"
+                                                            data-id="{{ $item->id }}"
+                                                            data-month="{{ $item->month_label }}"
+                                                            data-type="{{ $item->type }}"
+                                                            data-title="{{ $item->title }}"
+                                                            data-amount="{{ $item->amount }}"
+                                                            data-date="{{ optional($item->date)->format('Y-m-d') }}"
+                                                            data-note="{{ $item->note }}"
+                                                            data-action="{{ route('admin.monthly-financial-summaries.update', $item->id) }}"
+                                                            data-bs-toggle="modal" data-bs-target="#editEntryModal">
+                                                            <i class="fas fa-edit"></i>
                                                         </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                    @for ($i = $group['items']->count(); $i < 10; $i++)
+
+                                                        <form action="{{ route('admin.monthly-financial-summaries.destroy', $item->id) }}" method="POST" class="d-inline m-0">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-sm btn-encodex-delete"
+                                                                onclick="return confirm('{{ __('Are you sure you want to delete this?') }}')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                        @for ($i = $group['items']->count(); $i < 10; $i++)
+                                            <tr>
+                                                <td>-</td>
+                                                <td>-</td>
+                                                <td>-</td>
+                                            </tr>
+                                        @endfor
+                                    </tbody>
+                                    <tfoot>
                                         <tr>
-                                            <td>-</td>
-                                            <td>-</td>
-                                            <td>-</td>
+                                            <td>Total</td>
+                                            <td class="text-end p-1"><strong>{{ toBanglaNumber($group['total'], 2) }}</strong></td>
                                         </tr>
-                                    @endfor
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td>Total</td>
-                                        <td class="text-end p-1"><strong>{{ toBanglaNumber($group['total'], 2) }}</strong></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
+                </div>
+            @endforeach
+
+            <div class="col-12 mb-4">
+                <div class="p-2 rounded text-white fw-bold text-center {{ $month['net'] < 0 ? 'bg-danger' : 'bg-success' }}">
+                    {{ $month['month_display'] }}: @lang('Fund') - (@lang('Loan Payment') + @lang('Expense')) =
+                    {{ toBanglaNumber($month['net'], 2) }}
                 </div>
             </div>
         @empty
@@ -132,6 +153,7 @@
                     <div class="col-md-6">
                         <label class="form-label">{{ __('Type') }}</label>
                         <select name="type" class="form-select form-select-sm" required>
+                            <option value="fund">{{ __('Fund') }}</option>
                             <option value="loan_payment">{{ __('Loan Payment') }}</option>
                             <option value="expense">{{ __('Expense') }}</option>
                         </select>
@@ -200,6 +222,7 @@
                     <div class="col-md-6">
                         <label class="form-label">{{ __('Type') }}</label>
                         <select name="type" id="edit_type" class="form-select form-select-sm" required>
+                            <option value="fund">{{ __('Fund') }}</option>
                             <option value="loan_payment">{{ __('Loan Payment') }}</option>
                             <option value="expense">{{ __('Expense') }}</option>
                         </select>
