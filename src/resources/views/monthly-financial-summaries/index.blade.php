@@ -112,8 +112,9 @@
             @endforeach
 
             <div class="col-12 mb-4">
-                <div class="p-2 rounded text-white fw-bold text-center {{ $month['net'] < 0 ? 'bg-danger' : 'bg-success' }}">
-                    {{ $month['month_display'] }}: @lang('Fund') - (@lang('Loan Payment') + @lang('Expense')) =
+                {{-- @dd($month, $month['fund_total'], $month['loan_total']) --}}
+                <div class="p-2 rounded fw-bold text-center card glass-card  {{ $month['net'] < 0 ? 'text-danger' : 'text-success' }}"  >
+                    {{ $month['month_display'] }}: @lang('Fund')[{{ toBanglaNumber($month['fund_total'], 2) }}] - (@lang('Loan Payment')[{{ toBanglaNumber($month['loan_total'], 2) }}] + @lang('Expense')[{{ toBanglaNumber($month['expense_total'], 2) }}]) =
                     {{ toBanglaNumber($month['net'], 2) }}
                 </div>
             </div>

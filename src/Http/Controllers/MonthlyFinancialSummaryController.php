@@ -41,7 +41,7 @@ class MonthlyFinancialSummaryController extends Controller
 
         $typeLabels = [
             'fund' => __('Fund'),
-            'loan_payment' => __('Loan Payment'),
+            'loan_payment' => __('Loan Pay'),
             'expense' => __('Expense'),
         ];
         $typeOrder = ['fund' => 1, 'loan_payment' => 2, 'expense' => 3];
