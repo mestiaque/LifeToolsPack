@@ -27,7 +27,7 @@
 <div class="modal fade" id="note-modal" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
     <div class="modal-dialog glass-card">
         <div class="modal-content ">
-            <form id="note-form">
+            <form id="note-form" class="ajax-form">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modal-title">New Note</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
