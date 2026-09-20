@@ -119,6 +119,7 @@ Route::middleware(['web'])->group(function () {
             Route::post('/loans/custom-payment-planner/complete/{loanUserId}', [LoanController::class, 'completeCustomPaymentPlan'])->name('loans.custom-payment-planner.complete');
             Route::get('/loans/history/{user}', [LoanController::class, 'history'])->name('loans.history');
             Route::get('/loans/user-history/{user}', [LoanController::class, 'userHistory'])->name('loans.user-history');
+            Route::get('/loans/statement', [LoanController::class, 'statement'])->name('loans.statement');
 
             Route::get('/loans/create', [LoanController::class, 'createLoan'])->name('loans.create');
             Route::post('/loans/store', [LoanController::class, 'storeLoan'])->name('loans.store');

@@ -33,6 +33,9 @@ class MonthlyFinancialSummaryController extends Controller
         if ($request->filled('title')) {
             $query->where('title', 'like', '%' . $request->title . '%');
         }
+        if ($request->filled('title_not')) {
+            $query->where('title', 'NOT LIKE', '%' . $request->title_not . '%');
+        }
 
         $entries = $query->orderByDesc('month_label')
             ->orderBy('date')

@@ -21,6 +21,9 @@
                       <div class="col-md-2">
                         <input type="text" name="title" class="form-control form-control-sm" placeholder="@lang('Enter Title')" value="{{ request('title') }}" onchange="this.form.submit()">
                       </div>
+                      <div class="col-md-2">
+                        <input type="text" name="title_not" class="form-control form-control-sm" placeholder="@lang('Enter Title to Exclude')" value="{{ request('title_not') }}" onchange="this.form.submit()">
+                      </div>
 
                       <div class="col-md">
                         <a href="{{ route('admin.monthly-financial-summaries.index') }}" class="btn btn-sm btn-encodex-clear rounded">

@@ -25,7 +25,7 @@ class LoanController extends Controller
             return;
         }
 
-        $this->middleware('authorization:loan.show')->only(['index', 'paymentPlanner']);
+        $this->middleware('authorization:loan.show')->only(['index', 'paymentPlanner', 'statement']);
         $this->middleware('authorization:loan.create')->only(['createLoan', 'storeLoan']);
         $this->middleware('authorization:loan.edit')->only(['editLoan', 'updateLoan']);
         $this->middleware('authorization:loan.delete')->only(['deleteLoan']);
@@ -890,5 +890,223 @@ class LoanController extends Controller
             ->value('id');
 
         return $anyLoanId ? (int) $anyLoanId : null;
+    }
+
+    public function statement(Request $request)
+    {
+        $fromDate = $request->filled('from_date')
+            ? Carbon::parse($request->input('from_date'))->startOfDay()
+            : Carbon::today()->startOfMonth();
+        $toDate = $request->filled('to_date')
+            ? Carbon::parse($request->input('to_date'))->endOfDay()
+            : Carbon::today()->endOfMonth();
+        $viewMode = $request->input('view_mode', 'daily');
+        $loanUserId = $request->filled('loan_user_id') ? (int) $request->input('loan_user_id') : null;
+
+        $loansQuery = Loan::with('loanUser', 'repayments');
+        if ($loanUserId) {
+            $loansQuery->where('loan_user_id', $loanUserId);
+        }
+        $loans = $loansQuery->get();
+
+        $loanUsers = LoanUser::orderBy('name')->where('is_active', true)->get();
+
+        $transactions = [];
+
+        foreach ($loans as $loan) {
+            $loanUserName = optional($loan->loanUser)->name ?? '-';
+
+            $transactions[] = [
+                'date' => $loan->date,
+                'type' => 'loan',
+                'loan_type' => $loan->type,
+                'loan_id' => $loan->id,
+                'loan_user_id' => $loan->loan_user_id,
+                'loan_user_name' => $loanUserName,
+                'description' => ucfirst($loan->type) . ' ' . __('Loan'),
+                'amount' => (float) $loan->amount,
+                'balance_effect' => $loan->type === 'given' ? (float) $loan->amount : -(float) $loan->amount,
+                'note' => $loan->note ?? '',
+            ];
+
+            foreach ($loan->repayments as $repayment) {
+                $repaymentEffect = $loan->type === 'given'
+                    ? -(float) $repayment->amount
+                    : (float) $repayment->amount;
+
+                $transactions[] = [
+                    'date' => $repayment->date,
+                    'type' => 'repayment',
+                    'loan_type' => $loan->type,
+                    'loan_id' => $repayment->loan_id,
+                    'loan_user_id' => $repayment->loan_user_id,
+                    'loan_user_name' => $loanUserName,
+                    'description' => __('Repayment') . ' ' . ucfirst($loan->type) . ' ' . __('Loan'),
+                    'amount' => (float) $repayment->amount,
+                    'balance_effect' => $repaymentEffect,
+                    'note' => $repayment->note ?? '',
+                ];
+            }
+        }
+
+        usort($transactions, function ($a, $b) {
+            return strcmp($a['date'], $b['date']);
+        });
+
+        $fromDateStr = $fromDate->format('Y-m-d');
+        $toDateStr = $toDate->format('Y-m-d');
+
+        $openingBalance = 0.0;
+        foreach ($transactions as $transaction) {
+            if ($transaction['date'] < $fromDateStr) {
+                $openingBalance += $transaction['balance_effect'];
+            } else {
+                break;
+            }
+        }
+
+        $rangeTransactions = array_values(array_filter($transactions, function ($t) use ($fromDateStr, $toDateStr) {
+            return $t['date'] >= $fromDateStr && $t['date'] <= $toDateStr;
+        }));
+
+        $runningBalance = $openingBalance;
+        foreach ($rangeTransactions as &$transaction) {
+            $runningBalance += $transaction['balance_effect'];
+            $transaction['running_balance'] = $runningBalance;
+        }
+        unset($transaction);
+
+        $closingBalance = $runningBalance;
+        $totalGivenLoan = 0.0;
+        $totalTakenLoan = 0.0;
+        $totalGivenRepayment = 0.0;
+        $totalTakenRepayment = 0.0;
+        $totalGivenDue = 0.0;
+        $totalTakenDue = 0.0;
+
+        foreach ($transactions as $transaction) {
+            if ($transaction['date'] < $fromDateStr) {
+                continue;
+            }
+            if ($transaction['date'] > $toDateStr) {
+                continue;
+            }
+
+            if ($transaction['type'] === 'loan') {
+                if ($transaction['loan_type'] === 'given') {
+                    $totalGivenLoan += $transaction['amount'];
+                } else {
+                    $totalTakenLoan += $transaction['amount'];
+                }
+            } else {
+                if ($transaction['loan_type'] === 'given') {
+                    $totalGivenRepayment += $transaction['amount'];
+                } else {
+                    $totalTakenRepayment += $transaction['amount'];
+                }
+            }
+        }
+
+        $totalGivenDue = $totalGivenLoan - $totalGivenRepayment;
+        $totalTakenDue = $totalTakenLoan - $totalTakenRepayment;
+
+        $dailySummary = [];
+        foreach ($rangeTransactions as $transaction) {
+            $dateKey = $transaction['date'];
+            if (!isset($dailySummary[$dateKey])) {
+                $dailySummary[$dateKey] = [
+                    'date' => $dateKey,
+                    'date_label' => Carbon::parse($dateKey)->format('D, M j, Y'),
+                    'given_loan' => 0,
+                    'taken_loan' => 0,
+                    'given_repayment' => 0,
+                    'taken_repayment' => 0,
+                ];
+            }
+            if ($transaction['type'] === 'loan') {
+                if ($transaction['loan_type'] === 'given') {
+                    $dailySummary[$dateKey]['given_loan'] += $transaction['amount'];
+                } else {
+                    $dailySummary[$dateKey]['taken_loan'] += $transaction['amount'];
+                }
+            } else {
+                if ($transaction['loan_type'] === 'given') {
+                    $dailySummary[$dateKey]['given_repayment'] += $transaction['amount'];
+                } else {
+                    $dailySummary[$dateKey]['taken_repayment'] += $transaction['amount'];
+                }
+            }
+        }
+        $dailySummary = array_values($dailySummary);
+
+        $monthlySummary = [];
+        foreach ($rangeTransactions as $transaction) {
+            $monthKey = Carbon::parse($transaction['date'])->format('Y-m');
+            if (!isset($monthlySummary[$monthKey])) {
+                $monthlySummary[$monthKey] = [
+                    'month_key' => $monthKey,
+                    'month_label' => Carbon::parse($transaction['date'])->format('F Y'),
+                    'given_loan' => 0,
+                    'taken_loan' => 0,
+                    'given_repayment' => 0,
+                    'taken_repayment' => 0,
+                ];
+            }
+            if ($transaction['type'] === 'loan') {
+                if ($transaction['loan_type'] === 'given') {
+                    $monthlySummary[$monthKey]['given_loan'] += $transaction['amount'];
+                } else {
+                    $monthlySummary[$monthKey]['taken_loan'] += $transaction['amount'];
+                }
+            } else {
+                if ($transaction['loan_type'] === 'given') {
+                    $monthlySummary[$monthKey]['given_repayment'] += $transaction['amount'];
+                } else {
+                    $monthlySummary[$monthKey]['taken_repayment'] += $transaction['amount'];
+                }
+            }
+        }
+        $monthlySummary = array_values($monthlySummary);
+
+        $userSummary = [];
+        foreach ($rangeTransactions as $transaction) {
+            $uid = $transaction['loan_user_id'];
+            if (!isset($userSummary[$uid])) {
+                $userSummary[$uid] = [
+                    'loan_user_id' => $uid,
+                    'loan_user_name' => $transaction['loan_user_name'],
+                    'given_loan' => 0,
+                    'taken_loan' => 0,
+                    'given_repayment' => 0,
+                    'taken_repayment' => 0,
+                ];
+            }
+            if ($transaction['type'] === 'loan') {
+                if ($transaction['loan_type'] === 'given') {
+                    $userSummary[$uid]['given_loan'] += $transaction['amount'];
+                } else {
+                    $userSummary[$uid]['taken_loan'] += $transaction['amount'];
+                }
+            } else {
+                if ($transaction['loan_type'] === 'given') {
+                    $userSummary[$uid]['given_repayment'] += $transaction['amount'];
+                } else {
+                    $userSummary[$uid]['taken_repayment'] += $transaction['amount'];
+                }
+            }
+        }
+        $userSummary = array_values($userSummary);
+
+        return view('em_core::loans.statement', compact(
+            'fromDate', 'toDate', 'viewMode', 'loanUserId',
+            'loanUsers',
+            'rangeTransactions',
+            'openingBalance',
+            'closingBalance',
+            'totalGivenLoan', 'totalTakenLoan',
+            'totalGivenRepayment', 'totalTakenRepayment',
+            'totalGivenDue', 'totalTakenDue',
+            'dailySummary', 'monthlySummary', 'userSummary'
+        ));
     }
 }

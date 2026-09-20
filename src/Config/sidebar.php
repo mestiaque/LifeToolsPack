@@ -31,22 +31,22 @@ return [
                 'icon_color' => 'icc-3',
                 'for_active' => 'admin.loan-users',
             ],
-            [
-                'icon'       => 'fas fa-calendar-check',
-                'title'      => 'Payment Planner',
-                'route'      => 'admin.loans.payment-planner',
-                'permit'     => 'loan.payment_planner',
-                'icon_color' => 'icc-3',
-                'for_active' => 'admin.loans.payment-planner',
-            ],
-            [
-                'icon'       => 'fas fa-table',
-                'title'      => 'C. P. Planner',
-                'route'      => 'admin.loans.custom-payment-planner',
-                'permit'     => 'loan.custom_payment_planner',
-                'icon_color' => 'icc-3',
-                'for_active' => 'admin.loans.custom-payment-planner',
-            ],
+            // [
+            //     'icon'       => 'fas fa-calendar-check',
+            //     'title'      => 'Payment Planner',
+            //     'route'      => 'admin.loans.payment-planner',
+            //     'permit'     => 'loan.payment_planner',
+            //     'icon_color' => 'icc-3',
+            //     'for_active' => 'admin.loans.payment-planner',
+            // ],
+            // [
+            //     'icon'       => 'fas fa-table',
+            //     'title'      => 'C. P. Planner',
+            //     'route'      => 'admin.loans.custom-payment-planner',
+            //     'permit'     => 'loan.custom_payment_planner',
+            //     'icon_color' => 'icc-3',
+            //     'for_active' => 'admin.loans.custom-payment-planner',
+            // ],
         ]
     ],
 
@@ -61,15 +61,15 @@ return [
     ],
 
 
-    [
-        'title'      => 'PayCycle',
-        'icon'       => 'fas fa-wallet',
-        'icon_color' => 'icc-11',
-        'route'      => 'admin.paycycle.index',
-        'permit'     => 'paycycle.show',
-        'for_active' => 'admin.paycycle',
-        'sl'         => 4,
-    ],
+    // [
+    //     'title'      => 'PayCycle',
+    //     'icon'       => 'fas fa-wallet',
+    //     'icon_color' => 'icc-11',
+    //     'route'      => 'admin.paycycle.index',
+    //     'permit'     => 'paycycle.show',
+    //     'for_active' => 'admin.paycycle',
+    //     'sl'         => 4,
+    // ],
     [
         'title'      => 'Drive',
         'icon'       => 'fas fa-hdd',
@@ -158,7 +158,7 @@ return [
         'route'      => 'admin.monthly-financial-summaries.index',
         'permit'     => 'monthly_financial_summary.show',
         'for_active' => 'admin.monthly-financial-summaries',
-        'sl'         => 5,
+        'sl'         => 3,
     ],
     [
         'title'      => 'Notify People',
