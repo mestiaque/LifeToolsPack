@@ -903,13 +903,16 @@ class LoanController extends Controller
         $viewMode = $request->input('view_mode', 'daily');
         $loanUserId = $request->filled('loan_user_id') ? (int) $request->input('loan_user_id') : null;
 
-        $loansQuery = Loan::with('loanUser', 'repayments');
+        $loansQuery = Loan::with('loanUser', 'repayments')
+            ->whereHas('loanUser', function ($q) {
+                $q->where('is_active', true);
+            });
         if ($loanUserId) {
             $loansQuery->where('loan_user_id', $loanUserId);
         }
         $loans = $loansQuery->get();
 
-        $loanUsers = LoanUser::orderBy('name')->where('is_active', true)->get();
+        $loanUsers = LoanUser::where('is_active', true)->orderBy('name')->get();
 
         $transactions = [];
 
@@ -917,7 +920,7 @@ class LoanController extends Controller
             $loanUserName = optional($loan->loanUser)->name ?? '-';
 
             $transactions[] = [
-                'date' => $loan->date,
+                'date' => Carbon::parse($loan->date)->format('Y-m-d'),
                 'type' => 'loan',
                 'loan_type' => $loan->type,
                 'loan_id' => $loan->id,
@@ -935,7 +938,7 @@ class LoanController extends Controller
                     : (float) $repayment->amount;
 
                 $transactions[] = [
-                    'date' => $repayment->date,
+                    'date' => Carbon::parse($repayment->date)->format('Y-m-d'),
                     'type' => 'repayment',
                     'loan_type' => $loan->type,
                     'loan_id' => $repayment->loan_id,
