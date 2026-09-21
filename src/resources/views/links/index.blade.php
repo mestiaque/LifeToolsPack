@@ -37,12 +37,12 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table table-sm table-bordered table-hover table-striped table-encodex table-sm text-center">
+                <table class="table table-sm table-bordered table-hover table-striped table-encodex table-sm text-center table-links-fixed">
                     <thead class="text-center">
                     <tr>
                         <th>#</th>
                         <th>@lang('Title')</th>
-                        <th>@lang('Link')</th>
+                        <th style="width: 60%;">@lang('Link')</th>
                         <th>@lang('Description')</th>
                         <th>@lang('Actions')</th>
                     </tr>
@@ -53,7 +53,12 @@
                         <tr>
                             <td>{{ toBanglaNumber($loop->iteration) }}</td>
                             <td>{{ $link->title }}</td>
-                            <td>{{ $link->link }} @if($link->link) &nbsp;&nbsp;<a href="{{ $link->link }}" target="_blank"><i class="fas fa-external-link-alt"></i></a> @endif</td>
+                            <td class="link-cell">
+                                <span class="link-cell-text" title="{{ $link->link }}">{{ $link->link }}</span>
+                                @if($link->link)
+                                    &nbsp;&nbsp;<a href="{{ $link->decoded_link }}" target="_blank"><i class="fas fa-external-link-alt"></i></a>
+                                @endif
+                            </td>
                             <td>{{ $link->description }}</td>
                             <td class="text-center">
                                 <div class="d-inline-flex align-items-center gap-1">
@@ -161,17 +166,17 @@
 
                         <div class="col-md-6">
                             <label class="form-label">{{ __('Title') }}</label>
-                            <input type="text" name="title" class="form-control form-control-sm" value="{{ $link->title }}" required>
+                            <input type="text" name="title" class="form-control form-control-sm" value="{{ $link->decoded_title }}" required>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label">{{ __('Link') }}</label>
-                            <input type="text" name="link" class="form-control form-control-sm" value="{{ $link->link }}">
+                            <input type="text" name="link" class="form-control form-control-sm" value="{{ $link->decoded_link }}">
                         </div>
 
                         <div class="col-12">
                             <label class="form-label">{{ __('Description') }}</label>
-                            <textarea name="description" class="form-control form-control-sm">{{ $link->description }}</textarea>
+                            <textarea name="description" class="form-control form-control-sm">{{ $link->decoded_description }}</textarea>
                         </div>
 
                     </div>
@@ -204,17 +209,17 @@
 
                         <div class="col-6">
                             <label class="fw-bold">{{ __('Title') }}:</label>
-                            <div>{{ $link->title }}</div>
+                            <div class="reveal-text" data-encoded="{{ $link->title }}" title="{{ __('Click to reveal') }}">{{ $link->title }}</div>
                         </div>
 
                         <div class="col-6">
                             <label class="fw-bold">{{ __('Link') }}:</label>
-                            <div>{{ $link->link }}</div>
+                            <div class="reveal-text" data-encoded="{{ $link->link }}" title="{{ __('Click to reveal') }}">{{ $link->link }}</div>
                         </div>
 
                         <div class="col-12">
                             <label class="fw-bold">{{ __('Description') }}:</label>
-                            <div>{{ $link->description }}</div>
+                            <div class="reveal-text" data-encoded="{{ $link->description }}" title="{{ __('Click to reveal') }}">{{ $link->description }}</div>
                         </div>
 
                     </div>
@@ -233,7 +238,54 @@
         color: gray;
         text-decoration: none;
     }
+    .reveal-text {
+        cursor: pointer;
+        word-break: break-all;
+    }
+    .table-links-fixed {
+        table-layout: fixed;
+    }
+    .link-cell {
+        max-width: 0;
+    }
+    .link-cell-text {
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
 </style>
+@endpush
+
+@push('js')
+<script>
+    function base64ToUtf8(base64) {
+        const binary = atob(base64);
+        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+        return new TextDecoder('utf-8').decode(bytes);
+    }
+
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('.reveal-text');
+        if (!el) return;
+
+        const modal = el.closest('.modal');
+        const fields = modal ? modal.querySelectorAll('.reveal-text') : [el];
+        const showPlain = el.dataset.state !== 'plain';
+
+        fields.forEach(function (field) {
+            if (showPlain) {
+                field.textContent = base64ToUtf8(field.dataset.encoded);
+                field.dataset.state = 'plain';
+            } else {
+                field.textContent = field.dataset.encoded;
+                field.dataset.state = 'encoded';
+            }
+        });
+    });
+</script>
 @endpush
 @endsection
 
